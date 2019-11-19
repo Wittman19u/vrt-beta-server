@@ -234,7 +234,7 @@ function forgotPassword(req, res, next){
 			db.none('update account set localtoken=$1, expireslocaltoken=$2 where id=$3',[token, Date.now() + 360000, parseInt(user.id)]
 			).then( () => {
 				const mailOptions = {
-					from: 'noreply@veryroadtrip.eu',
+					from: 'VeryRoadTrip.eu <noreply@veryroadtrip.eu>',
 					to: `${user.email}`,
 					subject: 'Link To Reset Password',
 					text:
