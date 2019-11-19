@@ -5,7 +5,7 @@ module.exports = {
 		version: '1.0.0',
 		description: 'VeryRoadTrip RESTful API description with Swagger',
 	},
-	host: 'https://vrt-srv.herokuapp.com/',
+	host: 'vrt-srv.herokuapp.com',
 	basePath: '/',
 	securityDefinitions: {
 		bearerAuth: {
