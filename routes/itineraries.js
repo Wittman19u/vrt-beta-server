@@ -48,6 +48,7 @@ var router = express.Router();
  *     required:
  *       - departure
  *       - arrival
+ *       - public
  */
 
 /**

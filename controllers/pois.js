@@ -59,7 +59,9 @@ function getInBoundPois(req, res, next) {
 }
 
 function getSinglePoi(req, res, next) {
+
 	var poiID = parseInt(req.params.id);
+	console.log(poiID);
 	db.one('select * from poi where id = $1', poiID)
 		.then(function (data) {
 			res.status(200)

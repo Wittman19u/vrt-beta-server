@@ -64,6 +64,8 @@ var router = express.Router();
  *         format: date-time
  *     required:
  *       - label
+ *       - created_at
+ *       - updated_at
  */
 
 // /**

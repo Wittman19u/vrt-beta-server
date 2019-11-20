@@ -1,17 +1,17 @@
 module.exports = {
-	swagger: "2.0",
+	swagger: process.env.SWAGGER_VERSION,
 	info: {
-		title: 'VeryRoadTrip API',
-		version: '1.0.0',
-		description: 'VeryRoadTrip RESTful API description with Swagger',
+		title: process.env.SWAGGER_API_TITLE,
+		version: process.env.SWAGGER_API_VERSION,
+		description: process.env.SWAGGER_API_DESCRIPTION,
 	},
-	host: 'vrt-srv.herokuapp.com',
-	basePath: '/',
+	host: process.env.SWAGGER_HOST,
+	basePath: process.env.SWAGGER_BASEPATH,
 	securityDefinitions: {
 		bearerAuth: {
-			type: 'apiKey',
-			name: 'Authorization',
-			in: 'header',
+			type: process.env.SWAGGER_BEARER_TYPE,
+			name: process.env.SWAGGER_BEARER_NAME,
+			in: process.env.SWAGGER_BEARER_IN,
 		},
 	},
 };

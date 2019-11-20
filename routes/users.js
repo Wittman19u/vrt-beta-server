@@ -48,9 +48,12 @@ var router = express.Router();
  *         format: email
  *       role_id:
  *         type: integer
- *         description: 1==man, 2==woman, 3 not defined
+ *         default: 3
+ *         description: 1==admin, 2==Professional, 3==user
  *       status_id:
  *         type: integer
+ *         default: 1
+ *         description: 1==active, 2==not active
  *       media_id:
  *         type: integer
  *       consent:
@@ -67,8 +70,15 @@ var router = express.Router();
  *         type: integer
  *         format: date-time
  *     required:
+ *       - firstname
  *       - email
  *       - password
+ *       - gender
+ *       - role_id
+ *       - status_id
+ *       - created_at
+ *       - updated_at
+ *       - consent_at
  */
 
 /**

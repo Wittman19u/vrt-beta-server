@@ -1,3 +1,3 @@
 module.exports = {
-    secret: 'jwt-secret-heroku'
+    secret: process.env.JWT_SECRET
 };

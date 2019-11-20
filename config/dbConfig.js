@@ -1,13 +1,14 @@
+console.log(process.env.DB_HOST);
 module.exports = {
 	// LOCAL CONFIG
-	host: 'ec2-46-137-173-221.eu-west-1.compute.amazonaws.com', // server name or IP address;
-	port: 5432,
-	database: 'd5l2immgr9mpsj',
-	user: 'byauhesadwzgra',
-	ssl:true,
-	password: '606e5f15fe5102e0ec0638efa1d3a1e54dc544e0f09450f32ff97d18fcd42b6a',
-	uri: 'postgres://byauhesadwzgra:606e5f15fe5102e0ec0638efa1d3a1e54dc544e0f09450f32ff97d18fcd42b6a@ec2-46-137-173-221.eu-west-1.compute.amazonaws.com:5432/d5l2immgr9mpsj'
-}
+	host: process.env.DB_HOST, // server name or IP address;
+	port: process.env.DB_PORT,
+	database: process.env.DB_DATABASE,
+	user: process.env.DB_USER,
+	ssl: process.env.DB_SSL ,
+	password: process.env.DB_PASSWORD,
+	uri: process.env.DB_URI
+};
 
 
 // -- FUNCTION: public.st_createfishnet(integer, integer, numeric, numeric, numeric, numeric)
