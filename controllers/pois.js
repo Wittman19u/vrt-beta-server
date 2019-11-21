@@ -1,4 +1,5 @@
 const db = require('./db');
+const moment = require('moment');
 
 
 // function getAllPois(req, res, next) {
@@ -30,32 +31,37 @@ function getInBoundPois(req, res, next) {
 		north: req.query.north,
 		east:  req.query.east
 	};
-	let startDate = req.query.datetime;
-
-	let typecond = ` (type=3 OR (type=2 AND sourcetype not like '%Hotel%' ) OR ( (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR start is null))`;
+	let startDate = moment().format('YYYY-MM-DD')
+	if( typeof req.query.datetime !== 'undefined'){
+		startDate = req.query.datetime;
+	}
+	
+	console.log('test');
+	let typecond = ` (type=3 OR (type=2 AND sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%']) ) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
 	switch (req.query.type){
 	case "act":
 		typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
 		break;
 	case "poi":
-		typecond = ` sourcetype not like '%Hotel%' AND (type=2 AND (start::timestamp::date > '${startDate}'::timestamp::date OR start is null))`;
+		typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
 		break;
 	}
-	let sql= ` WITH points as ( SELECT distinct on(cells.geom) cells.geom, cells.row, cells.col, poi.id,  MAX(poi.priority) as bestpriority FROM  ST_CreateFishnet(4, 4,  ${boundsobj.north}, ${boundsobj.south}, ${boundsobj.east}, ${boundsobj.west}) AS cells inner JOIN public.poi ON ST_Within(poi.geom, cells.geom) GROUP BY cells.row, cells.col, cells.geom, poi.id ORDER BY cells.geom, cells.row ASC, cells.col ASC,  bestpriority DESC ) select * from poi inner join points on poi.id=points.id WHERE ${typecond}`;
+	let sql= ` WITH points AS ( SELECT distinct on(cells.geom) cells.geom, cells.row, cells.col, poi.id,  MAX(poi.priority) AS bestpriority FROM  ST_CreateFishnet(4, 4,  ${boundsobj.north}, ${boundsobj.south}, ${boundsobj.east}, ${boundsobj.west}) AS cells INNER JOIN public.poi ON ST_Within(poi.geom, cells.geom) GROUP BY cells.row, cells.col, cells.geom, poi.id ORDER BY cells.geom, cells.row ASC, cells.col ASC,  bestpriority DESC ) SELECT * FROM poi INNER JOIN points ON poi.id=points.id WHERE ${typecond}`;
 	console.log(sql);
 	db.any(sql)
-		.then(function (data) {
-			res.status(200)
-				.json({
-					status: 'success',
-					itemsNumber: data.length,
-					data: data,
-					message: 'Retrieved pois in bound'
-				});
-		})
-		.catch(function (err) {
-			return next(err);
-		});
+	.then(function (data) {
+		res.status(200)
+			.json({
+				status: 'success',
+				itemsNumber: data.length,
+				data: data,
+				message: 'Retrieved pois in bound'
+			});
+	})
+	.catch(function (err) {
+		console.error(err);
+		return next(err);
+	});
 }
 
 function getSinglePoi(req, res, next) {
