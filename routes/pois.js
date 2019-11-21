@@ -106,26 +106,26 @@ var router = express.Router();
  *         required: true
  *         in: query
  *         type: number
- *         description: Poi's bound north (example 48.277773)
- *         default: 48.277773
+ *         description: Poi's bound north (example 48.721093728486146)
+ *         default: 48.721093728486146
  *       - name: south
  *         required: true
  *         in: query
  *         type: number
- *         description: Poi's bound south (example 48.172479)
- *         default: 48.172479
+ *         description: Poi's bound south (example 48.62428582180533)
+ *         default: 48.62428582180533
  *       - name: east
  *         required: true
  *         in: query
  *         type: number
- *         description: Poi's bound east (example 6.569276)
- *         default: 6.569276
+ *         description: Poi's bound east (example 6.273365020751953)
+ *         default: 6.273365020751953
  *       - name: west
  *         required: true
  *         in: query
  *         type: number
- *         description: Poi's bound west (example 6.447543)
- *         default: 6.447543
+ *         description: Poi's bound west (example 6.099987030029298)
+ *         default: 6.099987030029298
  *       - name: datetime
  *         in: query
  *         type: string
