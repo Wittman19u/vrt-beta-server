@@ -42,100 +42,100 @@ var router = express.Router();
 router.get('/', waypointController.getAllWaypoints);
 
 
-/**
- * @swagger
- * /api/waypoints/{id}:
- *   get:
- *     tags:
- *       - Waypoints
- *     description: Returns a single waypoint
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: id
- *         description: Waypoint's id
- *         in: path
- *         required: true
- *         type: integer
- *     responses:
- *       200:
- *         description: A single waypoint
- *         schema:
- *           $ref: '#/definitions/Waypoint'
- */
-router.get('/:id', waypointController.getSingleWaypoint);
+// /**
+//  * @swagger
+//  * /api/waypoints/{id}:
+//  *   get:
+//  *     tags:
+//  *       - Waypoints
+//  *     description: Returns a single waypoint
+//  *     produces:
+//  *       - application/json
+//  *     parameters:
+//  *       - name: id
+//  *         description: Waypoint's id
+//  *         in: path
+//  *         required: true
+//  *         type: integer
+//  *     responses:
+//  *       200:
+//  *         description: A single waypoint
+//  *         schema:
+//  *           $ref: '#/definitions/Waypoint'
+//  */
+// router.get('/:id', waypointController.getSingleWaypoint);
 
 
-/**
- * @swagger
- * /api/waypoints:
- *   post:
- *     tags:
- *       - Waypoints
- *     description: Creates a new waypoint
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: waypoint
- *         description: Fields for new Waypoint resource
- *         in: body
- *         required: true
- *         schema:
- *           $ref: '#/definitions/Waypoint'
- *     responses:
- *       200:
- *         description: Successfully created
- */
-router.post('/', waypointController.createWaypoint);
+// /**
+//  * @swagger
+//  * /api/waypoints:
+//  *   post:
+//  *     tags:
+//  *       - Waypoints
+//  *     description: Creates a new waypoint
+//  *     produces:
+//  *       - application/json
+//  *     parameters:
+//  *       - name: waypoint
+//  *         description: Fields for new Waypoint resource
+//  *         in: body
+//  *         required: true
+//  *         schema:
+//  *           $ref: '#/definitions/Waypoint'
+//  *     responses:
+//  *       200:
+//  *         description: Successfully created
+//  */
+// router.post('/', waypointController.createWaypoint);
 
 
-/**
- * @swagger
- * /api/waypoints/{id}:
- *   put:
- *     tags:
- *       - Waypoints
- *     description: Updates a single waypoint
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: id
- *         description: Waypoint's id
- *         in: path
- *         required: true
- *         type: integer
- *       - name: waypoint
- *         description: Fields for Waypoint resource
- *         in: body
- *         required: true
- *         schema:
- *           $ref: '#/definitions/Waypoint'
- *     responses:
- *       200:
- *         description: Successfully updated
- */
-router.put('/:id', waypointController.updateWaypoint);
+// /**
+//  * @swagger
+//  * /api/waypoints/{id}:
+//  *   put:
+//  *     tags:
+//  *       - Waypoints
+//  *     description: Updates a single waypoint
+//  *     produces:
+//  *       - application/json
+//  *     parameters:
+//  *       - name: id
+//  *         description: Waypoint's id
+//  *         in: path
+//  *         required: true
+//  *         type: integer
+//  *       - name: waypoint
+//  *         description: Fields for Waypoint resource
+//  *         in: body
+//  *         required: true
+//  *         schema:
+//  *           $ref: '#/definitions/Waypoint'
+//  *     responses:
+//  *       200:
+//  *         description: Successfully updated
+//  */
+// router.put('/:id', waypointController.updateWaypoint);
 
 
-/**
- * @swagger
- * /api/waypoints/{id}:
- *   delete:
- *     tags:
- *       - Waypoints
- *     description: Deletes a single waypoint
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: id
- *         description: Waypoint's id
- *         in: path
- *         required: true
- *         type: integer
- *     responses:
- *       200:
- *         description: Successfully deleted
- */
-router.delete('/:id', waypointController.removeWaypoint);
+// /**
+//  * @swagger
+//  * /api/waypoints/{id}:
+//  *   delete:
+//  *     tags:
+//  *       - Waypoints
+//  *     description: Deletes a single waypoint
+//  *     produces:
+//  *       - application/json
+//  *     parameters:
+//  *       - name: id
+//  *         description: Waypoint's id
+//  *         in: path
+//  *         required: true
+//  *         type: integer
+//  *     responses:
+//  *       200:
+//  *         description: Successfully deleted
+//  */
+// router.delete('/:id', waypointController.removeWaypoint);
 
 module.exports = router;

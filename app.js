@@ -1,10 +1,11 @@
-require('dotenv').config()
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors')
 const createError = require('http-errors');
 const path = require('path');
 //const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const express = require('express');
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const helmet = require('helmet');
@@ -34,14 +35,15 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const poisRouter = require('./routes/pois');
 const itinerariesRouter = require('./routes/itineraries');
-const waypointsRouter = require('./routes/waypoints');
+// const waypointsRouter = require('./routes/waypoints');
 
 app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/pois', poisRouter);
 app.use('/api/itineraries', itinerariesRouter);
-app.use('/api/waypoints', waypointsRouter);
+// app.use('/api/waypoints', waypointsRouter);
 
+app.use(cors())
 
 //Swagger
 

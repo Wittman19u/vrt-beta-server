@@ -64,10 +64,12 @@ function getSingleItinerary(req, res, next) {
 }
 
 function createItinerary(req, res, next) {
-	var userID = passport.authenticate('jwt', { session: false }, function (req, res) {
-		return req.user.id;
-	});
-	console.log(userID);
+	const userID = passport.authenticate('jwt', { session: false }, function(err, user, info) {
+		if (err) { return next(err); }
+		if (!user) { return ''; }
+		return user.id;
+	})(req, res, next);
+	console.log("userid:" + userID);
 	// passport.authenticate('jwt', { session: false }, (err, user, info) => {
 	// 	if (err) {
 	// 		console.error(err);

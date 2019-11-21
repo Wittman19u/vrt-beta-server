@@ -1,5 +1,6 @@
 module.exports = {
 	swagger: process.env.SWAGGER_VERSION,
+	schemes: ['http', 'https'],
 	info: {
 		title: process.env.SWAGGER_API_TITLE,
 		version: process.env.SWAGGER_API_VERSION,
@@ -8,10 +9,10 @@ module.exports = {
 	host: process.env.SWAGGER_HOST,
 	basePath: process.env.SWAGGER_BASEPATH,
 	securityDefinitions: {
-		bearerAuth: {
+		authorisationJWT: {
 			type: process.env.SWAGGER_BEARER_TYPE,
 			name: process.env.SWAGGER_BEARER_NAME,
-			in: process.env.SWAGGER_BEARER_IN,
+			in: process.env.SWAGGER_BEARER_IN
 		},
 	},
 };

@@ -87,6 +87,8 @@ var router = express.Router();
  *   get:
  *     tags:
  *       - Users
+ *     security:
+ *       - authorisationJWT: []
  *     description: Returns all users
  *     summary: Returns a users list (max 16)
  *     produces:
@@ -117,7 +119,7 @@ router.get('/', userController.getAllUsers);
  *     description: Returns a single user
  *     summary: Returns a single user
  *     security:
- *       - bearerAuth: []
+ *       - authorisationJWT: []
  *     produces:
  *       - application/json
  *     parameters:
@@ -143,6 +145,8 @@ router.get('/:id', userController.getSingleUser);
  *       - Users
  *     description: Creates a new user
  *     summary: Creates a new user
+ *     security:
+ *       - authorisationJWT: []
  *     produces:
  *       - application/json
  *     parameters:
@@ -170,7 +174,7 @@ router.post('/', userController.createUser);
  *     description: Updates a single user
  *     summary: Updates a single user
  *     security:
- *       - bearerAuth: []
+ *       - authorisationJWT: []
  *     produces:
  *       - application/json
  *     parameters:
@@ -201,7 +205,7 @@ router.put('/:id', userController.updateUser);
  *     description: Deletes a single user
  *     summary: Deletes a single user
  *     security:
- *       - bearerAuth: []
+ *       - authorisationJWT: []
  *     produces:
  *       - application/json
  *     parameters:
@@ -222,28 +226,20 @@ router.delete('/:id', userController.removeUser);
  *   post:
  *     tags:
  *       - Users
- *     name: Login
  *     summary: Logs in a user
- *     produces:
- *       - application/json
  *     consumes:
- *       - application/json
+ *       - application/x-www-form-urlencoded
  *     parameters:
- *       - name: body
- *         in: body
- *         schema:
- *           $ref: '#/definitions/User'
- *           type: object
- *           properties:
- *             email:
- *               type: string
- *               format: email
- *             password:
- *               type: string
- *               format: password
- *         required:
- *           - email
- *           - password
+ *       - name: email
+ *         type: string
+ *         format: email
+ *         in: formData
+ *         required: true
+ *       - name: password
+ *         type: string
+ *         format: password
+ *         in: formData
+ *         required: true
  *     responses:
  *       '200':
  *         description: User found and logged in successfully
@@ -260,22 +256,17 @@ router.post('/loginUser', userController.loginUser);
  *   post:
  *     tags:
  *       - Users
- *     name: Forgot Password
  *     summary: Sends an email with a reset password link when a user inevitably forgets their password
- *     consumes:
+ *     produces:
  *       - application/json
+ *     consumes:
+ *       - application/x-www-form-urlencoded
  *     parameters:
- *      - name: body
- *        in: body
- *        schema:
- *          $ref: '#/definitions/User'
- *          type: object
- *          properties:
- *            email:
- *              type: string
- *              format: email
- *        required:
- *          - email
+ *       - name: email
+ *         type: string
+ *         format: email
+ *         in: formData
+ *         required: true
  *     responses:
  *       '200':
  *         description: Reset email sent
@@ -292,31 +283,28 @@ router.post('/forgotPassword', userController.forgotPassword);
  *   put:
  *     tags:
  *       - Users
- *     name: Update user's password
  *     summary: Update user's password after they've forgotten it
- *     consumes:
- *       - application/json
  *     produces:
  *       - application/json
  *     parameters:
- *       - in: body
- *         name: body
+ *       - name: body
+ *         in: body
+ *         description: data to send {email, resetPasswordToken, password}
  *         schema:
- *           $ref: '#/definitions/User'
  *           type: object
+ *           required:
+ *             - email
+ *             - resetPasswordToken
+ *             - password
  *           properties:
  *             email:
  *               type: string
  *               format: email
+ *             resetPasswordToken:
+ *               type: string
  *             password:
  *               type: string
  *               format: password
- *             resetPasswordToken:
- *               type: string
- *         required:
- *           - email
- *           - password
- *           - resetPasswordToken
  *     responses:
  *       '200':
  *         description: User's password successfully updated
@@ -333,10 +321,9 @@ router.put('/updatePasswordViaEmail', userController.updatePasswordViaEmail);
  *   put:
  *     tags:
  *       - Users
- *     name: Update password logged in
  *     summary: Update password while user is already logged in
  *     security:
- *       - bearerAuth: []
+ *       - authorisationJWT: []
  *     consumes:
  *       - application/json
  *     produces:
@@ -344,9 +331,12 @@ router.put('/updatePasswordViaEmail', userController.updatePasswordViaEmail);
  *     parameters:
  *       - name: body
  *         in: body
+ *         description: data to send {email, password}
  *         schema:
- *           $ref: '#/definitions/User'
  *           type: object
+ *           required:
+ *             - email
+ *             - password
  *           properties:
  *             email:
  *               type: string
@@ -354,9 +344,6 @@ router.put('/updatePasswordViaEmail', userController.updatePasswordViaEmail);
  *             password:
  *               type: string
  *               format: password
- *         required:
- *           - email
- *           - password
  *     responses:
  *       '200':
  *         description: User's password successfully updated

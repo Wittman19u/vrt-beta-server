@@ -6,6 +6,11 @@ var router = express.Router();
  * @swagger
  * definitions:
  *   Itinerary:
+ *     type: object
+ *     required:
+ *       - departure
+ *       - arrival
+ *       - public
  *     properties:
  *       id:
  *         type: integer
@@ -45,10 +50,19 @@ var router = express.Router();
  *       updated_at:
  *         type: string
  *         format: date-time
+
+ *   ItineraryWithWaypoints:
+ *     type: object
  *     required:
- *       - departure
- *       - arrival
- *       - public
+ *       - itinerary
+ *     properties:
+ *       waypoints:
+ *         description: Waipoints list
+ *         type: array
+ *         items:
+ *           type: integer
+ *       itinerary:
+ *         $ref: '#/definitions/Itinerary'
  */
 
 /**
@@ -58,6 +72,8 @@ var router = express.Router();
  *     tags:
  *       - Itineraries
  *     description: Returns all itineraries
+ *     security:
+ *       - authorisationJWT: []
  *     produces:
  *       - application/json
  *     parameters:
@@ -82,7 +98,7 @@ router.get('/', itineraryController.getAllItineraries);
  *       - Itineraries
  *     description: Returns personal user's itineraries
  *     security:
- *       - bearerAuth: []
+ *       - authorisationJWT: []
  *     produces:
  *       - application/json
  *     responses:
@@ -128,19 +144,11 @@ router.get('/:id', itineraryController.getSingleItinerary);
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: itinerary
- *         description: Fields for new Itinerary resource
+ *       - name: body
  *         in: body
- *         required: true
+ *         description: data to send {itinerary, waypoints}
  *         schema:
- *           $ref: '#/definitions/Itinerary'
- *       - name: waypoints
- *         description: Waipoints list
- *         in: body
- *         type: array
- *         collectionFormat: csv
- *         items:
- *           type: integer
+ *           $ref: '#/definitions/ItineraryWithWaypoints'
  *     responses:
  *       200:
  *         description: Successfully created
@@ -179,6 +187,8 @@ router.post('/', itineraryController.createItinerary);
  *     tags:
  *       - Itineraries
  *     description: Deletes a single itinerary
+ *     security:
+ *       - authorisationJWT: []
  *     produces:
  *       - application/json
  *     parameters:

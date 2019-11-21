@@ -103,34 +103,34 @@ var router = express.Router();
  *       - application/json
  *     parameters:
  *       - name: north
- *         description: Poi's bound north
+ *         required: true
  *         in: query
  *         type: number
- *         example: 48.277773
+ *         description: Poi's bound north 48.277773
  *       - name: south
- *         description: Poi's bound south
+ *         required: true
  *         in: query
  *         type: number
- *         example: 48.172479
+ *         description: Poi's bound south 48.172479
  *       - name: east
- *         description: Poi's bound east
+ *         required: true
  *         in: query
  *         type: number
- *         example: 6.447543
+ *         description: Poi's bound east 6.447543
  *       - name: west
- *         description: Poi's bound west
+ *         required: true
  *         in: query
  *         type: number
- *         example: 6.569276
+ *         description: Poi's bound west 6.569276
  *       - name: datetime
- *         description: Date time start
  *         in: query
  *         type: string
- *         format: datetime
+ *         description: Date time start
+ *         format: date
  *       - name: type
- *         description: type pois selected 1 == ACT 2 == POI 3 == PDT
  *         in: query
  *         type: integer
+ *         description: type pois selected 1 == ACT 2 == POI 3 == PDT
  *     responses:
  *       200:
  *         description: An array of pois
