@@ -165,35 +165,7 @@ router.get('/:id', userController.getSingleUser);
 router.post('/', userController.createUser);
 
 
-/**
- * @swagger
- * /api/users/{id}:
- *   put:
- *     tags:
- *       - Users
- *     description: Updates a single user
- *     summary: Updates a single user
- *     security:
- *       - authorisationJWT: []
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: id
- *         description: user's id
- *         in: path
- *         required: true
- *         type: integer
- *       - name: user
- *         description: Fields for User resource
- *         in: body
- *         required: true
- *         schema:
- *           $ref: '#/definitions/User'
- *     responses:
- *       200:
- *         description: Successfully updated
- */
-router.put('/:id', userController.updateUser);
+
 
 
 /**
@@ -222,7 +194,7 @@ router.delete('/:id', userController.removeUser);
 
 /**
  * @swagger
- * /api/users/loginUser:
+ * /api/users/loginuser:
  *   post:
  *     tags:
  *       - Users
@@ -248,11 +220,11 @@ router.delete('/:id', userController.removeUser);
  *       '403':
  *         description: Email and password don't match
  */
-router.post('/loginUser', userController.loginUser);
+router.post('/loginuser', userController.loginUser);
 
 /**
  * @swagger
- * /api/users/forgotPassword:
+ * /api/users/forgotpassword:
  *   post:
  *     tags:
  *       - Users
@@ -275,11 +247,11 @@ router.post('/loginUser', userController.loginUser);
  *       '403':
  *         description: Email not found in db
  */
-router.post('/forgotPassword', userController.forgotPassword);
+router.post('/forgotpassword', userController.forgotPassword);
 
 /**
  * @swagger
- * /api/users/updatePasswordViaEmail:
+ * /api/users/updatepasswordviaemail:
  *   put:
  *     tags:
  *       - Users
@@ -313,11 +285,13 @@ router.post('/forgotPassword', userController.forgotPassword);
  *       '403':
  *         description: Password reset link is invalid or has expired
  */
-router.put('/updatePasswordViaEmail', userController.updatePasswordViaEmail);
+router.put('/updatepasswordviaemail', userController.updatePasswordViaEmail);
+
+
 
 /**
  * @swagger
- * /api/users/updatePassword:
+ * /api/users/updatepassword:
  *   put:
  *     tags:
  *       - Users
@@ -353,7 +327,37 @@ router.put('/updatePasswordViaEmail', userController.updatePasswordViaEmail);
  *         description: User is not found in db to update
  *
  */
-router.put('/updatePassword', userController.updatePassword);
+router.put('/updatepassword', userController.updatePassword);
 
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   put:
+ *     tags:
+ *       - Users
+ *     description: Updates a single user
+ *     summary: Updates a single user
+ *     security:
+ *       - authorisationJWT: []
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         description: user's id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *       - name: user
+ *         description: Fields for User resource
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/User'
+ *     responses:
+ *       200:
+ *         description: Successfully updated
+ */
+router.put('/:id', userController.updateUser);
 
 module.exports = router;

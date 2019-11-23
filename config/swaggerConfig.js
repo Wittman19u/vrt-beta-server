@@ -1,6 +1,6 @@
 module.exports = {
 	swagger: process.env.SWAGGER_VERSION,
-	schemes: ['http', 'https'],
+	schemes: process.env.SWAGGER_SCHEMES,
 	info: {
 		title: process.env.SWAGGER_API_TITLE,
 		version: process.env.SWAGGER_API_VERSION,

@@ -123,33 +123,6 @@ function createUser(req, res, next) {
 }
 
 
-// update user information without password
-function updateUser(req, res, next) {
-
-	passport.authenticate('jwt', { session: false }, (err, user, info) => {
-		if (err) {
-			console.error(err);
-		}
-		if (info !== undefined) {
-			console.error(info.message);
-			res.status(403).json({
-				message: info.message
-			});
-		} else {
-			db.none('update account set firstname = $1, lastname = $2, email = $3 where id=$4',
-				[req.body.firstname, req.body.lastname, req.body.email.toLowerCase(), parseInt(req.params.id)])
-				.then(function () {
-					res.status(200)
-						.json({
-							status: 'success',
-							message: 'Updated user'
-						});
-				}).catch(function (err) {
-					return next(err);
-				});
-		}
-	})(req, res, next);
-}
 
 function removeUser(req, res, next) {
 	passport.authenticate('jwt', { session: false }, (err, user, info) => {
@@ -275,7 +248,6 @@ function forgotPassword(req, res, next){
 }
 
 function updatePasswordViaEmail(req, res, next){
-	console.log( req.body.resetPasswordToken);
 	if (req.body.email === '' || req.body.resetPasswordToken === '' || req.body.password === '') {
 		res.status(400).json({
 			message: 'Field required'
@@ -350,15 +322,43 @@ function updatePassword(req, res, next){
 	})(req, res, next);
 }
 
+// update user information without password
+function updateUser(req, res, next) {
+
+	passport.authenticate('jwt', { session: false }, (err, user, info) => {
+		if (err) {
+			console.error(err);
+		}
+		if (info !== undefined) {
+			console.error(info.message);
+			res.status(403).json({
+				message: info.message
+			});
+		} else {
+			db.none('update account set firstname = $1, lastname = $2, email = $3 where id=$4',
+				[req.body.firstname, req.body.lastname, req.body.email.toLowerCase(), parseInt(req.params.id)])
+				.then(function () {
+					res.status(200)
+						.json({
+							status: 'success',
+							message: 'Updated user'
+						});
+				}).catch(function (err) {
+					return next(err);
+				});
+		}
+	})(req, res, next);
+}
 
 module.exports = {
 	getAllUsers: getAllUsers,
 	getSingleUser: getSingleUser,
+
+	forgotPassword: forgotPassword,
+	updatePasswordViaEmail: updatePasswordViaEmail,
+	updatePassword: updatePassword,
 	createUser: createUser,
 	updateUser: updateUser,
 	removeUser: removeUser,
-	loginUser: loginUser,
-	forgotPassword: forgotPassword,
-	updatePasswordViaEmail: updatePasswordViaEmail,
-	updatePassword: updatePassword
+	loginUser: loginUser
 };
