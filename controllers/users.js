@@ -269,6 +269,7 @@ function forgotPassword(req, res, next){
 			});
 		}
 	}).catch(function (err) {
+		console.error('problem communicating with db');
 		return next(err);
 	});
 }
@@ -305,9 +306,9 @@ function updatePasswordViaEmail(req, res, next){
 			console.error('no user exists in db to update');
 			res.status(401).json({message: 'no user exists in db to update'});
 		}
-	}).catch((error) => {
-		console.error('problem connect to db');
-		res.status(500).send(error );
+	}).catch(function (err) {
+		console.error('problem communicating with db');
+		return next(err);
 	});
 }
 
