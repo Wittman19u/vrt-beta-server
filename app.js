@@ -16,7 +16,7 @@ const app = express();
 app.use(helmet());
 app.use(passport.initialize());
 //const router = express.Router();
-
+app.use(cors());
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -43,7 +43,7 @@ app.use('/api/pois', poisRouter);
 app.use('/api/itineraries', itinerariesRouter);
 // app.use('/api/waypoints', waypointsRouter);
 
-app.use(cors())
+
 
 //Swagger
 
