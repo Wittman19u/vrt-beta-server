@@ -161,7 +161,6 @@ function removeUser(req, res, next) {
 }
 
 function loginUser(req, res, next) {
-	console.log("test", req.body);
 	passport.authenticate('local', { session: false }, function (err, user, info) {
 		if (err) {
 			console.error(`error ${err}`);
@@ -231,7 +230,6 @@ function forgotPassword(req, res, next){
 							message:'there was an error: ' + err
 						});
 					} else {
-						console.log('here is the res: ', response);
 						res.status(200).json({
 							message:'recovery email sent'
 						});

@@ -61,7 +61,6 @@ passport.use(
       session: false
     },
     function (req, email, password, done) {
-        console.log(req);
         db.one('SELECT * FROM account WHERE email = $1',email.toLowerCase())
         .then(user => {
           if (user === null) {
@@ -91,7 +90,6 @@ opts.secretOrKey = jwtSecret.secret;
 // opts.passReqToCallback = true;
 
 passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
-  console.log(jwt_payload);
   db.one('SELECT * FROM account WHERE id = $1',jwt_payload.id).then( user => {
     if (user) {
       console.log('user found in db in passport');
