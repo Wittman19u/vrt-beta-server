@@ -161,14 +161,15 @@ function removeUser(req, res, next) {
 }
 
 function loginUser(req, res, next) {
-	passport.authenticate('local-login', { session: false }, function (err, user, info) {
+	console.log("test", req.body);
+	passport.authenticate('local', { session: false }, function (err, user, info) {
 		if (err) {
 			console.error(`error ${err}`);
 			return next(err);
 		}
 		if (info !== undefined) {
 			console.error(info.message);
-			if (info.message === 'bad username') {
+			if (info.message === 'bad username / email') {
 				res.status(401).json({
 					message: info.message
 				});
@@ -183,7 +184,7 @@ function loginUser(req, res, next) {
 					console.error(err);
 					return next(err);
 				}
-				const token = jwt.sign({ id: user.id }, jwtSecret.secret, { expiresIn: '1h'});
+				const token = jwt.sign({ id: user.id }, jwtSecret.secret, { expiresIn: '12h'});
 				req.user = user;
 				res.status(200).json({
 					auth: true,
