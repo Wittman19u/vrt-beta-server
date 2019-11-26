@@ -53,14 +53,15 @@ passport.use(
 );
 
 passport.use(
-  'local-login',
   new LocalStrategy(
     {
       usernameField: 'email',
       passwordField: 'password',
-      passReqToCallback: true
+      passReqToCallback: true,
+      session: false
     },
     function (req, email, password, done) {
+        console.log(req);
         db.one('SELECT * FROM account WHERE email = $1',email.toLowerCase())
         .then(user => {
           if (user === null) {
@@ -78,8 +79,8 @@ passport.use(
           console.error('bad username / email');
           return done(null, false, { message: 'bad username / email' });
         });
-    },
-  ),
+    }
+  )
 );
 
 
