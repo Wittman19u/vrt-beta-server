@@ -188,6 +188,7 @@ function loginUser(req, res, next) {
 				res.status(200).json({
 					auth: true,
 					token,
+					id: user.id,
 					message: 'User found & logged in',
 				});
 			});
