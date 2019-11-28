@@ -6,7 +6,8 @@ const Amadeus = require('amadeus');
 const amadeus = new Amadeus({
 	// AMADEUS CONFIG in ENV file
 	clientId: process.env.AMADEUS_CLIENT_ID, // server name or IP address;
-	clientSecret: process.env.AMADEUS_CLIENT_SECRET
+	clientSecret: process.env.AMADEUS_CLIENT_SECRET,
+	hostaneme: process.env.AMADEUS_HOSTNAME
 });
 
 

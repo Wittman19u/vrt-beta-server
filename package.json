@@ -28,7 +28,8 @@
     "pg-promise": "10.1.0",
     "serve-favicon": "^2.2.0",
     "swagger-jsdoc": "^3.4.0",
-    "swagger-ui-express": "^4.1.2"
+    "swagger-ui-express": "^4.1.2",
+    "amadeus": "^3.2.0"
   },
   "devDependencies": {
     "nodemon": "^1.19.4"
