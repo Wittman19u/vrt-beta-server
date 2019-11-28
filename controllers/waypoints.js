@@ -1,26 +1,48 @@
 const db = require('./db');
 
 
-function getAllWaypoints(req, res, next) {
-	let limit = 16;
-	if (typeof req.query.limit !== 'undefined'){
-		limit = req.query.limit;
+// function getAllWaypoints(req, res, next) {
+// 	let limit = 16;
+// 	if (typeof req.query.limit !== 'undefined'){
+// 		limit = req.query.limit;
+// 	}
+// 	let sql= `select * from waypoint limit ${limit}`;
+// 	console.log(sql);
+// 	db.any(sql)
+// 		.then(function (data) {
+// 			res.status(200)
+// 				.json({
+// 					status: 'success',
+// 					itemsNumber: data.length,
+// 					data: data,
+// 					message: 'Retrieved ALL waypoints'
+// 				});
+// 		})
+// 		.catch(function (err) {
+// 			return next(err);
+// 		});
+// }
+
+function getWaypointsByItinerary(req, res, next) {
+	if (typeof req.query.itinerary !== 'undefined'){
+		const itinerary = req.query.itinerary;
+
+		let sql= `select * from waypoint where itinerary_id = ${itinerary}`;
+		console.log(sql);
+		db.any(sql)
+			.then(function (data) {
+				res.status(200)
+					.json({
+						status: 'success',
+						itemsNumber: data.length,
+						data: data,
+						message: `Retrieved ALL waypoints for itnerary ${itinerary}`
+					});
+			})
+			.catch(function (err) {
+				return next(err);
+			});
 	}
-	let sql= `select * from waypoint limit ${limit}`;
-	console.log(sql);
-	db.any(sql)
-		.then(function (data) {
-			res.status(200)
-				.json({
-					status: 'success',
-					itemsNumber: data.length,
-					data: data,
-					message: 'Retrieved ALL waypoints'
-				});
-		})
-		.catch(function (err) {
-			return next(err);
-		});
 }
 
 // function getSingleWaypoint(req, res, next) {
@@ -90,7 +112,8 @@ function getAllWaypoints(req, res, next) {
 
 
 module.exports = {
-	getAllWaypoints: getAllWaypoints,
+	getWaypointsByItinerary: getWaypointsByItinerary,
+	//getAllWaypoints: getAllWaypoints,
 	// getSingleWaypoint: getSingleWaypoint,
 	// createWaypoint: createWaypoint,
 	// updateWaypoint: updateWaypoint,

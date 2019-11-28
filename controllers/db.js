@@ -46,11 +46,21 @@ const pgPromiseOptions = {
 const pgp = require('pg-promise')(pgPromiseOptions);
 // pgMonitor = require('pg-monitor');
 // pgMonitor.attach(pgPromiseOptions, ['query', 'error']);
-const cn = require('../config/dbConfig');
-const db = pgp(cn); // database instance;
+const db = pgp({
+	// LOCAL CONFIG
+	host: process.env.DB_HOST, // server name or IP address;
+	port: process.env.DB_PORT,
+	database: process.env.DB_DATABASE,
+	user: process.env.DB_USER,
+	ssl: process.env.DB_SSL ,
+	password: process.env.DB_PASSWORD,
+	uri: process.env.DB_URI
+}); // database instance;
 
 module.exports = db;
-module.exports.STPointClass = class STPointClass { // class to insert raw data into pg-promise query call (for ST function not transformed in string)
+
+// class to insert raw data into pg-promise query call (for ST function not transformed in string)
+module.exports.STPointClass = class STPointClass {
 	constructor(x, y) {
 		this.x = x;
 		this.y = y;
@@ -59,4 +69,4 @@ module.exports.STPointClass = class STPointClass { // class to insert raw data i
 	toPostgres(self) {
 		return pgp.as.format('ST_SetSRID(ST_MakePoint($1, $2),4326)', [this.x, this.y]);
 	}
-}
+};

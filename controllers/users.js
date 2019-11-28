@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const cryptoRandomString = require('crypto-random-string');
 const bcrypt = require('bcrypt');
 const passport = require('passport');
-const transporter = require('./../config/nodemailer'); // pass nodemailer for configuration
+const transporter = require('./email'); // pass nodemailer for configuration
 const moment = require('moment');
 const jwtSecret = require('../config/jwtConfig');
 

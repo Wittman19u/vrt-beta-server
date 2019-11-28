@@ -20,7 +20,7 @@ var router = express.Router();
 
 /**
  * @swagger
- * /api/waypoints:
+ * /api/waypointsbyitinerary/{itinerary}:
  *   get:
  *     tags:
  *       - Waypoints
@@ -28,18 +28,17 @@ var router = express.Router();
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: limit
- *         description: Waypoint's limit number
- *         in: query
+ *       - name: itnerary
+ *         description: Waypoint's list by itinerary
+ *         in: path
  *         type: integer
- *         default: 16
  *     responses:
  *       200:
  *         description: An array of waypoints
  *         schema:
  *           $ref: '#/definitions/Waypoint'
  */
-router.get('/', waypointController.getAllWaypoints);
+router.get('/:itinerary', waypointController.getWaypointsByItinerary);
 
 
 // /**

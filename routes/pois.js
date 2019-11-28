@@ -154,7 +154,8 @@ var router = express.Router();
  *               items:
  *                 $ref: '#/definitions/Poi'
  */
-router.get('/', poiController.getInBoundPois);
+router.get('/', poiController.getPois);
+
 
 
 /**
@@ -191,7 +192,7 @@ router.get('/', poiController.getInBoundPois);
  *               type: object
  *               $ref: '#/definitions/Poi'
  */
-router.get('/:id', poiController.getSinglePoi);
+router.get('/:id', poiController.getPoiDetails);
 
 
 // /**
@@ -265,5 +266,6 @@ router.get('/:id', poiController.getSinglePoi);
 //  *         description: Successfully deleted
 //  */
 // router.delete('/:id', poiController.removePoi);
+
 
 module.exports = router;
