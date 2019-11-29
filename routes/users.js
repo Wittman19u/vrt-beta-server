@@ -106,6 +106,10 @@ var router = express.Router();
  *         description: An array of users
  *         schema:
  *           $ref: '#/definitions/User'
+ *       403:
+ *         description: Authenticated error
+ *       500:
+ *         description: Error during Select in DB
  */
 router.get('/', userController.getAllUsers);
 
@@ -133,8 +137,10 @@ router.get('/', userController.getAllUsers);
  *         description: A single user
  *         schema:
  *           $ref: '#/definitions/User'
+ *       403:
+ *         description: Authenticated error
  */
-router.get('/:id', userController.getSingleUser);
+router.get('/:id', userController.getUserDetails);
 
 
 /**
@@ -159,8 +165,10 @@ router.get('/:id', userController.getSingleUser);
  *     responses:
  *       200:
  *         description: Successfully created
- *       403:
+ *       409:
  *         description: Username or email already taken
+ *       500:
+ *         description: General error
  */
 router.post('/', userController.createUser);
 
