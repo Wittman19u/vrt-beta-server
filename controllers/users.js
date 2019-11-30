@@ -76,7 +76,7 @@ function createUser(req, res, next) {
 				info: info,
 				user: user
 			};
-			let status = 500;
+			let status = 401;
 			if (info.message === 'Username or email already taken!') {
 				status = 409;
 			}
@@ -293,7 +293,7 @@ function updatePassword(req, res, next){
 					message: 'No user exists in db to update!'
 				});
 			}
-			console.log('user found in db');
+			console.log('User found in db.');
 			bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS
 			).then((hashedPassword) => {
 				db.none('update account set password = $1 where id=$2',[hashedPassword, parseInt(user.id)]

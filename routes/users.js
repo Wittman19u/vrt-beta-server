@@ -167,8 +167,8 @@ router.get('/:id', userController.getUserDetails);
  *         description: Successfully created
  *       409:
  *         description: Username or email already taken
- *       500:
- *         description: General error
+ *       401:
+ *         description: Authenticate error
  */
 router.post('/', userController.createUser);
 
@@ -197,6 +197,12 @@ router.post('/', userController.createUser);
  *     responses:
  *       200:
  *         description: Successfully deleted
+ *       401:
+ *         description: Authenticate error
+ *       404:
+ *         description: 'No user with that username/email to delete
+ *       500:
+ *         description: Problem communicating with DB
  */
 router.delete('/:id', userController.removeUser);
 
@@ -221,12 +227,14 @@ router.delete('/:id', userController.removeUser);
  *         in: formData
  *         required: true
  *     responses:
- *       '200':
+ *       200:
  *         description: User found and logged in successfully
- *       '401':
- *         description: Email not found in db
- *       '403':
- *         description: Email and password don't match
+ *       403:
+ *         description: Authenticate error
+ *       401:
+ *         description: Bad username / email
+ *       500:
+ *         description: Problem communicating with DB
  */
 router.post('/loginuser', userController.loginUser);
 
@@ -248,12 +256,14 @@ router.post('/loginuser', userController.loginUser);
  *         in: formData
  *         required: true
  *     responses:
- *       '200':
+ *       200:
  *         description: Reset email sent
- *       '400':
+ *       400:
  *         description: Email required
- *       '403':
+ *       403:
  *         description: Email not found in db
+ *       500:
+ *         description: `There was an error sending email or Problem during update DB
  */
 router.post('/forgotpassword', userController.forgotPassword);
 
@@ -286,12 +296,14 @@ router.post('/forgotpassword', userController.forgotPassword);
  *               type: string
  *               format: password
  *     responses:
- *       '200':
- *         description: User's password successfully updated
- *       '401':
- *         description: No user found in the database to update
- *       '403':
- *         description: Password reset link is invalid or has expired
+ *       200:
+ *         description: User's password successfully updated.
+ *       400:
+ *         description: Field required.
+ *       403:
+ *         description: No user exists in db or password reset link is invalid or has expired.
+ *       500:
+ *         description: Problem during update DB or Problem during password hash
  */
 router.put('/updatepasswordviaemail', userController.updatePasswordViaEmail);
 
@@ -327,12 +339,14 @@ router.put('/updatepasswordviaemail', userController.updatePasswordViaEmail);
  *               type: string
  *               format: password
  *     responses:
- *       '200':
+ *       200:
  *         description: User's password successfully updated
- *       '403':
- *         description: User is not authorized to change their password
- *       '404':
- *         description: User is not found in db to update
+ *       401:
+ *         description: Authentication error.
+ *       403:
+ *         description: No user exists in db to update.
+ *       500:
+ *         description: Problem during update DB or Problem during password hash
  *
  */
 router.put('/updatepassword', userController.updatePassword);
@@ -365,6 +379,10 @@ router.put('/updatepassword', userController.updatePassword);
  *     responses:
  *       200:
  *         description: Successfully updated
+ *       401:
+ *         description: Authentication error.
+ *       500:
+ *         description: Problem during update DB
  */
 router.put('/:id', userController.updateUser);
 
