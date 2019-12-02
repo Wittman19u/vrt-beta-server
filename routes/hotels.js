@@ -4,63 +4,75 @@ var router = express.Router();
 
 // TODO ADD HOTEL DEFINITION
 
-
+// LIGHT: geocoordinates, hotel distance, city name, phone number, fax, address, postal code, country code, state code, ratings, 1 image
 /**
  * @swagger
  * definitions:
  *   Hotel:
  *     properties:
+ *       type:
+ *         type: string
+ *       dupeId:
+ *         type: integer
  *       hotelId:
  *         type: string
  *       name:
  *         type: string
- *       distance:
- *         type: string
- *       distanceUnit:
- *         type: string
- *       street:
- *         type: string
- *       zipcode:
- *         type: string
- *       city:
- *         type: string
- *       countryCode:
- *         type: string
+ *       rating:
+ *         type: integer
+ *       hotelDistance:
+ *         type: object
+ *         properties:
+ *           distance:
+ *             type: number
+ *           distanceUnit:
+ *             type: string
+ *       address:
+ *         type: object
+ *         properties:
+ *           lines:
+ *             type: array
+ *             items:
+ *               type:string
+ *           cityName:
+ *             type: string
+ *           countryCode:
+ *             type: string
+ *       contact:
+ *         type: object
+ *         properties:
+ *           phone:
+ *             type: number
+ *           fax:
+ *             type: string
+ *           email:
+ *             type: string
+ *             format: email
+ *       media:
+ *         type: array
+ *         items: object
+ *           properties:
+ *             uri:
+ *               type: string
+ *               format: uri
+ *             category:
+ *               type:string
  *       latitude:
  *         type: number
  *       longitude:
  *         type: number
- *       price:
- *         type: string
- *       email:
- *         type: string
- *         format: email
- *       web:
- *         type: string
- *         format: uri
- *       phone:
- *         type: string
- *       linkImg:
- *         type: string
- *         format: uri
- *       comment:
- *         type: string
- *       type:
- *         type: integer
- *       priority:
- *         type: integer
- *       visnumber:
- *         type: integer
- *       created_at:
- *         type: string
- *         format: date-time
- *       updated_at:
- *         type: string
- *         format: date-time
- *     required:
- *       - label
- *       - created_at
- *       - updated_at
+ *       available:
+ *         type: boolean
+ *       contact:
+ *         type: object
+ *         properties:
+ *           phone:
+ *             type: number
+ *           fax:
+ *             type: string
+ *           email:
+ *             type: string
+ *             format: email
  */
 
 /**
@@ -75,15 +87,21 @@ var router = express.Router();
  *       - application/json
  *     parameters:
  *       - name: latitude
- *         description: Search around a geographical point. The latitude is specified in decimal degrees.\n Example: 52.5238.\n Should be used together with longitude+radius+radiusUnit
+ *         description: |
+ *           Search around a geographical point. The latitude is specified in decimal degrees.
+ *           Examples: 52.5238.
+ *           Should be used together with longitude+radius+radiusUnit
  *         in: query
  *         required: true
  *         type: number
  *       - name: longitude
- *         description: Search around a geographical point. The longitude is specified in decimal degrees.\n Example: 13.3835.\n Should be used together with longitude+radius+radiusUnit
+ *         description: |
+ *           Search around a geographical point. The longitude is specified in decimal degrees.
+ *           Examples: 13.3835.
+ *           Should be used together with longitude+radius+radiusUnit
  *         in: query
  *         required: true
- *         type: number *
+ *         type: number
  *       - name: radius
  *         description: Search radius
  *         in: query
@@ -95,13 +113,18 @@ var router = express.Router();
  *         type: string
  *         default: 'KM'
  *       - name: checkindate
- *         description: check-in date of the stay (hotel local date). Format YYYY-MM-DD.\n The lowest accepted value is the present date (no dates in the past).\n If not present, the default value will be today's date in the GMT timezone.
+ *         description: |
+ *           check-in date of the stay (hotel local date). Format YYYY-MM-DD.
+ *           The lowest accepted value is the present date (no dates in the past).
+ *           If not present, the default value will be today's date in the GMT timezone.
  *         in: query
  *         required: true
  *         type: string
  *         format: date
  *       - name: checkoutdate
- *         description: check-out date of the stay (hotel local date). Format YYYY-MM-DD.\n The lowest accepted value is checkInDate+1. If not present, it will default to checkInDate + 1
+ *         description: |
+ *           check-out date of the stay (hotel local date). Format YYYY-MM-DD.
+ *           The lowest accepted value is checkInDate+1. If not present, it will default to checkInDate + 1
  *         in: query
  *         required: true
  *         type: string
@@ -123,26 +146,39 @@ var router = express.Router();
  *         maximum: 9
  *         default: 1
  *       - name: childAges
- *         description: Comma separated list of ages of each child at the time of check-out from the hotel.\n If several children have the same age, their ages should be repeated in the list
+ *         description: |
+ *           Comma separated list of ages of each child at the time of check-out from the hotel.
+ *           If several children have the same age, their ages should be repeated in the list
  *         in: query
  *         required: true
  *         type: Array
  *           items:
  *             type: integer
  *       - name: lang
- *         description: Requested language of descriptive texts. \n Examples: FR , fr , fr-FR.\nIf a language is not avaiable the text will be returned in english. \nISO language code (https://www.iso.org/iso-639-language-codes.html)
+ *         description: |
+ *           Requested language of descriptive texts.
+ *           Examples : FR , fr , fr-FR.
+ *           If a language is not avaiable the text will be returned in english.
+ *           ISO language code [link](https://www.iso.org/iso-639-language-codes.html)
  *         in: query
  *         required: true
  *         type: string
  *         default: 'fr-FR'
  *       - name: Currency
- *         description: Use this parameter to request a specific currency. \nISO currency code (http://www.iso.org/iso/home/standards/currency_codes.htm). \nIf a hotel does not support the requested currency, the prices for the hotel will be returned in the local currency of the hotel and instead a currency conversion rate will be added in the dictionary.\nExample: EUR
+ *         description: |
+ *           Use this parameter to request a specific currency.
+ *           ISO currency code (http://www.iso.org/iso/home/standards/currency_codes.htm).
+ *           If a hotel does not support the requested currency, the prices for the hotel will be returned in the local currency of the hotel and instead a currency conversion rate will be added in the dictionary.
+ *           Example : EUR
  *         in: query
  *         required: true
  *         type: string
  *         default: 'EUR'
  *       - name: pricerange
- *         description: filter hotel offers by price per night interval (ex: 200-300 or -300 or 100). \nIt is mandatory to include a currency when this field is set.\nNote: a margin of +/- 10% is applied on the daily price
+ *         description: |
+ *           filter hotel offers by price per night interval (ex: 200-300 or -300 or 100).
+ *           It is mandatory to include a currency when this field is set.
+ *           Note: a margin of +/- 10% is applied on the daily price
  *         in: query
  *         required: true
  *         type: string
@@ -165,7 +201,7 @@ var router = express.Router();
  *               items:
  *                 $ref: '#/definitions/Hotel'
  *       400:
- *         description:  "Resource not found"
+ *         description:  Resource not found
  *         schema:
  *           type: object
  *           properties:
@@ -196,7 +232,8 @@ router.get('/hotels', hotelController.getHotels);
  *       - application/json
  *     parameters:
  *       - name: id
- *         description: Amadeus Property Code (8 chars).\n Example: BGMILBGB
+ *         description: Amadeus Property Code (8 chars).
+ *           Example: BGMILBGB
  *         in: path
  *         required: true
  *         type: integer
@@ -232,7 +269,8 @@ router.get('/:id', hotelController.getHotelsOffer);
  *       - application/json
  *     parameters:
  *       - name: id
- *         description: Amadeus Property Code (8 chars).\n Example: BGMILBGB
+ *         description: Amadeus Property Code (8 chars).
+ *           Example: BGMILBGB
  *         in: path
  *         required: true
  *         type: integer
