@@ -132,6 +132,20 @@ function getPoiDetails(req, res, next) {
 // }
 
 
+//update priority when view
+// db.any('UPDATE public.poi SET po_priority = po_priority+10 WHERE St_Within(po_geom,ST_GeomFromText(\'' + polygon+ '\',4326));')
+// .then(function() {
+//   db.any('UPDATE public.poi SET po_priority = (100*(po_priority - min))/(max-min) FROM (SELECT MAX(po_priority) as max, MIN(po_priority) as min FROM public.poi) as extremum WHERE extremum.min != 0 OR extremum.max != 100; ')
+//   .catch(function(error){throw error});
+// })
+
+//update priority when clicked
+// db.any('UPDATE public.poi SET po_priority = po_priority+50 WHERE po_latitude = $1 and po_longitude = $2;', [lat, lng])
+// .then(function() {
+//   db.any('UPDATE public.poi SET po_priority = (100*(po_priority - min))/(max-min) FROM (SELECT MAX(po_priority) as max, MIN(po_priority) as min FROM public.poi) as extremum WHERE extremum.min != 0 OR extremum.max != 100; ')
+//   .catch(function(error){throw error});
+// })
+
 module.exports = {
 //	getAllPois: getAllPois,
 	getPois: getPois,

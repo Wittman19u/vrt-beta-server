@@ -200,7 +200,7 @@ router.post('/', userController.createUser);
  *       401:
  *         description: Authenticate error
  *       404:
- *         description: 'No user with that username/email to delete
+ *         description: No user with that username/email to delete
  *       500:
  *         description: Problem communicating with DB
  */
@@ -263,7 +263,7 @@ router.post('/loginuser', userController.loginUser);
  *       403:
  *         description: Email not found in db
  *       500:
- *         description: `There was an error sending email or Problem during update DB
+ *         description: There was an error sending email or Problem during update DB
  */
 router.post('/forgotpassword', userController.forgotPassword);
 

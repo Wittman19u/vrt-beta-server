@@ -50,7 +50,8 @@ var router = express.Router();
  *             format: email
  *       media:
  *         type: array
- *         items: object
+ *         items:
+ *           type: object
  *           properties:
  *             uri:
  *               type: string
@@ -63,16 +64,6 @@ var router = express.Router();
  *         type: number
  *       available:
  *         type: boolean
- *       contact:
- *         type: object
- *         properties:
- *           phone:
- *             type: number
- *           fax:
- *             type: string
- *           email:
- *             type: string
- *             format: email
  */
 
 /**
@@ -89,7 +80,7 @@ var router = express.Router();
  *       - name: latitude
  *         description: |
  *           Search around a geographical point. The latitude is specified in decimal degrees.
- *           Examples: 52.5238.
+ *           Example: 52.5238.
  *           Should be used together with longitude+radius+radiusUnit
  *         in: query
  *         required: true
@@ -97,7 +88,7 @@ var router = express.Router();
  *       - name: longitude
  *         description: |
  *           Search around a geographical point. The longitude is specified in decimal degrees.
- *           Examples: 13.3835.
+ *           Example: 13.3835
  *           Should be used together with longitude+radius+radiusUnit
  *         in: query
  *         required: true
@@ -152,28 +143,28 @@ var router = express.Router();
  *         in: query
  *         required: true
  *         type: Array
- *           items:
- *             type: integer
+ *         items:
+ *           type: integer
  *       - name: lang
  *         description: |
  *           Requested language of descriptive texts.
- *           Examples : FR , fr , fr-FR.
+ *           Example: FR , fr , fr-FR.
  *           If a language is not avaiable the text will be returned in english.
  *           ISO language code [link](https://www.iso.org/iso-639-language-codes.html)
  *         in: query
  *         required: true
  *         type: string
  *         default: 'fr-FR'
- *       - name: Currency
+ *       - name: currency
  *         description: |
  *           Use this parameter to request a specific currency.
  *           ISO currency code (http://www.iso.org/iso/home/standards/currency_codes.htm).
  *           If a hotel does not support the requested currency, the prices for the hotel will be returned in the local currency of the hotel and instead a currency conversion rate will be added in the dictionary.
- *           Example : EUR
+ *           Example: EUR
  *         in: query
  *         required: true
  *         type: string
- *         default: 'EUR'
+ *         default: EUR
  *       - name: pricerange
  *         description: |
  *           filter hotel offers by price per night interval (ex: 200-300 or -300 or 100).
@@ -232,7 +223,8 @@ router.get('/hotels', hotelController.getHotels);
  *       - application/json
  *     parameters:
  *       - name: id
- *         description: Amadeus Property Code (8 chars).
+ *         description: |
+ *           Amadeus Property Code (8 chars).
  *           Example: BGMILBGB
  *         in: path
  *         required: true
@@ -269,7 +261,8 @@ router.get('/:id', hotelController.getHotelsOffer);
  *       - application/json
  *     parameters:
  *       - name: id
- *         description: Amadeus Property Code (8 chars).
+ *         description: |
+ *           Amadeus Property Code (8 chars).
  *           Example: BGMILBGB
  *         in: path
  *         required: true
@@ -292,7 +285,7 @@ router.get('/:id', hotelController.getHotelsOffer);
  *               type: object
  *               $ref: '#/definitions/Hotel'
  */
-router.get('/offer/:id', hotelController.getOffer)
+router.get('/offer/:id', hotelController.getOffer);
 
 
 
