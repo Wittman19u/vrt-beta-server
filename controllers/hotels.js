@@ -33,7 +33,7 @@ function getHotels(req, res, next) {
 	};
 	amadeus.shopping.hotelOffers.get(params).then(function(response){
 		res.status(200).json(response.data);
-	}).catch(function(error){
+	}).catch( error => {
 		let message = 'Error amadeus!';
 		console.log(message);
 		res.status(400).json({
@@ -51,7 +51,7 @@ function getHotelOffer(req, res, next){
 		hotelId: req.body.hotelId
 	}).then(function(response){
 		res.status(200).json(response.data);
-	}).catch(function(err){
+	}).catch( error => {
 		let message = 'Error getHotelOffer amadeus!';
 		console.log(message);
 		res.status(400).json({
@@ -69,7 +69,7 @@ function getOffer(req, res, next){
 	//https://test.api.amadeus.com/v2/shopping/hotel-offers/{offerId}
 	amadeus.shopping.hotelOffer(req.body.offerId).get().then(function(response){
 		res.status(200).json(response);
-	}).catch(function(err){
+	}).catch(error => {
 		let message = 'Error getOffer amadeus!';
 		console.log(message);
 		res.status(400).json({
