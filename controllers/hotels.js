@@ -32,11 +32,12 @@ function getHotels(req, res, next) {
 		priceRange: req.query.pricerange || ''
 	};
 	amadeus.shopping.hotelOffers.get(params).then(function(response){
-		res.json(response.data);
+		res.status(200).json(response.data);
 	}).catch(function(error){
 		let message = 'Error amadeus!';
 		console.log(message);
-		res.json({
+		res.status(400).json({
+			code: error.code,
 			status: 'error',
 			error: error,
 			message: message
@@ -49,11 +50,12 @@ function getHotelOffer(req, res, next){
 	amadeus.shopping.hotelOffersByHotel.get({
 		hotelId: req.body.hotelId
 	}).then(function(response){
-		res.json(response.data);
+		res.status(200).json(response.data);
 	}).catch(function(err){
-		let message = 'Error amadeus!';
+		let message = 'Error getHotelOffer amadeus!';
 		console.log(message);
-		res.json({
+		res.status(400).json({
+			code: error.code,
 			status: 'error',
 			error: error,
 			message: message
@@ -66,14 +68,16 @@ function getHotelOffer(req, res, next){
 function getOffer(req, res, next){
 	//https://test.api.amadeus.com/v2/shopping/hotel-offers/{offerId}
 	amadeus.shopping.hotelOffer(req.body.offerId).get().then(function(response){
-		res.json(response);
+		res.status(200).json(response);
 	}).catch(function(err){
-		let msg = 'Error amadeus data';
-		if(typeof err != 'undefined' && typeof err.description != 'undefined' && typeof err.description[0].code != 'undefined' && typeof err.description[0].title != 'undefined' ){
-			msg += ` : ${err.description[0].code} --- ${err.description[0].title} `;
-		}
-		console.log(msg);
-		res.json({ error: msg });
+		let message = 'Error getOffer amadeus!';
+		console.log(message);
+		res.status(400).json({
+			code: error.code,
+			status: 'error',
+			error: error,
+			message: message
+		});
 	});
 }
 

@@ -197,10 +197,9 @@ var router = express.Router();
  *              code:
  *                type: integer
  *                example: 61
- *              title:
- *                type: string
- *                example: Resource not found
- *              detail:
+ *              error:
+ *                type: object
+ *              message:
  *                type: string
  *                example: The targeted resource doesn't exist
  *              status:
@@ -244,6 +243,22 @@ router.get('/', hotelController.getHotels);
  *             data:
  *               type: object
  *               $ref: '#/definitions/Hotel'
+ *       400:
+ *         description:  Resource not found
+ *         schema:
+ *           type: object
+ *           properties:
+ *              code:
+ *                type: integer
+ *                example: 61
+ *              error:
+ *                type: object
+ *              message:
+ *                type: string
+ *                example: The targeted resource doesn't exist
+ *              status:
+ *                type: integer
+ *                example: 400
  */
 router.get('/:id', hotelController.getHotelOffer);
 
@@ -282,6 +297,22 @@ router.get('/:id', hotelController.getHotelOffer);
  *             data:
  *               type: object
  *               $ref: '#/definitions/Hotel'
+ *       400:
+ *         description:  Resource not found
+ *         schema:
+ *           type: object
+ *           properties:
+ *              code:
+ *                type: integer
+ *                example: 61
+ *              error:
+ *                type: object
+ *              message:
+ *                type: string
+ *                example: The targeted resource doesn't exist
+ *              status:
+ *                type: integer
+ *                example: 400
  */
 router.get('/offer/:id', hotelController.getOffer);
 
