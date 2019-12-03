@@ -52,6 +52,8 @@ var router = express.Router();
  *         type: string
  *       type:
  *         type: integer
+ *       category:
+ *         type: object
  *       priority:
  *         type: integer
  *       visnumber:

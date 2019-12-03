@@ -57,11 +57,6 @@ var router = express.Router();
  *         type: integer
  *       category:
  *         type: integer
- *       lastprice:
- *         type: number
- *       bookingurl:
- *         type: string
- *         format: uri
  *       priority:
  *         type: integer
  *       visnumber:
@@ -130,7 +125,6 @@ var router = express.Router();
  *           If a hotel does not support the requested currency, the prices for the hotel will be returned in the local currency of the hotel and instead a currency conversion rate will be added in the dictionary.
  *           Example EUR
  *         in: query
- *         required: true
  *         type: string
  *         default: EUR
  *       - name: categories
@@ -173,10 +167,20 @@ router.get('/', activityController.getActivities);
  *     parameters:
  *       - name: id
  *         description: |
- *           Viator Property Code. Examples : 5010SYDNEY
+ *           Viator Property Code.
+ *           Example : 5010SYDNEY
  *         in: path
  *         required: true
  *         type: string
+ *       - name: currency
+ *         description: |
+ *           Use this parameter to request a specific currency.
+ *           ISO currency code (http://www.iso.org/iso/home/standards/currency_codes.htm).
+ *           If a hotel does not support the requested currency, the prices for the hotel will be returned in the local currency of the hotel and instead a currency conversion rate will be added in the dictionary.
+ *           Example EUR
+ *         in: query
+ *         type: string
+ *         default: EUR
  *     responses:
  *       200:
  *         description: A single hotel

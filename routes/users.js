@@ -27,33 +27,8 @@ var router = express.Router();
  *         format: email
  *       phone:
  *         type: string
- *       password:
- *         type: string
- *         format: password
- *       localtoken:
- *         type: string
- *       expireslocaltoken:
- *         type: string
- *         format: date
  *       language:
  *         type: string
- *       facebookid:
- *         type: string
- *       facebooktoken:
- *         type: string
- *       facebookname:
- *         type: string
- *       facebookemail:
- *         type: string
- *         format: email
- *       role_id:
- *         type: integer
- *         default: 3
- *         description: 1==admin, 2==Professional, 3==user
- *       status_id:
- *         type: integer
- *         default: 1
- *         description: 1==active, 2==not active
  *       media_id:
  *         type: integer
  *       consent:
@@ -72,10 +47,63 @@ var router = express.Router();
  *     required:
  *       - firstname
  *       - email
+ *       - gender
+ *       - created_at
+ *       - updated_at
+ *       - consent_at
+ */
+
+
+/**
+ * @swagger
+ * definitions:
+ *   UserCreate:
+ *     properties:
+ *       id:
+ *         type: integer
+ *       firstname:
+ *         type: string
+ *       lastname:
+ *         type: string
+ *       dateborn:
+ *         type: string
+ *         format: date
+ *       gender:
+ *         type: integer
+ *         default: 1
+ *         description: 1==man, 2==woman, 3 not defined
+ *       biography:
+ *         type: string
+ *       email:
+ *         type: string
+ *         format: email
+ *       phone:
+ *         type: string
+ *       password:
+ *         type: string
+ *         format: password
+ *       language:
+ *         type: string
+ *       media_id:
+ *         type: integer
+ *       consent:
+ *         type: boolean
+ *       consentthird:
+ *         type: boolean
+ *       created_at:
+ *         type: string
+ *         format: date-time
+ *       updated_at:
+ *         type: string
+ *         format: date-time
+ *       consent_at:
+ *         type: string
+ *         format: date-time
+ *     required:
+ *       - firstname
+ *       - email
  *       - password
  *       - gender
- *       - role_id
- *       - status_id
  *       - created_at
  *       - updated_at
  *       - consent_at
@@ -161,7 +189,7 @@ router.get('/:id', userController.getUserDetails);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitions/User'
+ *           $ref: '#/definitions/UserCreate'
  *     responses:
  *       200:
  *         description: Successfully created

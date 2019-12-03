@@ -80,19 +80,21 @@ var router = express.Router();
  *       - name: latitude
  *         description: |
  *           Search around a geographical point. The latitude is specified in decimal degrees.
- *           Example: 52.5238.
+ *           Example: 49.117459
  *           Should be used together with longitude+radius+radiusUnit
  *         in: query
  *         required: true
  *         type: number
+ *         default: 49.117459
  *       - name: longitude
  *         description: |
  *           Search around a geographical point. The longitude is specified in decimal degrees.
- *           Example: 13.3835
+ *           Example: 6.179013
  *           Should be used together with longitude+radius+radiusUnit
  *         in: query
  *         required: true
  *         type: number
+ *         default: 6.179013
  *       - name: radius
  *         description: Search radius
  *         in: query
@@ -109,7 +111,6 @@ var router = express.Router();
  *           The lowest accepted value is the present date (no dates in the past).
  *           If not present, the default value will be today's date in the GMT timezone.
  *         in: query
- *         required: true
  *         type: string
  *         format: date
  *       - name: checkoutdate
@@ -117,13 +118,11 @@ var router = express.Router();
  *           check-out date of the stay (hotel local date). Format YYYY-MM-DD.
  *           The lowest accepted value is checkInDate+1. If not present, it will default to checkInDate + 1
  *         in: query
- *         required: true
  *         type: string
  *         format: date
  *       - name: roomquantity
  *         description: number of rooms (1-9)
  *         in: query
- *         required: true
  *         type: integer
  *         minimum: 1
  *         maximum: 9
@@ -141,7 +140,7 @@ var router = express.Router();
  *           Comma separated list of ages of each child at the time of check-out from the hotel.
  *           If several children have the same age, their ages should be repeated in the list
  *         in: query
- *         required: true
+ *         default: []
  *         type: Array
  *         items:
  *           type: integer
@@ -167,11 +166,10 @@ var router = express.Router();
  *         default: EUR
  *       - name: pricerange
  *         description: |
- *           filter hotel offers by price per night interval (ex: 200-300 or -300 or 100).
+ *           Filter hotel offers by price per night interval (ex: 200-300 or -300 or 100).
  *           It is mandatory to include a currency when this field is set.
  *           Note: a margin of +/- 10% is applied on the daily price
  *         in: query
- *         required: true
  *         type: string
  *     responses:
  *       200:
@@ -209,7 +207,7 @@ var router = express.Router();
  *                type: integer
  *                example: 400
  */
-router.get('/hotels', hotelController.getHotels);
+router.get('/', hotelController.getHotels);
 
 /**
  * @swagger
@@ -247,7 +245,7 @@ router.get('/hotels', hotelController.getHotels);
  *               type: object
  *               $ref: '#/definitions/Hotel'
  */
-router.get('/:id', hotelController.getHotelsOffer);
+router.get('/:id', hotelController.getHotelOffer);
 
 /**
  * @swagger

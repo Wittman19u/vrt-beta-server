@@ -35,12 +35,16 @@ require('./controllers/passport');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const poisRouter = require('./routes/pois');
+const activitiesRouter = require('./routes/activities');
+const hotelsRouter = require('./routes/hotels');
 const itinerariesRouter = require('./routes/itineraries');
 const waypointsRouter = require('./routes/waypoints');
 
 app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/pois', poisRouter);
+app.use('/api/activities', activitiesRouter);
+app.use('/api/hotels', hotelsRouter);
 app.use('/api/itineraries', itinerariesRouter);
 app.use('/api/waypoints', waypointsRouter);
 

@@ -99,9 +99,7 @@ passport.use(
 
 var opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme('JWT');
-opts.secretOrKey = {
-	secret: process.env.JWT_SECRET
-};
+opts.secretOrKey = process.env.JWT_SECRET;
 // opts.passReqToCallback = true;
 
 passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
