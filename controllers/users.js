@@ -14,10 +14,12 @@ function getAllUsers(req, res, next) {
 			let message = {
 				status: 'error',
 				error: error,
-				message: info.message,
-				info: info,
 				user: user
 			};
+			if(info !== undefined){
+				message['message']= info.message;
+				message['info']= info;
+			}
 			console.error(message);
 			res.status(403).json(message);
 		} else {
@@ -51,10 +53,12 @@ function getUserDetails(req, res, next) {
 			let message = {
 				status: 'error',
 				error: error,
-				message: info.message,
-				info: info,
 				user: user
 			};
+			if(info !== undefined){
+				message['message']= info.message;
+				message['info']= info;
+			}
 			console.error(message);
 			res.status(403).json(message);
 		} else {
@@ -74,24 +78,27 @@ function createUser(req, res, next) {
 			let message = {
 				status: 'error',
 				error: error,
-				message: info.message,
-				info: info,
 				user: user
 			};
 			let status = 401;
-			if (info.message === 'Username or email already taken!') {
-				status = 409;
+			if(info !== undefined){
+				message['message']= info.message;
+				message['info']= info;
+				if (info.message === 'Username or email already taken!') {
+					status = 409;
+				}
 			}
+			console.error(message);
 			res.status(status).json(message);
 		} else {
 			// TODO reduce expiresIn delay
-			const token = jwt.sign({ id: userID }, process.env.JWT_SECRET, { expiresIn: '12h'});
+			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '12h'});
 			//req.user = user;
 			res.status(200).json({
 				status: 'success',
 				auth: true,
 				token,
-				id: userID,
+				id: user.id,
 				user: user,
 				message: 'User created in db & logged in',
 			});
@@ -105,10 +112,13 @@ function removeUser(req, res, next) {
 			let message = {
 				status: 'error',
 				error: error,
-				message: info.message,
-				info: info,
 				user: user
 			};
+			if(info !== undefined){
+				message['message']= info.message;
+				message['info']= info;
+			}
+			console.error(message);
 			res.status(401).json(message);
 		} else {
 			var id = parseInt(req.params.id);
@@ -145,14 +155,17 @@ function loginUser(req, res, next) {
 			let message = {
 				status: 'error',
 				error: error,
-				message: info.message,
-				info: info,
 				user: user
 			};
 			let status = 403;
-			if (info.message === 'Bad username / email!') {
-				status = 401;
+			if(info !== undefined){
+				message['message']= info.message;
+				message['info']= info;
+				if (info.message === 'Bad username / email!') {
+					status = 401;
+				}
 			}
+			console.error(message);
 			res.status(status).json(message);
 		} else {
 			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '12h'});
@@ -286,10 +299,13 @@ function updatePassword(req, res, next){
 			let message = {
 				status: 'error',
 				error: error,
-				message: info.message,
-				info: info,
 				user: user
 			};
+			if(info !== undefined){
+				message['message']= info.message;
+				message['info']= info;
+			}
+			console.error(message);
 			res.status(401).json(message);
 		} else {
 			db.oneOrNone('select * from account where email = $1', req.body.email.toLowerCase()
@@ -340,10 +356,13 @@ function updateUser(req, res, next) {
 			let message = {
 				status: 'error',
 				error: error,
-				message: info.message,
-				info: info,
 				user: user
 			};
+			if(info !== undefined){
+				message['message']= info.message;
+				message['info']= info;
+			}
+			console.error(message);
 			res.status(401).json(message);
 		} else {
 			db.none('update account set firstname = $1, lastname = $2, email = $3 where id=$4',
