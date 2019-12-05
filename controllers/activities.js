@@ -33,9 +33,10 @@ function getActivities(req, res, next){
     db.any(sql).then(function (cities) {
         // http://viatorapi.viator.com/service/search/products
         // {"startDate":"2019-12-02","endDate":"2020-12-02", "topX":"1-15","destId":684,     "currencyCode":"EUR", "catId":0, "subCatId":0, "dealsOnly":false}
+        let startDate = req.query.startdate || moment().format('YYYY-MM-DD');
         let params = {
-            "startDate":  req.query.startdate || moment().format('YYYY-MM-DD'),
-            "endDate": req.query.enddate || moment().add(1,"days").format('YYYY-MM-DD'),
+            "startDate":  startDate,
+            "endDate": req.query.enddate || moment(startDate).add(1,"days").format('YYYY-MM-DD'),
             "topX":"1-15",
             "currencyCode": req.query.currency || 'EUR',
             "catId":0,
@@ -44,20 +45,26 @@ function getActivities(req, res, next){
         };
         let url =`https://viatorapi.viator.com/service/search/products?apiKey=${process.env.VIATOR_API_KEY}`;
         let ops = [];
+        let coordinates=[]
         for(let i=0; (i < cities.length) && (i < 24); i++){
             params["destId"] = parseInt(cities[i].sourceid);
             let op = axios.post(url, params);
             ops.push(op);
+            coordinates.push({"latitude":cities[i].latitude, "longitude":cities[i].longitude});
         }
         Promise.all(ops).then( activitiesLists => {
             let activities = [];
             if(activitiesLists.length > 0){
+                var indexCities = 0;
                 for (let activitiesList of activitiesLists){
+                    let coor = coordinates[indexCities];
                     if(activitiesList.data.data.length > 0){
                         for (let activity of activitiesList.data.data){
+                            activity["coordinates"] = coor;
                             activities.push(activity);
                         }
                     }
+                    indexCities += indexCities;
                 }
             }
 

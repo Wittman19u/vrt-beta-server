@@ -59,8 +59,6 @@ var router = express.Router();
  * definitions:
  *   UserCreate:
  *     properties:
- *       id:
- *         type: integer
  *       firstname:
  *         type: string
  *       lastname:
