@@ -31,8 +31,13 @@ function getHotels(req, res, next) {
 		roomQuantity:  req.query.roomquantity || 1,
 		priceRange: req.query.pricerange || ''
 	};
-	amadeus.shopping.hotelOffers.get(params).then(function(response){
-		res.status(200).json(response.data);
+	amadeus.shopping.hotelOffers.get(params).then(function(hotels){
+		res.status(200).json({
+			status: 'success',
+			itemsNumber: hotels.data.length,
+			data: hotels.data,
+			message: 'Retrieved hotel for this destination.'
+		});
 	}).catch( error => {
 		let message = 'Error amadeus!';
 		console.log(message);
@@ -49,8 +54,13 @@ function getHotelOffer(req, res, next){
 	//https://test.api.amadeus.com/v2/shopping/hotel-offers/by-hotel?hotelId=BGMILBGB&adults=2&roomQuantity=1&paymentPolicy=NONE&view=FULL_ALL_IMAGES
 	amadeus.shopping.hotelOffersByHotel.get({
 		hotelId: req.body.hotelId
-	}).then(function(response){
-		res.status(200).json(response.data);
+	}).then(function(hotelOffers){
+		res.status(200).json({
+			status: 'success',
+			itemsNumber: hotelOffers.data.length,
+			data: hotelOffers.data,
+			message: 'Retrieved Offers fot this hotel.'
+		});
 	}).catch( error => {
 		let message = 'Error getHotelOffer amadeus!';
 		console.log(message);
@@ -67,8 +77,13 @@ function getHotelOffer(req, res, next){
 // Confirm the availability of a specific offer id view room details
 function getOffer(req, res, next){
 	//https://test.api.amadeus.com/v2/shopping/hotel-offers/{offerId}
-	amadeus.shopping.hotelOffer(req.body.offerId).get().then(function(response){
-		res.status(200).json(response);
+	amadeus.shopping.hotelOffer(req.body.offerId).get().then(function(offer){
+		res.status(200).json({
+			status: 'success',
+			itemsNumber: offer.data.length,
+			data: offer.data,
+			message: 'Retrieved details of this offer.'
+		});
 	}).catch(error => {
 		let message = 'Error getOffer amadeus!';
 		console.log(message);

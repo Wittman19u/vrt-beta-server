@@ -122,7 +122,7 @@ var router = express.Router();
  *               items:
  *                 $ref: '#/definitions/Restaurant'
  */
-router.get('/restaurants', restaurantController.getRestaurants);
+router.get('/', restaurantController.getRestaurants);
 
 /**
  * @swagger

@@ -130,7 +130,6 @@ var router = express.Router();
  *       - name: adults
  *         description: number of adult guests (1-9) per room
  *         in: query
- *         required: true
  *         type: integer
  *         minimum: 1
  *         maximum: 9
@@ -151,7 +150,6 @@ var router = express.Router();
  *           If a language is not avaiable the text will be returned in english.
  *           ISO language code [link](https://www.iso.org/iso-639-language-codes.html)
  *         in: query
- *         required: true
  *         type: string
  *         default: 'fr-FR'
  *       - name: currency
@@ -161,7 +159,6 @@ var router = express.Router();
  *           If a hotel does not support the requested currency, the prices for the hotel will be returned in the local currency of the hotel and instead a currency conversion rate will be added in the dictionary.
  *           Example: EUR
  *         in: query
- *         required: true
  *         type: string
  *         default: EUR
  *       - name: pricerange

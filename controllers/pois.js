@@ -68,7 +68,7 @@ function getPois(req, res, next) {
 
 function getPoiDetails(req, res, next) {
 	var poiID = parseInt(req.params.id);
-	db.one('select * from poi where id = $1', poiID)
+	db.oneOrNone('select * from poi where id = $1', poiID)
 		.then(function (data) {
 			res.status(200)
 				.json({
