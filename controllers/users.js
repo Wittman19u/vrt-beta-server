@@ -202,8 +202,8 @@ function forgotPassword(req, res, next){
 				db.none('update account set localtoken=$1, expireslocaltoken=$2 where id=$3',[token, moment().add(20, 'minutes').format('YYYY-MM-DDTHH:mm'), parseInt(user.id)]
 				).then( () => {
 					const mailOptions = {
-						from: 'VeryRoadTrip.eu <noreply@veryroadtrip.eu>',
-						to: `${user.email}`,
+						from: process.env.SERVER_EMAIL,
+						to: user.email,
 						subject: 'Link To Reset Password',
 						text:
 							'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n'

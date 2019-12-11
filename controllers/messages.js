@@ -2,7 +2,8 @@ const transporter = require('./email'); // pass nodemailer for configuration
 
 function createMessage(req, res, next) {
 	const mailOptions = {
-		from: req.body.email,
+		from: process.env.SERVER_EMAIL,
+		replyTo: req.body.email,
 		to: process.env.CONTACT_SAV,
 		subject: req.body.subject,
 		text: 'Hi, \n\n'
