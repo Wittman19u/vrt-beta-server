@@ -130,7 +130,7 @@ var router = express.Router();
  *       - name: categories
  *         in: query
  *         description: list of category filters for a destination see (/service/taxonomy/categories Viator API)
- *         type: Array
+ *         type: array
  *         items:
  *           type: integer
  *     responses:

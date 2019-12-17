@@ -28,10 +28,11 @@ var router = express.Router();
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: itnerary
+ *       - name: itinerary
  *         description: Waypoint's list by itinerary
  *         in: path
  *         type: integer
+ *         required: true
  *     responses:
  *       200:
  *         description: An array of waypoints

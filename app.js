@@ -56,7 +56,7 @@ app.use('/api/messages', messagesRouter);
 // swagger definition
 const swaggerDefinition = {
 	swagger: process.env.SWAGGER_VERSION,
-	schemes: process.env.SWAGGER_SCHEMES,
+	schemes: [process.env.SWAGGER_SCHEMES],
 	info: {
 		title: process.env.SWAGGER_API_TITLE,
 		version: process.env.SWAGGER_API_VERSION,

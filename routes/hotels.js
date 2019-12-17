@@ -33,7 +33,7 @@ var router = express.Router();
  *           lines:
  *             type: array
  *             items:
- *               type:string
+ *               type: string
  *           cityName:
  *             type: string
  *           countryCode:
@@ -57,7 +57,7 @@ var router = express.Router();
  *               type: string
  *               format: uri
  *             category:
- *               type:string
+ *               type: string
  *       latitude:
  *         type: number
  *       longitude:
