@@ -82,21 +82,27 @@ function getPoiDetails(req, res, next) {
 		});
 }
 
-// function createPoi(req, res, next) {
-// 	req.body.age = parseInt(req.body.age);
-// 	db.none('insert into poi(name, breed, age, sex)' +
-// 			'values(${name}, ${breed}, ${age}, ${sex})', req.body)
-// 		.then(function () {
-// 			res.status(200)
-// 				.json({
-// 					status: 'success',
-// 					message: 'Inserted one poi'
-// 				});
-// 		})
-// 		.catch(function (err) {
-// 			return next(err);
-// 		});
-// }
+function createPoi(req, res, next) {
+	req.body.type = parseInt(req.body.type);
+	req.body.latitude = parseFloat(req.body.latitude).toFixed(5);
+	req.body.longitude = parseFloat(req.body.longitude).toFixed(5);
+	let point = 'POINT('+ req.body.longitude + ' ' + req.body.latitude +')';
+	let sql = `INSERT INTO poi
+	(source, sourceid, sourcetype, label, sourcetheme, start, end, street, zipcode, city, country, latitude, longitude, email, web, phone, linkimg, description, type, opening, geom) VALUES( 'community', '', ${sourcetype}, ${label}, ${sourcetheme}, ${start}, ${end}, ${street}, ${zipcode}, ${city}, ${country}, ${latitude}, ${longitude}, ${email}, ${web}, ${phone},  ${linkimg}, ${description}, ${type}, ${opening}, ST_GeomFromText(${point},4326) ) RETURNING id;`
+
+	db.any(sql, [req.body])
+		.then(function (rows) {
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'Inserted one poi'
+					id: rows[0]['id']
+				});
+		})
+		.catch(function (err) {
+			return next(err);
+		});
+}
 
 // function updatePoi(req, res, next) {
 // 	db.none('update poi set name=$1, breed=$2, age=$3, sex=$4 where id=$5',
@@ -150,7 +156,7 @@ module.exports = {
 //	getAllPois: getAllPois,
 	getPois: getPois,
 	getPoiDetails: getPoiDetails
-//	createPoi: createPoi,
+	createPoi: createPoi,
 //	updatePoi: updatePoi,
 //	removePoi: removePoi
 };

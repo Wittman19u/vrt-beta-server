@@ -9,13 +9,18 @@ var router = express.Router();
  *     properties:
  *       id:
  *         type: integer
- *       source_id:
+ *       source:
+ *         type: string
+ *       sourceid:
  *         type: string
  *       sourcetype:
  *         type: string
+ *       sourcelastupdate:
+ *         type: string
+ *         format: data-time
  *       label:
  *         type: string
- *       theme:
+ *       sourcetheme:
  *         type: string
  *       start:
  *         type: string
@@ -48,12 +53,10 @@ var router = express.Router();
  *       linkimg:
  *         type: string
  *         format: uri
- *       comment:
+ *       description:
  *         type: string
  *       type:
  *         type: integer
- *       category:
- *         type: object
  *       priority:
  *         type: integer
  *       visnumber:
@@ -64,10 +67,18 @@ var router = express.Router();
  *       updated_at:
  *         type: string
  *         format: date-time
+ *       active:
+ *         type: boolean
+ *         default: 1
+ *       profiles:
+ *         type: object
+ *       opening:
+ *         type: object
  *     required:
  *       - label
- *       - created_at
- *       - updated_at
+ *       - latitude
+ *       - longitude
+ *
  */
 
 // /**
@@ -197,27 +208,29 @@ router.get('/', poiController.getPois);
 router.get('/:id', poiController.getPoiDetails);
 
 
-// /**
-//  * @swagger
-//  * /api/pois:
-//  *   post:
-//  *     tags:
-//  *       - Pois
-//  *     description: Creates a new poi
-//  *     produces:
-//  *       - application/json
-//  *     parameters:
-//  *       - name: poi
-//  *         description: Fields for the new Poi resource
-//  *         in: body
-//  *         required: true
-//  *         schema:
-//  *           $ref: '#/definitions/Poi'
-//  *     responses:
-//  *       200:
-//  *         description: Successfully created
-//  */
-// router.post('/', poiController.createPoi);
+/**
+ * @swagger
+ * /api/pois:
+ *   post:
+ *     tags:
+ *       - Pois
+ *     description: Creates a new poi
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - authorisationJWT: []
+ *     parameters:
+ *       - name: poi
+ *         description: Fields for the new Poi resource
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/Poi'
+ *     responses:
+ *       200:
+ *         description: Successfully created
+ */
+router.post('/', poiController.createPoi);
 
 
 // /**
