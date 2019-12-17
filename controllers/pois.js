@@ -83,19 +83,21 @@ function getPoiDetails(req, res, next) {
 }
 
 function createPoi(req, res, next) {
-	req.body.type = parseInt(req.body.type);
-	req.body.latitude = parseFloat(req.body.latitude).toFixed(5);
-	req.body.longitude = parseFloat(req.body.longitude).toFixed(5);
-	let point = 'POINT('+ req.body.longitude + ' ' + req.body.latitude +')';
-	let sql = `INSERT INTO poi
-	(source, sourceid, sourcetype, label, sourcetheme, start, end, street, zipcode, city, country, latitude, longitude, email, web, phone, linkimg, description, type, opening, geom) VALUES( 'community', '', ${sourcetype}, ${label}, ${sourcetheme}, ${start}, ${end}, ${street}, ${zipcode}, ${city}, ${country}, ${latitude}, ${longitude}, ${email}, ${web}, ${phone},  ${linkimg}, ${description}, ${type}, ${opening}, ST_GeomFromText(${point},4326) ) RETURNING id;`
 
-	db.any(sql, [req.body])
+	let data = req.body;
+	data.type = parseInt(req.body.type);
+	data.latitude = parseFloat(req.body.latitude).toFixed(5);
+	data.longitude = parseFloat(req.body.longitude).toFixed(5);
+	data.point = `POINT(${data.longitude} ${data.latitude})`;
+	data.source = 'Community';
+	let sql = 'INSERT INTO poi (source, sourcetype, label, sourcetheme, start, "end", street, zipcode, city, country, latitude, longitude, email, web, phone, linkimg, description, type, opening, geom) VALUES( ${source}, ${sourcetype}, ${label}, ${sourcetheme}, ${start}, ${end}, ${street}, ${zipcode}, ${city}, ${country}, ${latitude}, ${longitude}, ${email}, ${web}, ${phone},  ${linkimg}, ${description}, ${type}, ${opening}, ST_GeomFromText(${point},4326) ) RETURNING id;'
+
+	db.any(sql, data)
 		.then(function (rows) {
 			res.status(200)
 				.json({
 					status: 'success',
-					message: 'Inserted one poi'
+					message: 'Inserted one poi',
 					id: rows[0]['id']
 				});
 		})
@@ -155,7 +157,7 @@ function createPoi(req, res, next) {
 module.exports = {
 //	getAllPois: getAllPois,
 	getPois: getPois,
-	getPoiDetails: getPoiDetails
+	getPoiDetails: getPoiDetails,
 	createPoi: createPoi,
 //	updatePoi: updatePoi,
 //	removePoi: removePoi

@@ -81,6 +81,69 @@ var router = express.Router();
  *
  */
 
+/**
+ * @swagger
+ * definitions:
+ *   CreatePoi:
+ *     properties:
+ *       source:
+ *         type: string
+ *         default: 'Community'
+ *       sourcetype:
+ *         type: string
+ *         example: 'Restaurant'
+ *       label:
+ *         type: string
+ *         example: 'Chez Claudio'
+ *       sourcetheme:
+ *         type: string
+ *         example: 'Italian Restaurant'
+ *       start:
+ *         type: string
+ *         format: date-time
+ *       end:
+ *         type: string
+ *         format: date-time
+ *       street:
+ *         type: string
+ *       zipcode:
+ *         type: string
+ *       city:
+ *         type: string
+ *       country:
+ *         type: string
+ *       latitude:
+ *         type: number
+ *       longitude:
+ *         type: number
+ *       email:
+ *         type: string
+ *         format: email
+ *       web:
+ *         type: string
+ *         format: uri
+ *       phone:
+ *         type: string
+ *       linkimg:
+ *         type: string
+ *         format: uri
+ *       description:
+ *         type: string
+ *       type:
+ *         type: integer
+ *         description: 1 == Event, 2== POI (hotel, restaurant,...), 3 == product
+ *         default: 2
+ *       opening:
+ *         type: object
+ *         description: see schema.org
+ *     required:
+ *       - label
+ *       - latitude
+ *       - longitude
+ *
+ */
+
+
 // /**
 //  * @swagger
 //  * /api/pois:
@@ -225,7 +288,7 @@ router.get('/:id', poiController.getPoiDetails);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitions/Poi'
+ *           $ref: '#/definitions/CreatePoi'
  *     responses:
  *       200:
  *         description: Successfully created
