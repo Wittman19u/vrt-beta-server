@@ -89,6 +89,8 @@ var router = express.Router();
  *       source:
  *         type: string
  *         default: 'Community'
+ *       sourceid:
+ *         type: integer
  *       sourcetype:
  *         type: string
  *         example: 'Restaurant'
@@ -138,6 +140,7 @@ var router = express.Router();
  *         description: see schema.org
  *     required:
  *       - label
+ *       - sourceid
  *       - latitude
  *       - longitude
  *
