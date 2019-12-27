@@ -2,7 +2,7 @@ var express = require('express');
 var hotelController = require('../controllers/hotels');
 var router = express.Router();
 
-// TODO ADD HOTEL DEFINITION
+
 
 // LIGHT: geocoordinates, hotel distance, city name, phone number, fax, address, postal code, country code, state code, ratings, 1 image
 /**
@@ -10,60 +10,81 @@ var router = express.Router();
  * definitions:
  *   Hotel:
  *     properties:
- *       type:
- *         type: string
- *       dupeId:
+ *       id:
  *         type: integer
- *       hotelId:
+ *       source:
  *         type: string
- *       name:
+ *       sourceid:
  *         type: string
- *       rating:
- *         type: integer
- *       hotelDistance:
- *         type: object
- *         properties:
- *           distance:
- *             type: number
- *           distanceUnit:
- *             type: string
- *       address:
- *         type: object
- *         properties:
- *           lines:
- *             type: array
- *             items:
- *               type: string
- *           cityName:
- *             type: string
- *           countryCode:
- *             type: string
- *       contact:
- *         type: object
- *         properties:
- *           phone:
- *             type: number
- *           fax:
- *             type: string
- *           email:
- *             type: string
- *             format: email
- *       media:
- *         type: array
- *         items:
- *           type: object
- *           properties:
- *             uri:
- *               type: string
- *               format: uri
- *             category:
- *               type: string
+ *       sourcetype:
+ *         type: string
+ *       sourcelastupdate:
+ *         type: string
+ *         format: data-time
+ *       label:
+ *         type: string
+ *       sourcetheme:
+ *         type: string
+ *       start:
+ *         type: string
+ *         format: date-time
+ *       end:
+ *         type: string
+ *         format: date-time
+ *       street:
+ *         type: string
+ *       zipcode:
+ *         type: string
+ *       city:
+ *         type: string
+ *       country:
+ *         type: string
  *       latitude:
  *         type: number
  *       longitude:
  *         type: number
- *       available:
+ *       geom:
+ *         type: string
+ *       email:
+ *         type: string
+ *         format: email
+ *       web:
+ *         type: string
+ *         format: uri
+ *       phone:
+ *         type: string
+ *       linkimg:
+ *         type: string
+ *         format: uri
+ *       description:
+ *         type: string
+ *       type:
+ *         type: integer
+ *       priority:
+ *         type: integer
+ *       visnumber:
+ *         type: integer
+ *       created_at:
+ *         type: string
+ *         format: date-time
+ *       updated_at:
+ *         type: string
+ *         format: date-time
+ *       active:
  *         type: boolean
+ *         default: 1
+ *       profiles:
+ *         type: object
+ *       opening:
+ *         type: object
+ *       rating:
+ *         type: number
+ *       duration:
+ *         type: integer
+ *     required:
+ *       - label
+ *       - latitude
+ *       - longitude
  */
 
 /**
@@ -72,8 +93,8 @@ var router = express.Router();
  *   get:
  *     tags:
  *       - Hotels
- *     description: Returns hotels in this Area (16 max)
- *     summary: Returns hotels in this Area (16 max)
+ *     description: Returns hotels in this Area
+ *     summary: Returns hotels in this Area
  *     produces:
  *       - application/json
  *     parameters:
@@ -140,7 +161,7 @@ var router = express.Router();
  *           If several children have the same age, their ages should be repeated in the list
  *         in: query
  *         default: []
- *         type: Array
+ *         type: array
  *         items:
  *           type: integer
  *       - name: lang
@@ -204,6 +225,78 @@ var router = express.Router();
  *                example: 400
  */
 router.get('/', hotelController.getHotels);
+
+/**
+ * @swagger
+ * /api/hotels/prices:
+ *   get:
+ *     tags:
+ *       - Hotels
+ *     description: Returns min max price hotels in this Area
+ *     summary: Returns min max price hotels in this Area
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: latitude
+ *         description: |
+ *           Search around a geographical point. The latitude is specified in decimal degrees.
+ *           Example: 49.117459
+ *           Should be used together with longitude+radius+radiusUnit
+ *         in: query
+ *         required: true
+ *         type: number
+ *         default: 49.117459
+ *       - name: longitude
+ *         description: |
+ *           Search around a geographical point. The longitude is specified in decimal degrees.
+ *           Example: 6.179013
+ *           Should be used together with longitude+radius+radiusUnit
+ *         in: query
+ *         required: true
+ *         type: number
+ *         default: 6.179013
+ *       - name: radius
+ *         description: Search radius
+ *         in: query
+ *         type: integer
+ *         default: 5
+ *       - name: radiusunit
+ *         description: radius unit
+ *         in: query
+ *         type: string
+ *         default: 'KM'
+ *       - name: currency
+ *         description: |
+ *           Use this parameter to request a specific currency.
+ *           ISO currency code (http://www.iso.org/iso/home/standards/currency_codes.htm).
+ *           If a hotel does not support the requested currency, the prices for the hotel will be returned in the local currency of the hotel and instead a currency conversion rate will be added in the dictionary.
+ *           Example: EUR
+ *         in: query
+ *         type: string
+ *         default: EUR
+ *     responses:
+ *       200:
+ *         description: An array with 2 value [minPrice, maxPrice]
+ *         schema:
+ *           type: array
+ *       400:
+ *         description:  Resource not found
+ *         schema:
+ *           type: object
+ *           properties:
+ *              code:
+ *                type: integer
+ *                example: 61
+ *              error:
+ *                type: object
+ *              message:
+ *                type: string
+ *                example: The targeted resource doesn't exist
+ *              status:
+ *                type: integer
+ *                example: 400
+ */
+router.get('/prices', hotelController.getPricesHotels);
 
 /**
  * @swagger
