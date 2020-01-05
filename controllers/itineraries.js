@@ -1,30 +1,30 @@
 const db = require('./db');
 const passport = require('passport');
 
-function getAllItineraries(req, res, next) {
-	let limit = 16;
-	if (typeof req.query.limit !== 'undefined'){
-		limit = req.query.limit;
-	}
-	let sql= `select * from itinerary limit ${limit}`;
-	console.log(sql);
-	db.any(sql)
-		.then(function (data) {
-			res.status(200)
-				.json({
-					status: 'success',
-					itemsNumber: data.length,
-					data: data,
-					message: 'Retrieved ALL itinerarys'
-				});
-		})
-		.catch(function (err) {
-			return next(err);
-		});
-}
+// function getAllItineraries(req, res, next) {
+// 	let limit = 16;
+// 	if (typeof req.query.limit !== 'undefined'){
+// 		limit = req.query.limit;
+// 	}
+// 	let sql= `select * from itinerary limit ${limit}`;
+// 	console.log(sql);
+// 	db.any(sql)
+// 		.then(function (data) {
+// 			res.status(200)
+// 				.json({
+// 					status: 'success',
+// 					itemsNumber: data.length,
+// 					data: data,
+// 					message: 'Retrieved ALL itinerarys'
+// 				});
+// 		})
+// 		.catch(function (err) {
+// 			return next(err);
+// 		});
+// }
 
 
-function getSingleItinerary(req, res, next) {
+function getItineraryDetails(req, res, next) {
 	var itineraryID = parseInt(req.params.id);
 	let sql= `select * from waypoint INNER JOIN poi ON poi.id = waypoint.poi_id WHERE itinerary_id = ${itineraryID}`;
 	console.log(sql);
@@ -193,8 +193,8 @@ function getMyItineraries(req, res, next) {
 }
 
 module.exports = {
-	getAllItineraries: getAllItineraries,
-	getSingleItinerary: getSingleItinerary,
+	// getAllItineraries: getAllItineraries,
+	getItineraryDetails: getItineraryDetails,
 	createItinerary: createItinerary,
 	// updateItinerary: updateItinerary,
 	removeItinerary: removeItinerary,

@@ -65,30 +65,30 @@ var router = express.Router();
  *         $ref: '#/definitions/Itinerary'
  */
 
-/**
- * @swagger
- * /api/itineraries:
- *   get:
- *     tags:
- *       - Itineraries
- *     description: Returns all itineraries
- *     security:
- *       - authorisationJWT: []
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: limit
- *         description: Itinerary's limit number
- *         in: query
- *         type: integer
- *         default: 16
- *     responses:
- *       200:
- *         description: An array of itineraries
- *         schema:
- *           $ref: '#/definitions/Itinerary'
- */
-router.get('/', itineraryController.getAllItineraries);
+// /**
+//  * @swagger
+//  * /api/itineraries:
+//  *   get:
+//  *     tags:
+//  *       - Itineraries
+//  *     description: Returns all itineraries
+//  *     security:
+//  *       - authorisationJWT: []
+//  *     produces:
+//  *       - application/json
+//  *     parameters:
+//  *       - name: limit
+//  *         description: Itinerary's limit number
+//  *         in: query
+//  *         type: integer
+//  *         default: 16
+//  *     responses:
+//  *       200:
+//  *         description: An array of itineraries
+//  *         schema:
+//  *           $ref: '#/definitions/Itinerary'
+//  */
+// router.get('/', itineraryController.getAllItineraries);
 
 /**
  * @swagger
@@ -131,7 +131,7 @@ router.get('/myitineraries', itineraryController.getMyItineraries);
  *         schema:
  *           $ref: '#/definitions/Itinerary'
  */
-router.get('/:id', itineraryController.getSingleItinerary);
+router.get('/:id', itineraryController.getItineraryDetails);
 
 
 /**

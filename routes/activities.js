@@ -2,9 +2,6 @@ var express = require('express');
 var activityController = require('../controllers/activities');
 var router = express.Router();
 
-// TODO ADD HOTEL DEFINITION
-
-
 /**
  * @swagger
  * definitions:
@@ -12,13 +9,18 @@ var router = express.Router();
  *     properties:
  *       id:
  *         type: integer
- *       source_id:
+ *       source:
+ *         type: string
+ *       sourceid:
  *         type: string
  *       sourcetype:
  *         type: string
+ *       sourcelastupdate:
+ *         type: string
+ *         format: data-time
  *       label:
  *         type: string
- *       theme:
+ *       sourcetheme:
  *         type: string
  *       start:
  *         type: string
@@ -51,11 +53,9 @@ var router = express.Router();
  *       linkimg:
  *         type: string
  *         format: uri
- *       comment:
+ *       description:
  *         type: string
  *       type:
- *         type: integer
- *       category:
  *         type: integer
  *       priority:
  *         type: integer
@@ -67,10 +67,21 @@ var router = express.Router();
  *       updated_at:
  *         type: string
  *         format: date-time
+ *       active:
+ *         type: boolean
+ *         default: 1
+ *       profiles:
+ *         type: object
+ *       opening:
+ *         type: object
+ *       rating:
+ *         type: number
+ *       duration:
+ *         type: integer
  *     required:
  *       - label
- *       - created_at
- *       - updated_at
+ *       - latitude
+ *       - longitude
  */
 
 /**
@@ -79,8 +90,8 @@ var router = express.Router();
  *   get:
  *     tags:
  *       - Activities
- *     description: Returns Activities in this Area (16 max)
- *     summary: Returns Activities in this Area (16 max)
+ *     description: Returns Activities in this Area
+ *     summary: Returns Activities in this Area
  *     produces:
  *       - application/json
  *     parameters:
@@ -160,8 +171,8 @@ router.get('/', activityController.getActivities);
  *   get:
  *     tags:
  *       - Activities
- *     description: Returns informations of a single Hotel
- *     summary: Returns informations of a single Hotel
+ *     description: Returns informations of a single Activity
+ *     summary: Returns informations of a single Activity
  *     produces:
  *       - application/json
  *     parameters:
@@ -176,14 +187,14 @@ router.get('/', activityController.getActivities);
  *         description: |
  *           Use this parameter to request a specific currency.
  *           ISO currency code (http://www.iso.org/iso/home/standards/currency_codes.htm).
- *           If a hotel does not support the requested currency, the prices for the hotel will be returned in the local currency of the hotel and instead a currency conversion rate will be added in the dictionary.
+ *           If a Activity does not support the requested currency, the prices for the Activity will be returned in the local currency of the Activity and instead a currency conversion rate will be added in the dictionary.
  *           Example EUR
  *         in: query
  *         type: string
  *         default: EUR
  *     responses:
  *       200:
- *         description: A single hotel
+ *         description: A single Activity
  *         schema:
  *           type: object
  *           properties:
@@ -197,7 +208,7 @@ router.get('/', activityController.getActivities);
  *               example: Retrieved activities
  *             data:
  *               type: object
- *               $ref: '#/definitions/Hotel'
+ *               $ref: '#/definitions/Activity'
  */
 router.get('/:id', activityController.getActivityDetails);
 

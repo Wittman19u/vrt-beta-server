@@ -74,6 +74,10 @@ var router = express.Router();
  *         type: object
  *       opening:
  *         type: object
+ *       rating:
+ *         type: number
+ *       duration:
+ *         type: integer
  *     required:
  *       - label
  *       - latitude
