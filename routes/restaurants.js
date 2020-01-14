@@ -80,29 +80,46 @@ var router = express.Router();
  *       - application/json
  *     parameters:
  *       - name: north
- *         required: true
  *         in: query
  *         type: number
  *         description: Restaurant's bound north (example 48.721093728486146)
  *         default: 48.721093728486146
  *       - name: south
- *         required: true
  *         in: query
  *         type: number
  *         description: Restaurant's bound south (example 48.62428582180533)
  *         default: 48.62428582180533
  *       - name: east
- *         required: true
  *         in: query
  *         type: number
  *         description: Restaurant's bound east (example 6.273365020751953)
  *         default: 6.273365020751953
  *       - name: west
- *         required: true
  *         in: query
  *         type: number
  *         description: Restaurant's bound west (example 6.099987030029298)
  *         default: 6.099987030029298
+ *       - name: latitude
+ *         description: |
+ *           Search around a geographical point. The latitude is specified in decimal degrees.
+ *           Example: 49.117459
+ *           Should be used together with longitude+radius+radiusUnit
+ *         in: query
+ *         type: number
+ *         default: 49.117459
+ *       - name: longitude
+ *         description: |
+ *           Search around a geographical point. The longitude is specified in decimal degrees.
+ *           Example: 6.179013
+ *           Should be used together with longitude+radius+radiusUnit
+ *         in: query
+ *         type: number
+ *         default: 6.179013
+ *       - name: radius
+ *         description: Radius in meters
+ *         in: query
+ *         type: integer
+ *         default: 5000
  *     responses:
  *       200:
  *         description: An array of restaurants
