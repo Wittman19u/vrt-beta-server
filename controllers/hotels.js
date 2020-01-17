@@ -70,7 +70,7 @@ function getHotels(req, res, next) {
 	let radius = parseInt(req.query.radius) || 5;
 	let latitude = req.query.latitude;
 	let longitude = req.query.longitude;
-	let sql = `SELECT *	FROM poi WHERE ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND sourcetype = 'Hotel' limit 20`;
+	let sql = `SELECT *	FROM poi WHERE ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND sourcetype = 'Hotel'`;
 	db.manyOrNone(sql).then(function (dataFromDB) {
 		if (dataFromDB.length > 4) {
 			res.status(200).json({
@@ -98,7 +98,7 @@ function getHotels(req, res, next) {
 				adults:  req.query.adults || 1,
 				childAges:  req.query.childages || [],
 				roomQuantity:  req.query.roomquantity || 1,
-				priceRange: req.query.pricerange || ''
+				priceRange: req.query.pricerange.join('-') || ''
 			};
 			amadeus.shopping.hotelOffers.get(params).then(function(response){
 				let hotels = [];
@@ -110,7 +110,6 @@ function getHotels(req, res, next) {
 						description = hotel.description.text;
 					}
 					let hot = {
-						id: this.count,
 						fieldId: hotel.hotelId,
 						name: hotel.name,
 						longitude: hotel.longitude,
@@ -185,7 +184,7 @@ function getHotels(req, res, next) {
 					message: 'Retrieved hotel for this destination.'
 				});
 			}).catch( error => {
-				if(error.description[0].code === 11126 && error.description[0].status === 400) {
+				if( (error.description[0].code === 11126 && error.description[0].status === 400) || (error.description[0].code === 38194 && error.description[0].status === 429)  ) {
 					res.status(200).json({
 						status: 'success',
 						itemsNumber: 0,
