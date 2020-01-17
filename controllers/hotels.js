@@ -70,7 +70,7 @@ function getHotels(req, res, next) {
 	let radius = parseInt(req.query.radius) || 5;
 	let latitude = req.query.latitude;
 	let longitude = req.query.longitude;
-	let sql = `SELECT *	FROM poi WHERE ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND sourcetype = 'Hotel'`;
+	let sql = `SELECT *	FROM poi WHERE ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND sourcetype = 'Hotel' limit 20`;
 	db.manyOrNone(sql).then(function (dataFromDB) {
 		if (dataFromDB.length > 4) {
 			res.status(200).json({
