@@ -41,6 +41,7 @@ const hotelsRouter = require('./routes/hotels');
 const itinerariesRouter = require('./routes/itineraries');
 const waypointsRouter = require('./routes/waypoints');
 const messagesRouter = require('./routes/messages');
+const directionsRouter = require('./routes/directions');
 
 app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
@@ -51,6 +52,7 @@ app.use('/api/hotels', hotelsRouter);
 app.use('/api/itineraries', itinerariesRouter);
 app.use('/api/waypoints', waypointsRouter);
 app.use('/api/messages', messagesRouter);
+app.use('/api/directions', directionsRouter);
 
 // *****Swagger***********
 // swagger definition
