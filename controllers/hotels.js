@@ -98,7 +98,7 @@ function getHotels(req, res, next) {
 				adults:  req.query.adults || 1,
 				childAges:  req.query.childages || [],
 				roomQuantity:  req.query.roomquantity || 1,
-				priceRange: req.query.pricerange.join('-') || ''
+				priceRange: req.query.pricerange || ''
 			};
 			amadeus.shopping.hotelOffers.get(params).then(function(response){
 				let hotels = [];
