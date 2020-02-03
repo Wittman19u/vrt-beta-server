@@ -55,7 +55,7 @@ function getPricesHotels(req, res, next) {
 
 	}).catch( error => {
 		let message = 'Error amadeus!';
-		console.log(message);
+		console.error(message);
 		res.status(400).json({
 			code: error.code,
 			status: 'error',
@@ -140,13 +140,7 @@ function getHotels(req, res, next) {
 					if (index === undefined) {
 						let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, street, zipcode, city, latitude, longitude, web, linkimg, description, type, rating, price, geom) VALUES( $1, $2, $3 , $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, ST_GeomFromText($17,4326)) RETURNING id;';
 						let values= ['Amadeus', hotel.hotelId, 'Hotel', hot.name, 'Hotel',  hot.address,  hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 1, hot.rating, parseFloat(offer.price.total), point];
-						db.any(sql, values).then(function (rows) {
-							console.log({
-								status: 'success',
-								message: 'Inserted one hotel',
-								id: rows[0]['id']
-							});
-						}).catch( error => {
+						db.any(sql, values).catch( error => {
 							let message = 'Error insert hotel in db!';
 							console.error(message);
 							res.status(400).json({
@@ -157,13 +151,7 @@ function getHotels(req, res, next) {
 							});
 						});
 					} else {
-						db.none('update poi set label=$1, street=$2, zipcode=$3, city=$4, latitude=$5, longitude=$6, web=$7, linkimg=$8, description=$9, type=$10, rating=$11, price=$12, geom=ST_GeomFromText($13,4326) WHERE source=$14 AND sourceid = $15', [hot.name, hot.address, hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 4, hot.rating, parseFloat(offer.price.total), point, 'Amadeus', hotel.hotelId]).then(() => {
-							console.log({
-								status: 'success',
-								message: 'Updated one hotel',
-								id: hotel.hotelId
-							});
-						}).catch( error => {
+						db.none('update poi set label=$1, street=$2, zipcode=$3, city=$4, latitude=$5, longitude=$6, web=$7, linkimg=$8, description=$9, type=$10, rating=$11, price=$12, geom=ST_GeomFromText($13,4326) WHERE source=$14 AND sourceid = $15', [hot.name, hot.address, hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 4, hot.rating, parseFloat(offer.price.total), point, 'Amadeus', hotel.hotelId]).catch( error => {
 							let message = 'Error update hotel in db!';
 							console.error(message);
 							res.status(400).json({
@@ -193,7 +181,7 @@ function getHotels(req, res, next) {
 					});
 				} else {
 					let message = 'Error amadeus!';
-					console.log(message);
+					console.error(message);
 					res.status(400).json({
 						code: error.code,
 						status: 'error',
@@ -228,7 +216,7 @@ function getHotelOffer(req, res, next){
 		});
 	}).catch( error => {
 		let message = 'Error getHotelOffer amadeus!';
-		console.log(message);
+		console.error(message);
 		res.status(400).json({
 			code: error.code,
 			status: 'error',
@@ -251,7 +239,7 @@ function getOffer(req, res, next){
 		});
 	}).catch(error => {
 		let message = 'Error getOffer amadeus!';
-		console.log(message);
+		console.error(message);
 		res.status(400).json({
 			code: error.code,
 			status: 'error',
