@@ -13,7 +13,7 @@ function getRestaurants(req, res, next) {
 		let radius = parseInt(req.query.radius) || 5;
 		let latitude = req.query.latitude;
 		let longitude = req.query.longitude;
-		sql = `SELECT *	FROM poi WHERE ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} AND (type=3 OR type=2) AND sourcetype LIKE '%schema:Restaurant%' limit 10`;
+		sql = `SELECT *	FROM poi WHERE ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} AND (type=3 OR type=2) AND sourcetype LIKE '%schema:Restaurant%'`;
 	}
 	if(sql !== '') {
 		db.manyOrNone(sql).then(function (restaurants) {
