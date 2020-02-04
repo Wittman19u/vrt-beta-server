@@ -24,6 +24,15 @@ var router = express.Router();
  *         description: Profile to use {driving|cycling|walking}
  *         in: query
  *         required: true
+ *       - name: lang
+ *         description: Lang to use for steps
+ *         in: query
+ *       - name: waypointnames
+ *         description: Names of Waypoints
+ *         type: array
+ *         items:
+ *           type: number
+ *         in: query
  *     responses:
  *       200:
  *         description: Retrieved data from OSRM Server
