@@ -113,7 +113,7 @@ function getHotels(req, res, next) {
 						description = hotel.description.text;
 					}
 					if (address.indexOf('{') !== -1) {
-						address = address.replace('{', '').replace('}', '').replace('"', '').replace(',', ', ');
+						address = address.replace('{', '').replace('}', '').replace('"', '').replace('","', ', ').replace('"', '');
 					}
 					let hot = {
 						fieldId: hotel.hotelId,
