@@ -59,6 +59,7 @@ function getActivities(req, res, next){
 				Promise.all(ops).then( activitiesLists => {
 					let resultList = [];
 					if(activitiesLists.length > 0){
+						let calls = [];
 						let activities = [];
 						for (let i = 0; i < activitiesLists.length; i++){
 							if(activitiesLists[i].data.data.length > 0){
@@ -74,12 +75,12 @@ function getActivities(req, res, next){
 						let arrayFiltered = activities.filter((element,index,array)=>array.findIndex(item=>(item.code === element.code))===index)
 						for (let activity of arrayFiltered){
 							let act = {
-								fieldId: activity.code,
+								// fieldId: activity.code,
 								name: activity.shortTitle,
 								longitude: activity.longitude,
 								latitude: activity.latitude,
-								address: '',
-								zipCode: '',
+								street: '',
+								zipcode: '',
 								city: activity.primaryDestinationName || '',
 								description: activity.shortDescription || '',
 								image: activity.thumbnailURL || '',
@@ -110,54 +111,45 @@ function getActivities(req, res, next){
 								}
 								return false;
 							});
-
+							let opt;
 							if (index === undefined) {
 								let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, city, latitude, longitude, web, linkimg, description, type, duration,rating, price, geom) VALUES( $1, $2, $3 , $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, ST_GeomFromText($16,4326)) RETURNING id;';
 								let values= ['Viator', activity.code, sourceType , act.name, 'Activity', act.city, act.latitude, act.longitude, act.link, act.image, act.description, 4, duration, act.rating, act.price, point];
-								db.any(sql, values).then(function (rows) {
-									console.log({
-										status: 'success',
-										message: 'Inserted one act',
-										id: rows[0]['id']
-									});
-								}).catch( error => {
-									let message = 'Error insert activity in db!';
-									console.error(message);
-									res.status(400).json({
-										code: error.code,
-										status: 'error',
-										error: error,
-										message: message
-									});
-								});
+								opt = db.any(sql, values);
+
 							} else {
-								db.none('update poi set sourcetype=$1, label=$2, city=$3, latitude=$4, longitude=$5, web=$6, linkimg=$7, description=$8, type=$9, duration=$10,rating=$11, price=$12, geom=ST_GeomFromText($13,4326) WHERE source=$14 AND sourceid = $15', [sourceType, act.name, act.city, act.latitude, act.longitude, act.link, act.image, act.description, 4, duration, act.rating, act.price, point, 'Viator', activity.code]).then( () => {
-									console.log({
-										status: 'success',
-										message: 'Updated one act',
-										id: activity.code
-									});
-								}).catch( error => {
-									let message = 'Error update activity in db!';
-									console.error(message);
-									res.status(400).json({
-										code: error.code,
-										status: 'error',
-										error: error,
-										message: message
-									});
-								});
+								opt = db.any('update poi set sourcetype=$1, label=$2, city=$3, latitude=$4, longitude=$5, web=$6, linkimg=$7, description=$8, type=$9, duration=$10,rating=$11, price=$12, geom=ST_GeomFromText($13,4326) WHERE source=$14 AND sourceid = $15 RETURNING id', [sourceType, act.name, act.city, act.latitude, act.longitude, act.link, act.image, act.description, 4, duration, act.rating, act.price, point, 'Viator', activity.code]);
 							}
+							calls.push(opt);
 						}
+						Promise.all(calls).then( (ids) => {
+							for (let i = 0; i < ids.length; i++) {
+								resultList[i].id = ids[i][0].id;
+							}
+							res.status(200).json({
+								status: 'success',
+								itemsNumber: resultList.length,
+								data: resultList,
+								message: 'Retrieved activities in bound.'
+							});
+						}).catch( error => {
+							let message = 'Error insert/update in DB!';
+							console.error(message);
+							res.status(400).json({
+								code: error.code,
+								status: 'error',
+								error: error,
+								message: message
+							});
+						});
+					} else {
+						res.status(200).json({
+							status: 'success',
+							itemsNumber: 0,
+							data: resultList,
+							message: 'Retrieved activities in bound.'
+						});
 					}
-					return resultList;
-				}).then((activities) => {
-					res.status(200).json({
-						status: 'success',
-						itemsNumber: activities.length,
-						data: activities,
-						message: 'Retrieved activities in bound.'
-					});
 				}).catch( error => {
 					let message = 'Error retrieved activities from Viator!';
 					console.error(message);
@@ -168,7 +160,6 @@ function getActivities(req, res, next){
 						message: message
 					});
 				});
-
 			}).catch( error => {
 				let message = 'Error retrieved cities from geobuffer!';
 				console.error(message);
