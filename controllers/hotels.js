@@ -72,7 +72,7 @@ function getHotels(req, res, next) {
 	let longitude = req.query.longitude;
 	let sql = `SELECT *	FROM poi WHERE ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND sourcetype = 'Hotel'`;
 	db.manyOrNone(sql).then(function (dataFromDB) {
-		if (dataFromDB.length > 25) {
+		if (dataFromDB.length > 4) {
 			res.status(200).json({
 				status: 'success',
 				itemsNumber: dataFromDB.length,
@@ -108,7 +108,10 @@ function getHotels(req, res, next) {
 					let offer = ets.offers[0];
 					let description = '';
 					let address = hotel.address.lines[0] || '';
-					let currency = offer.price.currency || 'EUR';
+					let currency = 'EUR';
+					if (offer.price.currency !== undefined && offer.price.currency !== '' ) {
+						currency = offer.price.currency;
+					}
 					if (typeof hotel.description !== 'undefined') {
 						description = hotel.description.text;
 					}
