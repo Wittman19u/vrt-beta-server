@@ -59,8 +59,7 @@ function getPoisByQuery(req, res, next) {
 						data: data,
 						message: 'Retrieved pois in bound'
 					});
-			})
-			.catch(function (err) {
+			}).catch(function (err) {
 				console.error(err);
 				return next(err);
 			});

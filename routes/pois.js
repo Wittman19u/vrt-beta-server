@@ -176,6 +176,46 @@ var router = express.Router();
 
 /**
  * @swagger
+ * /api/pois/findByLabel:
+ *   get:
+ *     tags:
+ *       - Pois
+ *     description: Returns POIs with query in label field
+ *     summary: Returns POIs with query in label field
+ *     security:
+ *       - authorisationJWT: []
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: query
+ *         required: true
+ *         in: query
+ *         type: string
+ *         description: text to find in label
+ *     responses:
+ *       200:
+ *         description: An array of pois
+ *         schema:
+ *           type: object
+ *           properties:
+ *             status:
+ *               type: string
+ *               example: success
+ *             itemsNumber:
+ *               type: integer
+ *             message:
+ *               type: string
+ *               example: Retrieved pois
+ *             data:
+ *               type: array
+ *               items:
+ *                 $ref: '#/definitions/Poi'
+ */
+router.get('/findByLabel', poiController.getPoisByQuery);
+
+
+/**
+ * @swagger
  * /api/pois:
  *   get:
  *     tags:
@@ -239,44 +279,7 @@ var router = express.Router();
  */
 router.get('/', poiController.getPois);
 
-/**
- * @swagger
- * /api/pois/findByLabel:
- *   get:
- *     tags:
- *       - Pois
- *     description: Returns POIs with query in label field
- *     summary: Returns POIs with query in label field
- *     security:
- *       - authorisationJWT: []
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: query
- *         required: true
- *         in: query
- *         type: text
- *         description: text to find in label
- *     responses:
- *       200:
- *         description: An array of pois
- *         schema:
- *           type: object
- *           properties:
- *             status:
- *               type: string
- *               example: success
- *             itemsNumber:
- *               type: integer
- *             message:
- *               type: string
- *               example: Retrieved pois
- *             data:
- *               type: array
- *               items:
- *                 $ref: '#/definitions/Poi'
- */
-router.get('/findByStatus', poiController.getPoisByQuery);
+
 
 
 /**
