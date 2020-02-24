@@ -148,11 +148,11 @@ function getHotels(req, res, next) {
 					let opt;
 					if (index === undefined) {
 						let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, street, zipcode, city, latitude, longitude, web, linkimg, description, type, rating, price, geom) VALUES( $1, $2, $3 , $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, ST_GeomFromText($17,4326)) RETURNING id;';
-						let values= ['Amadeus', hotel.hotelId, 'Hotel', hot.name, 'Hotel',  hot.address,  hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 1, hot.rating, parseFloat(offer.price.total), point];
+						let values= ['Amadeus', hotel.hotelId, 'Hotel', hot.name, 'Hotel',  hot.address,  hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 5, hot.rating, parseFloat(offer.price.total), point];
 						opt = db.any(sql, values);
 
 					} else {
-						opt = db.any('update poi set label=$1, street=$2, zipcode=$3, city=$4, latitude=$5, longitude=$6, web=$7, linkimg=$8, description=$9, type=$10, rating=$11, price=$12, geom=ST_GeomFromText($13,4326) WHERE source=$14 AND sourceid = $15 RETURNING id;', [hot.name, hot.address, hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 4, hot.rating, parseFloat(offer.price.total), point, 'Amadeus', hotel.hotelId]);
+						opt = db.any('update poi set label=$1, street=$2, zipcode=$3, city=$4, latitude=$5, longitude=$6, web=$7, linkimg=$8, description=$9, type=$10, rating=$11, price=$12, geom=ST_GeomFromText($13,4326) WHERE source=$14 AND sourceid = $15 RETURNING id;', [hot.name, hot.address, hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 5, hot.rating, parseFloat(offer.price.total), point, 'Amadeus', hotel.hotelId]);
 					}
 					calls.push(opt);
 				}

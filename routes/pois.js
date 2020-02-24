@@ -239,6 +239,44 @@ var router = express.Router();
  */
 router.get('/', poiController.getPois);
 
+/**
+ * @swagger
+ * /api/pois/findByLabel:
+ *   get:
+ *     tags:
+ *       - Pois
+ *     description: Returns POIs with query in label field
+ *     summary: Returns POIs with query in label field
+ *     security:
+ *       - authorisationJWT: []
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: query
+ *         required: true
+ *         in: query
+ *         type: text
+ *         description: text to find in label
+ *     responses:
+ *       200:
+ *         description: An array of pois
+ *         schema:
+ *           type: object
+ *           properties:
+ *             status:
+ *               type: string
+ *               example: success
+ *             itemsNumber:
+ *               type: integer
+ *             message:
+ *               type: string
+ *               example: Retrieved pois
+ *             data:
+ *               type: array
+ *               items:
+ *                 $ref: '#/definitions/Poi'
+ */
+router.get('/findByStatus', poiController.getPoisByQuery);
 
 
 /**
@@ -303,32 +341,34 @@ router.get('/:id', poiController.getPoiDetails);
 router.post('/', poiController.createPoi);
 
 
-// /**
-//  * @swagger
-//  * /api/pois/{id}:
-//  *   put:
-//  *     tags:
-//  *       - Pois
-//  *     description: Updates a single poi
-//  *     produces:
-//  *       - application/json
-//  *     parameters:
-//  *       - name: id
-//  *         description: Poi's id
-//  *         in: path
-//  *         required: true
-//  *         type: integer
-//  *       - name: poi
-//  *         description: Fields for Poi resource
-//  *         in: body
-//  *         required: true
-//  *         schema:
-//  *           $ref: '#/definitions/Poi'
-//  *     responses:
-//  *       200:
-//  *         description: Successfully updated
-//  */
-// router.put('/:id', poiController.updatePoi);
+/**
+ * @swagger
+ * /api/pois/{id}:
+ *   put:
+ *     tags:
+ *       - Pois
+ *     description: Updates a single poi
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - authorisationJWT: []
+ *     parameters:
+ *       - name: id
+ *         description: Poi's id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *       - name: poi
+ *         description: Fields for Poi resource
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/Poi'
+ *     responses:
+ *       200:
+ *         description: Successfully updated
+ */
+router.put('/:id', poiController.updatePoi);
 
 
 // /**
