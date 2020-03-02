@@ -42,8 +42,14 @@ function getPoisByQuery(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			let query = req.query.query;
+			let activeSearch = req.query.active;
+			if (activeSearch === 'all') {
+				activeSearch = '';
+			} else {
+				activeSearch = `AND active = ${activeSearch}`;
+			}
 			// let sql= ` WITH points AS ( SELECT distinct on(cells.geom) cells.geom, cells.row, cells.col, poi.id,  MAX(poi.priority) AS bestpriority FROM  ST_CreateFishnet(4, 4,  ${boundsobj.north}, ${boundsobj.south}, ${boundsobj.east}, ${boundsobj.west}) AS cells INNER JOIN public.poi ON ST_Within(poi.geom, cells.geom) WHERE poi.source='Datatourisme' AND ${typecond} GROUP BY cells.row, cells.col, cells.geom, poi.id ORDER BY cells.geom, cells.row ASC, cells.col ASC,  bestpriority DESC ) SELECT * FROM poi INNER JOIN points ON poi.id=points.id`;
-			let sql= `SELECT * FROM poi where label like '%${query}%' ORDER BY label ASC Limit 20`;
+			let sql= `SELECT * FROM poi where label like '%${query}%' ${activeSearch} ORDER BY label ASC Limit 20`;
 			db.any(sql).then(function (data) {
 				// TODO UPdate priority
 				//update priority when view
@@ -155,7 +161,7 @@ function createPoi(req, res, next) {
 			data.longitude = parseFloat(req.body.longitude).toFixed(5);
 			data.point = `POINT(${data.longitude} ${data.latitude})`;
 			data.source = 'Community';
-			let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, start, "end", street, zipcode, city, country, latitude, longitude, email, web, phone, linkimg, description, type, opening, geom) VALUES( ${source}, ${sourceid}, ${sourcetype}, ${label}, ${sourcetheme}, ${start}, ${end}, ${street}, ${zipcode}, ${city}, ${country}, ${latitude}, ${longitude}, ${email}, ${web}, ${phone},  ${linkimg}, ${description}, ${type}, ${opening}, ST_GeomFromText(${point},4326) ) RETURNING id;'
+			let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, start, "end", street, zipcode, city, country, latitude, longitude, email, web, phone, linkimg, description, type, opening, geom, active, duration, rating, price, ocean, pricerange, handicap, social) VALUES( ${source}, ${sourceid}, ${sourcetype}, ${label}, ${sourcetheme}, ${start}, ${end}, ${street}, ${zipcode}, ${city}, ${country}, ${latitude}, ${longitude}, ${email}, ${web}, ${phone},  ${linkimg}, ${description}, ${type}, ${opening}, ST_GeomFromText(${point},4326), false, ${duration}, ${rating}, ${price}, ${ocean}, ${pricerange}, ${handicap}, ${social} ) RETURNING id;'
 
 			db.any(sql, data).then(function (rows) {
 				res.status(200).json({
@@ -187,12 +193,24 @@ function updatePoi(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			let data = req.body;
+			// data.social = {
+			// 	facebook: req.body.social.facebook
+			// };
+			// data.opening = {
+			// 	sunday: [ req.body.sunday[0], req.body.sunday[1], req.body.sunday[2], req.body.sunday[3]],
+			// 	monday: [ req.body.monday[0], req.body.monday[1], req.body.monday[2], req.body.monday[3]],
+			// 	tuesday: [ req.body.tuesday[0], req.body.tuesday[1], req.body.tuesday[2], req.body.tuesday[3]],
+			// 	wednesday: [ req.body.wednesday[0], req.body.wednesday[1], req.body.wednesday[2], req.body.wednesday[3] ],
+			// 	thursday: [ req.body.thursday[0], req.body.thursday[1], req.body.thursday[2], req.body.thursday[3] ],
+			// 	friday: [ req.body.friday[0], req.body.friday[1] , req.body.friday[2], req.body.friday[3] ],
+			// 	saturday: [ req.body.saturday[0], req.body.saturday[1], req.body.saturday[2], req.body.saturday[3] ]
+			// }
 			data.parId = parseInt(req.params.id);
 			data.type = parseInt(req.body.type);
 			data.latitude = parseFloat(req.body.latitude).toFixed(5);
 			data.longitude = parseFloat(req.body.longitude).toFixed(5);
 			data.point = `POINT(${data.longitude} ${data.latitude})`;
-			let sql = 'update poi set sourceid = ${sourceid}, sourcetype = ${sourcetype}, label = ${label}, sourcetheme = ${sourcetheme}, start = ${start}, "end" = ${end}, street = ${street}, zipcode = ${zipcode}, city =  ${city}, country = ${country}, latitude = ${latitude}, longitude = ${longitude}, email = ${email}, web = ${web}, phone = ${phone}, linkimg =  ${linkimg}, description = ${description}, type = ${type}, opening = ${opening}, geom =  ST_GeomFromText(${point},4326) where id=${parId}';
+			let sql = 'update poi set sourceid = ${sourceid}, sourcetype = ${sourcetype}, label = ${label}, sourcetheme = ${sourcetheme}, start = ${start}, "end" = ${end}, street = ${street}, zipcode = ${zipcode}, city =  ${city}, country = ${country}, latitude = ${latitude}, longitude = ${longitude}, email = ${email}, web = ${web}, phone = ${phone}, linkimg =  ${linkimg}, description = ${description}, type = ${type}, opening = ${opening}, geom = ST_GeomFromText(${point},4326), update_at = NOW(), active = ${active}, duration = ${duration}, rating = {rating}, price = {price}, ocean = {ocean}, pricerange = {pricerange}, handicap = {handicap}, social = {social} where id=${parId}';
 			db.none(sql, data).then(function () {
 				res.status(200)
 					.json({

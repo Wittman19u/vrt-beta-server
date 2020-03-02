@@ -78,6 +78,16 @@ var router = express.Router();
  *         type: number
  *       duration:
  *         type: integer
+ *       price:
+ *         type: number
+ *       ocean:
+ *         type: object
+ *       pricerange:
+ *         type: integer
+ *       handicap:
+ *         type: integer
+ *       social:
+ *         type: object
  *     required:
  *       - label
  *       - latitude
@@ -192,6 +202,10 @@ var router = express.Router();
  *         in: query
  *         type: string
  *         description: text to find in label
+ *       - name: active
+ *         in: query
+ *         type: string
+ *         description: select  {all/true/false} active pois
  *     responses:
  *       200:
  *         description: An array of pois
