@@ -210,7 +210,8 @@ function updatePoi(req, res, next) {
 			data.latitude = parseFloat(req.body.latitude).toFixed(5);
 			data.longitude = parseFloat(req.body.longitude).toFixed(5);
 			data.point = `POINT(${data.longitude} ${data.latitude})`;
-			let sql = 'update poi set sourceid = ${sourceid}, sourcetype = ${sourcetype}, label = ${label}, sourcetheme = ${sourcetheme}, start = ${start}, "end" = ${end}, street = ${street}, zipcode = ${zipcode}, city =  ${city}, country = ${country}, latitude = ${latitude}, longitude = ${longitude}, email = ${email}, web = ${web}, phone = ${phone}, linkimg =  ${linkimg}, description = ${description}, type = ${type}, opening = ${opening}, geom = ST_GeomFromText(${point},4326), updated_at = NOW(), active = ${active}, duration = ${duration}, rating = ${rating}, price = ${price}, ocean = ${ocean}, pricerange = ${pricerange}, handicap = ${handicap}, social = ${social} where id=${parId}';
+			data.manuallyupdate = true;
+			let sql = 'update poi set sourceid = ${sourceid}, sourcetype = ${sourcetype}, label = ${label}, sourcetheme = ${sourcetheme}, start = ${start}, "end" = ${end}, street = ${street}, zipcode = ${zipcode}, city =  ${city}, country = ${country}, latitude = ${latitude}, longitude = ${longitude}, email = ${email}, web = ${web}, phone = ${phone}, linkimg =  ${linkimg}, description = ${description}, type = ${type}, opening = ${opening}, geom = ST_GeomFromText(${point},4326), updated_at = NOW(), active = ${active}, duration = ${duration}, rating = ${rating}, price = ${price}, ocean = ${ocean}, pricerange = ${pricerange}, handicap = ${handicap}, social = ${social}, manuallyupdate = ${manuallyupdate} where id=${parId}';
 			db.none(sql, data).then(function () {
 				res.status(200)
 					.json({
