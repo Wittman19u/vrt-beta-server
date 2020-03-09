@@ -102,6 +102,25 @@ function createUser(req, res, next) {
 				user: user,
 				message: 'User created in db & logged in',
 			});
+			const mailOptions = {
+				from: process.env.SERVER_EMAIL,
+				to: user.email,
+				subject: 'User successfully created',
+				text: 'You are receiving this email to confirm you created an account.',
+			};
+			transporter.sendMail(mailOptions, (error, response) => {
+				if (error) {
+					console.error(`There was an error sending email: ${error}`);
+					res.status(500).json({
+						status: 'error',
+						message: `There was an error sending email: ${error}`
+					});
+				}
+				res.status(200).json({
+					status: 'success',
+					message:'Confirmation email sent!'
+				});
+			});
 		}
 	})(req, res, next);
 }
