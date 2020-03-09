@@ -108,7 +108,8 @@ function getPois(req, res, next) {
 		startDate = req.query.datetime;
 	}
 
-	let typecond = ` (type=3 OR (type=2 AND sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) ) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
+	// let typecond = ` (type=3 OR (type=2 AND sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) ) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
+	let typecond = ` (type=3 OR (type=2 AND sourcetype LIKE '%CulturalSite%' ) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
 	switch (req.query.type) {
 	case "act":
 		typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
