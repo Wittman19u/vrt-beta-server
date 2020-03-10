@@ -221,7 +221,7 @@ function forgotPassword(req, res, next){
 				const token = cryptoRandomString({length: 20});
 				db.none('update account set localtoken=$1, expireslocaltoken=$2 where id=$3',[token, moment().add(20, 'minutes').format('YYYY-MM-DDTHH:mm'), parseInt(user.id)]
 				).then( () => {
-					// res.setLocale(user.language)
+					res.setLocale(user.language)
 					const mailOptions = {
 						from: process.env.SERVER_EMAIL,
 						to: user.email,
