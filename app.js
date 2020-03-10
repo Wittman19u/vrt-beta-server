@@ -1,6 +1,7 @@
 // setup modules
 require('dotenv').config();
 const express = require('express');
+const i18n = require('i18n');
 const cors = require('cors')
 const createError = require('http-errors');
 const path = require('path');
@@ -16,6 +17,13 @@ const app = express();
 
 app.use(helmet());
 app.use(cors());
+
+// i18n
+i18n.configure({
+	locales:['en', 'fr'],
+	directory: __dirname + '/locales'
+})
+app.use(i18n.init);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

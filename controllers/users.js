@@ -102,11 +102,12 @@ function createUser(req, res, next) {
 				user: user,
 				message: 'User created in db & logged in',
 			});
+			res.setLocale(user.language);
 			const mailOptions = {
 				from: process.env.SERVER_EMAIL,
 				to: user.email,
-				subject: 'User successfully created',
-				text: 'You are receiving this email to confirm you created an account.',
+				subject: res.__('mail.signup.subject'),
+				text: res.__('mail.signup.content'),
 			};
 			transporter.sendMail(mailOptions, (error, response) => {
 				if (error) {
@@ -220,15 +221,12 @@ function forgotPassword(req, res, next){
 				const token = cryptoRandomString({length: 20});
 				db.none('update account set localtoken=$1, expireslocaltoken=$2 where id=$3',[token, moment().add(20, 'minutes').format('YYYY-MM-DDTHH:mm'), parseInt(user.id)]
 				).then( () => {
+					// res.setLocale(user.language)
 					const mailOptions = {
 						from: process.env.SERVER_EMAIL,
 						to: user.email,
-						subject: 'Link To Reset Password',
-						text:
-							'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n'
-							+ 'Please click on the following link, or paste this into your browser to complete the process within one hour of receiving it:\n\n'
-							+ `https://${process.env.CLIENT_HOST}/reset/${token}\n\n`
-							+ 'If you did not request this, please ignore this email and your password will remain unchanged.\n',
+						subject: res.__('mail.forgotPassword.subject'),
+						text: res.__('mail.forgotPassword.content', {link: 'https://${process.env.CLIENT_HOST}/reset/${token}'})
 					};
 					transporter.sendMail(mailOptions, (error, response) => {
 						if (error) {
