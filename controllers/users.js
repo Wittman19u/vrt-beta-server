@@ -226,7 +226,7 @@ function forgotPassword(req, res, next){
 						from: process.env.SERVER_EMAIL,
 						to: user.email,
 						subject: res.__('mail.forgotPassword.subject'),
-						text: res.__('mail.forgotPassword.content', {link: 'https://${process.env.CLIENT_HOST}/reset/${token}'})
+						text: res.__('mail.forgotPassword.content', {link: `https://${process.env.CLIENT_HOST}/reset/${token}`})
 					};
 					transporter.sendMail(mailOptions, (error, response) => {
 						if (error) {
