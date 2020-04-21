@@ -202,6 +202,31 @@ function loginUser(req, res, next) {
 	})(req, res, next);
 }
 
+function checkUser(req, res, next) {
+	if (req.body.email === '') {
+		res.status(400).json({
+			status: 'error',
+			message: 'Email required!'
+		});
+	} else {
+		db.oneOrNone( 'select * from account where email = $1',[req.body.email.toLowerCase()]
+		).then((user) => {
+			if (user === null) {
+				console.error('Email not in DB!');
+				res.status(403).json({
+					status: 'error',
+					message: 'Email not in DB!'
+				});
+			} else {
+				res.status(200).json({
+					status: 'success',
+					message: 'Email in DB!'
+				});
+			}
+		});
+	}
+}
+
 function forgotPassword(req, res, next){
 	if (req.body.email === '') {
 		res.status(400).json({
@@ -227,6 +252,64 @@ function forgotPassword(req, res, next){
 						to: user.email,
 						subject: res.__('mail.forgotPassword.subject'),
 						text: res.__('mail.forgotPassword.content', {link: `https://${process.env.CLIENT_HOST}/reset/${token}`})
+					};
+					transporter.sendMail(mailOptions, (error, response) => {
+						if (error) {
+							console.error(`There was an error sending email: ${error}`);
+							res.status(500).json({
+								status: 'error',
+								message: `There was an error sending email: ${error}`
+							});
+						}
+						res.status(200).json({
+							status: 'success',
+							message:'Recovery email sent!'
+						});
+					});
+				}).catch((error) => {
+					console.error('Problem during update DB!');
+					res.status(500).json({
+						status: 'error',
+						message: `Problem during update DB: ${error}`
+					});
+				});
+			}
+		}).catch(function (error) {
+			console.error(error);
+			res.status(500).json({
+				status: 'error',
+				message: 'Problem communicating with DB!'
+			});
+		});
+	}
+}
+
+function forgotPasswordInApp(req, res, next){
+	if (req.body.email === '') {
+		res.status(400).json({
+			status: 'error',
+			message: 'Email required!'
+		});
+	} else {
+		db.oneOrNone( 'select * from account where email = $1',[req.body.email.toLowerCase()]
+		).then((user) => {
+			if (user === null) {
+				console.error('Email not in DB!');
+				res.status(403).json({
+					status: 'error',
+					message: 'Email not in DB!'
+				});
+			} else {
+				// random 6 digit number
+				const codeReset = Math.floor(Math.random() * 899999 + 100000)
+				db.none('update account set codetemp=$1, expirescodetemp=$2 where id=$3',[codeReset, moment().add(20, 'minutes').format('YYYY-MM-DDTHH:mm'), parseInt(user.id)]
+				).then( () => {
+					res.setLocale(user.language)
+					const mailOptions = {
+						from: process.env.SERVER_EMAIL,
+						to: user.email,
+						subject: res.__('mail.forgotPassword.subject'),
+						text: res.__('mail.forgotPasswordInApp.content', {code: codeReset})
 					};
 					transporter.sendMail(mailOptions, (error, response) => {
 						if (error) {
@@ -405,10 +488,12 @@ module.exports = {
 	getAllUsers: getAllUsers,
 	getUserDetails: getUserDetails,
 	forgotPassword: forgotPassword,
+	forgotPasswordInApp: forgotPasswordInApp,
 	updatePasswordViaEmail: updatePasswordViaEmail,
 	updatePassword: updatePassword,
 	createUser: createUser,
 	updateUser: updateUser,
 	removeUser: removeUser,
-	loginUser: loginUser
+	loginUser: loginUser,
+	checkUser: checkUser
 };
