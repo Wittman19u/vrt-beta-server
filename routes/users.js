@@ -266,6 +266,33 @@ router.post('/loginuser', userController.loginUser);
 
 /**
  * @swagger
+ * /api/users/loginuser:
+ *   post:
+ *     tags:
+ *       - Users
+ *     summary: Checks if a user is registered
+ *     consumes:
+ *       - application/x-www-form-urlencoded
+ *     parameters:
+ *       - name: email
+ *         type: string
+ *         format: email
+ *         in: formData
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: User is in the database
+ *       403:
+ *         description: User is not in the database
+ *       401:
+ *         description: Bad email
+ *       500:
+ *         description: Problem communicating with DB
+ */
+router.post('/checkuser', userController.checkUser);
+
+/**
+ * @swagger
  * /api/users/forgotpassword:
  *   post:
  *     tags:

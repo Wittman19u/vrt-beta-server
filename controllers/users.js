@@ -202,6 +202,31 @@ function loginUser(req, res, next) {
 	})(req, res, next);
 }
 
+function checkUser(req, res, next) {
+	if (req.body.email === '') {
+		res.status(400).json({
+			status: 'error',
+			message: 'Email required!'
+		});
+	} else {
+		db.oneOrNone( 'select * from account where email = $1',[req.body.email.toLowerCase()]
+		).then((user) => {
+			if (user === null) {
+				console.error('Email not in DB!');
+				res.status(403).json({
+					status: 'error',
+					message: 'Email not in DB!'
+				});
+			} else {
+				res.status(200).json({
+					status: 'success',
+					message: 'Email in DB!'
+				});
+			}
+		});
+	}
+}
+
 function forgotPassword(req, res, next){
 	if (req.body.email === '') {
 		res.status(400).json({
@@ -410,5 +435,6 @@ module.exports = {
 	createUser: createUser,
 	updateUser: updateUser,
 	removeUser: removeUser,
-	loginUser: loginUser
+	loginUser: loginUser,
+	checkUser: checkUser
 };
