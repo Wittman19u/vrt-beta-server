@@ -322,6 +322,35 @@ router.post('/forgotpassword', userController.forgotPassword);
 
 /**
  * @swagger
+ * /api/users/forgotpassword:
+ *   post:
+ *     tags:
+ *       - Users
+ *     summary: Sends an email with a reset password code when a user inevitably forgets their password
+ *     produces:
+ *       - application/json
+ *     consumes:
+ *       - application/x-www-form-urlencoded
+ *     parameters:
+ *       - name: email
+ *         type: string
+ *         format: email
+ *         in: formData
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Reset email sent
+ *       400:
+ *         description: Email required
+ *       403:
+ *         description: Email not found in db
+ *       500:
+ *         description: There was an error sending email or Problem during update DB
+ */
+router.post('/forgotpasswordinapp', userController.forgotPasswordInApp);
+
+/**
+ * @swagger
  * /api/users/updatepasswordviaemail:
  *   put:
  *     tags:
