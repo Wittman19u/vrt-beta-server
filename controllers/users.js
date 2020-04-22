@@ -342,6 +342,37 @@ function forgotPasswordInApp(req, res, next){
 	}
 }
 
+function checkResetCode(req, res, next){
+	if (req.body.email === '' || req.body.resetPasswordCode === '') {
+		res.status(400).json({
+			status: 'error',
+			message: 'Field required!'
+		});
+	} else {
+		db.oneOrNone('select * from account where (email = $1 AND codetemp = $2 AND expirescodetemp::timestamp > current_timestamp) ', [req.body.email.toLowerCase(), req.body.resetPasswordCode]
+		).then(user => {
+			if (user === null) {
+				console.error('No user exists in db or password reset link is invalid or has expired!');
+				res.status(403).json({
+					status: 'error',
+					message: 'No user exists in db or password reset link is invalid or has expired!'
+				});
+			}
+			console.log('User exists in db');
+			res.status(200).json({
+				status: 'success',
+				message: 'Code is correct!'
+			});
+		}).catch(function (error) {
+			console.error(error);
+			res.status(500).json({
+				status: 'error',
+				message: 'Problem communicating with DB!'
+			});
+		});
+	}
+}
+
 function updatePasswordViaEmail(req, res, next){
 	if (req.body.email === '' || req.body.resetPasswordToken === '' || req.body.password === '') {
 		res.status(400).json({
@@ -362,6 +393,57 @@ function updatePasswordViaEmail(req, res, next){
 			bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS
 			).then(hashedPassword => {
 				db.none('update account set password = $1, localtoken = NULL, expireslocaltoken = NULL where id=$2',[hashedPassword, parseInt(user.id)]
+				).then(() => {
+					console.log('Password updated!');
+					res.status(200).json({
+						status: 'success',
+						message: 'Password updated!'
+					});
+				}).catch((error) => {
+					console.error(`Problem during update DB: ${error}`);
+					res.status(500).json({
+						status: 'error',
+						message: `Problem during update DB: ${error}`
+					});
+				});
+			}).catch((error) => {
+				console.error(`Problem during password hash: ${error}`);
+				res.status(500).json({
+					status: 'error',
+					message: `Problem during password hash: ${error}`
+				});
+			});
+		}).catch(function (error) {
+			console.error(error);
+			res.status(500).json({
+				status: 'error',
+				message: 'Problem communicating with DB!'
+			});
+		});
+	}
+
+}
+
+function updatePasswordViaApp(req, res, next){
+	if (req.body.email === '' || req.body.resetPasswordCode === '' || req.body.password === '') {
+		res.status(400).json({
+			status: 'error',
+			message: 'Field required!'
+		});
+	} else {
+		db.oneOrNone('select * from account where (email = $1 AND codetemp = $2 AND expirescodetemp::timestamp > current_timestamp) ', [req.body.email.toLowerCase(), req.body.resetPasswordCode]
+		).then(user => {
+			if (user === null) {
+				console.error('No user exists in db or password reset link is invalid or has expired!');
+				res.status(403).json({
+					status: 'error',
+					message: 'No user exists in db or password reset link is invalid or has expired!'
+				});
+			}
+			console.log('User exists in db');
+			bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS
+			).then(hashedPassword => {
+				db.none('update account set password = $1, codetemp = NULL, expirescodetemp = NULL where id=$2',[hashedPassword, parseInt(user.id)]
 				).then(() => {
 					console.log('Password updated!');
 					res.status(200).json({
@@ -489,6 +571,8 @@ module.exports = {
 	getUserDetails: getUserDetails,
 	forgotPassword: forgotPassword,
 	forgotPasswordInApp: forgotPasswordInApp,
+	checkResetCode: checkResetCode,
+	updatePasswordViaApp: updatePasswordViaApp,
 	updatePasswordViaEmail: updatePasswordViaEmail,
 	updatePassword: updatePassword,
 	createUser: createUser,

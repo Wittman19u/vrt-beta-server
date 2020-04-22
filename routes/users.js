@@ -322,7 +322,7 @@ router.post('/forgotpassword', userController.forgotPassword);
 
 /**
  * @swagger
- * /api/users/forgotpassword:
+ * /api/users/forgotpasswordinapp:
  *   post:
  *     tags:
  *       - Users
@@ -348,6 +348,82 @@ router.post('/forgotpassword', userController.forgotPassword);
  *         description: There was an error sending email or Problem during update DB
  */
 router.post('/forgotpasswordinapp', userController.forgotPasswordInApp);
+
+/**
+ * @swagger
+ * /api/users/checkresetcode:
+ *   put:
+ *     tags:
+ *       - Users
+ *     summary: Checks if the code the user is sending is valid
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: body
+ *         in: body
+ *         description: data to send {email, resetPasswordCode}
+ *         schema:
+ *           type: object
+ *           required:
+ *             - email
+ *             - resetPasswordCode
+ *           properties:
+ *             email:
+ *               type: string
+ *               format: email
+ *             resetPasswordCode:
+ *               type: integer
+ *     responses:
+ *       200:
+ *         description: The code is correct
+ *       400:
+ *         description: Field required.
+ *       403:
+ *         description: No user exists in db or password reset is invalid or has expired.
+ *       500:
+ *         description: Problem during update DB or Problem during password hash
+ */
+router.put('/checkresetcode', userController.checkResetCode);
+
+/**
+ * @swagger
+ * /api/users/updatepasswordviaapp:
+ *   put:
+ *     tags:
+ *       - Users
+ *     summary: Update user's password after they've forgotten it
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: body
+ *         in: body
+ *         description: data to send {email, resetPasswordCode, password}
+ *         schema:
+ *           type: object
+ *           required:
+ *             - email
+ *             - resetPasswordCode
+ *             - password
+ *           properties:
+ *             email:
+ *               type: string
+ *               format: email
+ *             resetPasswordCode:
+ *               type: integer
+ *             password:
+ *               type: string
+ *               format: password
+ *     responses:
+ *       200:
+ *         description: User's password successfully updated.
+ *       400:
+ *         description: Field required.
+ *       403:
+ *         description: No user exists in db or password reset code is invalid or has expired.
+ *       500:
+ *         description: Problem during update DB or Problem during password hash
+ */
+router.put('/updatepasswordviaapp', userController.updatePasswordViaApp);
 
 /**
  * @swagger
@@ -388,8 +464,6 @@ router.post('/forgotpasswordinapp', userController.forgotPasswordInApp);
  *         description: Problem during update DB or Problem during password hash
  */
 router.put('/updatepasswordviaemail', userController.updatePasswordViaEmail);
-
-
 
 /**
  * @swagger
