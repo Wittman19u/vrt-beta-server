@@ -383,7 +383,7 @@ router.post('/forgotpasswordinapp', userController.forgotPasswordInApp);
  *       500:
  *         description: Problem during update DB or Problem during password hash
  */
-router.put('/checkresetcode', userController.checkResetCode);
+router.post('/checkresetcode', userController.checkResetCode);
 
 /**
  * @swagger

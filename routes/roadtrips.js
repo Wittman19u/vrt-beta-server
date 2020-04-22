@@ -54,7 +54,7 @@ var router = express.Router();
  *     produces:
  *       - application/json
  *     security:
- *       - authorisationJWT: []x
+ *       - authorisationJWT: []
  *     parameters:
  *       - name: body
  *         in: body
