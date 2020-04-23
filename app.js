@@ -57,8 +57,8 @@ app.use('/api/pois', poisRouter);
 app.use('/api/restaurants', restaurantsRouter);
 app.use('/api/activities', activitiesRouter);
 app.use('/api/hotels', hotelsRouter);
-app.use('/api/itineraries', itinerariesRouter);
-app.use('/api/waypoints', waypointsRouter);
+// app.use('/api/itineraries', itinerariesRouter);
+// app.use('/api/waypoints', waypointsRouter);
 app.use('/api/messages', messagesRouter);
 app.use('/api/directions', directionsRouter);
 

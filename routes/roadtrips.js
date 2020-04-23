@@ -128,7 +128,7 @@ router.post('/', roadtripController.createRoadtrip);
 
 /**
  * @swagger
- * /api/roadtrips/myroadtrips:
+ * /api/roadtrips/{id}:
  *   get:
  *     tags:
  *       - Roadtrips
@@ -143,7 +143,7 @@ router.post('/', roadtripController.createRoadtrip);
  *         type: integer
  *     responses:
  *       200:
- *         description: A single roadtrip
+ *         description: A single roadtrip. There is a "waypoints" attribute containing the associated waypoints and visits
  *         schema:
  *           $ref: '#/definitions/Roadtrip'
  */
