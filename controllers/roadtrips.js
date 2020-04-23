@@ -38,13 +38,14 @@ function createRoadtrip(req, res, next) {
 			data.duration = (req.body.duration !== null) ? req.body.duration : null
 			data.hashtag = (req.body.hashtag !== null) ? JSON.stringify(req.body.hashtag) : null
 			data.public = 2
-			let sql = `INSERT INTO roadtrip(title, departure, arrival, start, end, distance, duration, hashtag, public) VALUES(${data.title}, ${data.departure}, ${data.arrival}, ${data.start}, ${data.end}, ${data.distance}, ${data.duration}, ${data.hashtag}, ${data.public});`
+			data.status_id = 3
+			let sql = `INSERT INTO roadtrip(title, departure, arrival, start, end, distance, duration, hashtag, public, status_id) VALUES(${data.title}, ${data.departure}, ${data.arrival}, ${data.start}, ${data.end}, ${data.distance}, ${data.duration}, ${data.hashtag}, ${data.public}, ${data.status_id});`
 
 			db.any(sql, data).then(function (rows) {
 				if(req.body.waypoints){ // insert waypoints in relative table
 					req.body.waypoints.forEach(waypoint => {
 						let geom = new STPoint(waypoint.latitude, waypoint.longitude)
-						let sql = `INSERT INTO waypoint (label, sequence, transport, geom, latitude, longitude, roadtrip_id) VALUES(${waypoint.label}, ${waypoint.sequence}, ${waypoint.transport}, ${geom}, ${waypoint.latitude}, ${waypoint.longitude}, ${rows[0].id});`;
+						let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id) VALUES(${waypoint.label}, ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, ${geom}, ${waypoint.latitude}, ${waypoint.longitude}, ${rows[0].id});`;
 						db.any(sql);
 					});
 				}
@@ -61,6 +62,46 @@ function createRoadtrip(req, res, next) {
 	})(req, res, next);
 }
 
+function getRoadtripDetails(req, res, next) {
+	var roadtripID = parseInt(req.params.id);
+	let sql= `select * from waypoint INNER JOIN visit ON visit.waypoint_id = waypoint.id INNER JOIN poi ON poi.id = visit.poi_id WHERE roadtrip_id = ${roadtripID} ORDER BY waypoint.day, waypoint.sequence, visit.sequence`;
+	console.log(sql);
+	db.any(sql).then(function (waypoints) {
+		db.one('select * from roadtrip where id = $1', roadtripID
+		).then(function (roadtrip) {
+			roadtrip.waypoints = waypoints;
+			let result = {
+				status: 'success',
+				data: roadtrip,
+				message: 'Retrieved ONE roadtrip'
+			};
+
+			if(parseInt(roadtrip.public) === 1 ){
+				res.status(200).json(result);
+			} else {
+				passport.authenticate('jwt', { session: false }, (err, user, info) => {
+					if (err) {
+						console.error(err);
+					}
+					if (info !== undefined) {
+						console.error(info.message);
+						res.status(403).json({
+							message: info.message
+						});
+					} else {
+						res.status(200).json(result);
+					}
+				})(req, res, next);
+			}
+		}).catch(function (err) {
+			return next(err);
+		});
+	}).catch(function (err) {
+		return next(err);
+	});
+}
+
 module.exports = {
-	createRoadtrip: createRoadtrip
+	createRoadtrip: createRoadtrip,
+	getRoadtripDetails: getRoadtripDetails
 };

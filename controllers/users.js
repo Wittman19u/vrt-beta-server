@@ -443,7 +443,7 @@ function updatePasswordViaApp(req, res, next){
 			console.log('User exists in db');
 			bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS
 			).then(hashedPassword => {
-				db.none('update account set password = $1, codetemp = NULL, expirescodetemp = NULL where id=$2',[hashedPassword, parseInt(user.id)]
+				db.none('update account set password = $1, codetemp = NULL where id=$2',[hashedPassword, parseInt(user.id)]
 				).then(() => {
 					console.log('Password updated!');
 					res.status(200).json({
