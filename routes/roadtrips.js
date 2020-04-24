@@ -91,9 +91,13 @@ var router = express.Router();
  *     type: object
  *     required:
  *       - roadtrip
+ *       - account_id
  *     properties:
  *       roadtrip:
  *         $ref: '#/definitions/Roadtrip'
+ *       account_id:
+ *         type: integer
+ *         description: id of the user creating the roadtrip
  *       waypoints:
  *         description: Waypoints list
  *         type: array
@@ -123,6 +127,8 @@ var router = express.Router();
  *     responses:
  *       200:
  *         description: Successfully created
+ *       500:
+ *         description: Missing/incorrect parameters or database failure
  */
 router.post('/', roadtripController.createRoadtrip);
 
@@ -132,7 +138,7 @@ router.post('/', roadtripController.createRoadtrip);
  *   get:
  *     tags:
  *       - Roadtrips
- *     description: Returns a roadtrip
+ *     description: Returns a roadtrip. Must include authorisationJWT if the roadtrip is not public.
  *     produces:
  *       - application/json
  *     parameters:
@@ -148,5 +154,47 @@ router.post('/', roadtripController.createRoadtrip);
  *           $ref: '#/definitions/Roadtrip'
  */
 router.get('/:id', roadtripController.getRoadtripDetails);
+
+/**
+ * @swagger
+ * /api/roadtrips/user/{id}:
+ *   get:
+ *     tags:
+ *       - Roadtrips
+ *     description: Returns every roadtrip the user is participating in as well as their respective participants.
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - authorisationJWT: []
+ *     parameters:
+ *       - name: id
+ *         description: User's id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: A list of roadtrips. There is also an account and participate columns containing the informations of the participants
+ *         schema:
+ *           $ref: '#/definitions/Roadtrip'
+ */
+router.get('/user/:id', roadtripController.getUserRoadtrips);
+
+/**
+ * @swagger
+ * /api/roadtrips/public:
+ *   get:
+ *     tags:
+ *       - Roadtrips
+ *     description: Returns every public roadtrip and the account of their respective promoters.
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: A list of roadtrips. There is also an account and participate columns containing the informations of the promoter
+ *         schema:
+ *           $ref: '#/definitions/Roadtrip'
+ */
+router.get('/public', roadtripController.getPublicRoadtrips);
 
 module.exports = router;
