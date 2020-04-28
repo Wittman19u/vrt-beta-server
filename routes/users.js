@@ -51,6 +51,40 @@ var router = express.Router();
  *       - created_at
  *       - updated_at
  *       - consent_at
+ * 
+ *   Media:
+ *     properties:
+ *       id:
+ *         type: integer
+ *       title:
+ *         type: string
+ *       descript:
+ *         type: string
+ *       link:
+ *         type: string
+ *       filename:
+ *         type: string
+ *       filepath:
+ *         type: string
+ *       filesize:
+ *         type: integer
+ *       type:
+ *         type: string
+ *       status_id:
+ *         type: integer
+ *       account_id:
+ *         type: integer
+ *       created_at:
+ *         type: string
+ *         format: date-time
+ *       updated_at:
+ *         type: string
+ *         format: date-time
+ * 
+ *   UserWithMedia:
+ *     allOf:
+ *       - $ref: '#/definitions/User'
+ *       - $ref: '#/definitions/Media'
  */
 
 
@@ -129,9 +163,11 @@ var router = express.Router();
  *         maximum: 16
  *     responses:
  *       200:
- *         description: An array of users
+ *         description: An array of users and their media
  *         schema:
- *           $ref: '#/definitions/User'
+ *           type: array
+ *           items:
+ *             $ref: '#/definitions/UserWithMedia'
  *       403:
  *         description: Authenticated error
  *       500:
@@ -146,8 +182,8 @@ router.get('/', userController.getAllUsers);
  *   get:
  *     tags:
  *       - Users
- *     description: Returns a single user
- *     summary: Returns a single user
+ *     description: Returns a single user and its media
+ *     summary: Returns a single user and its media
  *     security:
  *       - authorisationJWT: []
  *     produces:
@@ -160,11 +196,18 @@ router.get('/', userController.getAllUsers);
  *         type: integer
  *     responses:
  *       200:
- *         description: A single user
+ *         description: A single user and its media
  *         schema:
- *           $ref: '#/definitions/User'
+ *           type: object
+ *           properties:
+ *             user:
+ *               $ref: '#/definitions/User'
+ *             media:
+ *               $ref: '#/definitions/Media'
  *       403:
  *         description: Authenticated error
+ *       500:
+ *         description: error fetching media
  */
 router.get('/:id', userController.getUserDetails);
 

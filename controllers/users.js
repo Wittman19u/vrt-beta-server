@@ -27,7 +27,7 @@ function getAllUsers(req, res, next) {
 			if (typeof req.query.limit !== 'undefined'){
 				limit = req.query.limit;
 			}
-			db.any('select * from account limit $1', limit
+			db.any('select * from account LEFT JOIN media ON media.account_id = account.id limit $1', limit
 			).then(function (data) {
 				res.status(200)
 					.json({
@@ -63,10 +63,18 @@ function getUserDetails(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			req.user = user;
-			res.status(200).json({
-				status: 'success',
-				data: user,
-				message: 'Retrieved ONE user'
+			db.one('select * from media where id = $1', user.media_id).then(function (media) {
+				res.status(200).json({
+					status: 'success',
+					data: {user, media},
+					message: 'Retrieved a user and its associated media'
+				});
+			}).catch(function (error) {
+				console.error(`Could not find the media: ${error}`);
+				res.status(500).json({
+					status: 'error',
+					message: `Could not find the media: ${error}`
+				});
 			});
 		}
 	})(req, res, next);
