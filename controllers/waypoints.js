@@ -112,7 +112,7 @@ function getWaypointsByItinerary(req, res, next) {
 
 
 module.exports = {
-	getWaypointsByItinerary: getWaypointsByItinerary,
+	// getWaypointsByItinerary: getWaypointsByItinerary,
 	//getAllWaypoints: getAllWaypoints,
 	// getSingleWaypoint: getSingleWaypoint,
 	// createWaypoint: createWaypoint,

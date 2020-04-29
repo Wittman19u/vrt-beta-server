@@ -35,6 +35,24 @@ var router = express.Router();
  *         type: integer
  *         default: 2
  *         description: 1==yes, 2== no
+ *       departurelongitude:
+ *         type: number
+ *         format: double
+ *       departurelatitude:
+ *         type: number
+ *         format: double
+ *       departuregeom:
+ *         description: POSTGIS POINT object
+ *         type: object
+ *       arrivallongitude:
+ *         type: number
+ *         format: double
+ *       arrivallatitude:
+ *         type: number
+ *         format: double
+ *       arrivalgeom:
+ *         description: POSTGIS POINT object
+ *         type: object
  *       status_id:
  *         type: integer
  *         default: 3
@@ -51,6 +69,10 @@ var router = express.Router();
  *       - arrival
  *       - start
  *       - end
+ *       - departurelongitude
+ *       - departurelatitude
+ *       - arrivallongitude
+ *       - arrivallatitude
  * 
  *   WaypointApp:
  *     properties:

@@ -18,28 +18,28 @@ var router = express.Router();
  *       - itinerary_id
  */
 
-/**
- * @swagger
- * /api/waypointsbyitinerary/{itinerary}:
- *   get:
- *     tags:
- *       - Waypoints
- *     description: Returns all waypoints
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: itinerary
- *         description: Waypoint's list by itinerary
- *         in: path
- *         type: integer
- *         required: true
- *     responses:
- *       200:
- *         description: An array of waypoints
- *         schema:
- *           $ref: '#/definitions/Waypoint'
- */
-router.get('/:itinerary', waypointController.getWaypointsByItinerary);
+// /**
+//  * @swagger
+//  * /api/waypointsbyitinerary/{itinerary}:
+//  *   get:
+//  *     tags:
+//  *       - Waypoints
+//  *     description: Returns all waypoints
+//  *     produces:
+//  *       - application/json
+//  *     parameters:
+//  *       - name: itinerary
+//  *         description: Waypoint's list by itinerary
+//  *         in: path
+//  *         type: integer
+//  *         required: true
+//  *     responses:
+//  *       200:
+//  *         description: An array of waypoints
+//  *         schema:
+//  *           $ref: '#/definitions/Waypoint'
+//  */
+// router.get('/:itinerary', waypointController.getWaypointsByItinerary);
 
 
 // /**

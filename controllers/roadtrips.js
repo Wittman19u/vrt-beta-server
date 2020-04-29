@@ -40,12 +40,18 @@ function createRoadtrip(req, res, next) {
 			roadtrip.arrival = req.body.roadtrip.arrival
 			roadtrip.start = req.body.roadtrip.start
 			roadtrip.end = req.body.roadtrip.end
+			roadtrip.departurelatitude = req.body.roadtrip.departurelatitude
+			roadtrip.departurelongitude = req.body.roadtrip.departurelongitude
+			roadtrip.departuregeom = new STPoint(roadtrip.departurelatitude, roadtrip.departurelongitude)
+			roadtrip.arrivallatitude = req.body.roadtrip.arrivallatitude
+			roadtrip.arrivallongitude = req.body.roadtrip.arrivallongitude
+			roadtrip.arrivalgeom = new STPoint(roadtrip.arrivallatitude, roadtrip.arrivallongitude)
 			roadtrip.distance = (req.body.roadtrip.distance !== null) ? req.body.roadtrip.distance : null
 			roadtrip.duration = (req.body.roadtrip.duration !== null) ? req.body.roadtrip.duration : null
 			roadtrip.hashtag = (req.body.roadtrip.hashtag !== null) ? JSON.stringify(req.body.roadtrip.hashtag) : null
 			roadtrip.public = 2
 			roadtrip.status_id = 3
-			let sql = `INSERT INTO roadtrip(title, departure, arrival, start, end, distance, duration, hashtag, public, status_id) VALUES(${roadtrip.title}, ${roadtrip.departure}, ${roadtrip.arrival}, ${roadtrip.start}, ${roadtrip.end}, ${roadtrip.distance}, ${roadtrip.duration}, ${roadtrip.hashtag}, ${roadtrip.public}, ${roadtrip.status_id});`
+			let sql = `INSERT INTO roadtrip(title, departure, arrival, start, end, distance, duration, hashtag, public, status_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) VALUES(${roadtrip.title}, ${roadtrip.departure}, ${roadtrip.arrival}, ${roadtrip.start}, ${roadtrip.end}, ${roadtrip.distance}, ${roadtrip.duration}, ${roadtrip.hashtag}, ${roadtrip.public}, ${roadtrip.status_id}, ${roadtrip.departurelongitude}, ${roadtrip.departurelatitude}, ${roadtrip.departuregeom}, ${roadtrip.arrivallongitude}, ${roadtrip.arrivallatitude}, ${roadtrip.arrivalgeom});`
 
 			db.any(sql, roadtrip).then(function (rows) {
 				let roadtrip_id = rows[0].id
