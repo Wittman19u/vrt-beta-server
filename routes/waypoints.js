@@ -2,22 +2,6 @@ var express = require('express');
 var waypointController = require('../controllers/waypoints');
 var router = express.Router();
 
-/**
- * @swagger
- * definitions:
- *   Waypoint:
- *     properties:
- *       id:
- *         type: integer
- *       waypoint_id:
- *         type: integer
- *       itinerary_id:
- *         type: integer
- *     required:
- *       - waypoint_id
- *       - itinerary_id
- */
-
 // /**
 //  * @swagger
 //  * /api/waypointsbyitinerary/{itinerary}:
@@ -117,25 +101,25 @@ var router = express.Router();
 // router.put('/:id', waypointController.updateWaypoint);
 
 
-// /**
-//  * @swagger
-//  * /api/waypoints/{id}:
-//  *   delete:
-//  *     tags:
-//  *       - Waypoints
-//  *     description: Deletes a single waypoint
-//  *     produces:
-//  *       - application/json
-//  *     parameters:
-//  *       - name: id
-//  *         description: Waypoint's id
-//  *         in: path
-//  *         required: true
-//  *         type: integer
-//  *     responses:
-//  *       200:
-//  *         description: Successfully deleted
-//  */
-// router.delete('/:id', waypointController.removeWaypoint);
+/**
+ * @swagger
+ * /api/waypoints/{id}:
+ *   delete:
+ *     tags:
+ *       - Waypoints
+ *     description: Deletes a single waypoint as well as its associated visits and comments
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         description: Waypoint's id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: Successfully deleted
+ */
+router.delete('/:id', waypointController.removeWaypoint);
 
 module.exports = router;

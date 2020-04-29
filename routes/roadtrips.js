@@ -74,7 +74,7 @@ var router = express.Router();
  *       - arrivallongitude
  *       - arrivallatitude
  * 
- *   WaypointApp:
+ *   Waypoint:
  *     properties:
  *       id:
  *         type: integer
@@ -125,7 +125,7 @@ var router = express.Router();
  *         type: array
  *         items:
  *           type: object
- *           $ref: '#/definitions/WaypointApp'
+ *           $ref: '#/definitions/Waypoint'
  */
 
 /**

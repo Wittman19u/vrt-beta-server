@@ -23,27 +23,27 @@ const db = require('./db');
 // 		});
 // }
 
-function getWaypointsByItinerary(req, res, next) {
-	if (typeof req.query.itinerary !== 'undefined'){
-		const itinerary = req.query.itinerary;
+// function getWaypointsByItinerary(req, res, next) {
+// 	if (typeof req.query.itinerary !== 'undefined'){
+// 		const itinerary = req.query.itinerary;
 
-		let sql= `select * from waypoint where itinerary_id = ${itinerary}`;
-		console.log(sql);
-		db.any(sql)
-			.then(function (data) {
-				res.status(200)
-					.json({
-						status: 'success',
-						itemsNumber: data.length,
-						data: data,
-						message: `Retrieved ALL waypoints for itnerary ${itinerary}`
-					});
-			})
-			.catch(function (err) {
-				return next(err);
-			});
-	}
-}
+// 		let sql= `select * from waypoint where itinerary_id = ${itinerary}`;
+// 		console.log(sql);
+// 		db.any(sql)
+// 			.then(function (data) {
+// 				res.status(200)
+// 					.json({
+// 						status: 'success',
+// 						itemsNumber: data.length,
+// 						data: data,
+// 						message: `Retrieved ALL waypoints for itnerary ${itinerary}`
+// 					});
+// 			})
+// 			.catch(function (err) {
+// 				return next(err);
+// 			});
+// 	}
+// }
 
 // function getSingleWaypoint(req, res, next) {
 // 	var waypointID = parseInt(req.params.id);
@@ -93,23 +93,26 @@ function getWaypointsByItinerary(req, res, next) {
 // 		});
 // }
 
-// function removeWaypoint(req, res, next) {
-// 	var id = parseInt(req.params.id);
-// 	db.result('delete from waypoint where id = $1', id)
-// 		.then(function (result) {
-// 			/* jshint ignore:start */
-// 			res.status(200)
-// 				.json({
-// 					status: 'success',
-// 					message: `Removed ${result.rowCount} waypoint`
-// 				});
-// 			/* jshint ignore:end */
-// 		})
-// 		.catch(function (err) {
-// 			return next(err);
-// 		});
-// }
-
+function removeWaypoint(req, res, next) {
+	var id = parseInt(req.params.id);
+	db.result('delete from waypoint where id = $1', id)
+		.then(function (result) {
+			db.result('delete from visit where waypoint_id = $1', id)
+				.then(function (result) {
+					db.result('delete from comment where waypoint_id = $1', id)
+						.then(function (result) {
+							res.status(200)
+								.json({
+									status: 'success',
+									message: `Removed waypoint`
+								});
+						})
+				})
+		})
+		.catch(function (err) {
+			return next(err);
+		});
+}
 
 module.exports = {
 	// getWaypointsByItinerary: getWaypointsByItinerary,
@@ -117,5 +120,5 @@ module.exports = {
 	// getSingleWaypoint: getSingleWaypoint,
 	// createWaypoint: createWaypoint,
 	// updateWaypoint: updateWaypoint,
-	// removeWaypoint: removeWaypoint
+	removeWaypoint: removeWaypoint
 };
