@@ -34,6 +34,7 @@ function createRoadtrip(req, res, next) {
 				})
 			}
 			// essential : title/departure/arrival/start/end
+			console.log(req.body)
 			let roadtrip = req.body.roadtrip
 			roadtrip.title = req.body.roadtrip.title
 			roadtrip.departure = req.body.roadtrip.departure
