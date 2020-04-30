@@ -91,7 +91,7 @@ function createWaypoint(req, res, next) {
 							return pgp.as.format('ST_SetSRID(ST_MakePoint($1, $2),4326)', [this.x, this.y]);
 						}
 					}
-					let geom = new STPoint(waypoint.latitude, waypoint.longitude)
+					let geom = new STPoint(waypoint.longitude, waypoint.latitude)
 					let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, '${geom}', ${waypoint.latitude}, ${waypoint.longitude}, ${waypoint.roadtrip_id}, ${user.id});`;
 					db.any(sql).then(function (rows) {
 						res.status(200).json({
@@ -152,7 +152,7 @@ function updateWaypoint(req, res, next) {
 						}
 					}
 					var waypoint = req.params.waypoint;
-					let geom = new STPoint(waypoint.latitude, waypoint.longitude)
+					let geom = new STPoint(waypoint.longitude, waypoint.latitude)
 					let sql = `UPDATE waypoint SET label = '${waypoint.label}, day = ${waypoint.day}, sequence = ${waypoint.sequence}, transport = ${waypoint.transport}, geom = '${geom}', latitude = ${waypoint.latitude}, longitude = ${waypoint.longitude}, roadtrip_id = ${waypoint.roadtrip_id} WHERE id = ${waypoint_id};`;
 					db.any(sql).then(function () {
 						res.status(200).json({
