@@ -61,11 +61,19 @@ function createRoadtrip(req, res, next) {
 				let roadtrip_id = rows[0].id
 				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${req.body.account_id}, ${roadtrip_id}) RETURNING id;`;
 				db.any(sql).then(function (rows) {
-					if(req.body.waypoints){ // insert waypoints in relative table
+					console.log(req.body.waypoints)
+					if(req.body.waypoints){ // insert waypoints in relative table						
 						req.body.waypoints.forEach(waypoint => {
 							let geom = new STPoint(waypoint.longitude, waypoint.latitude)
 							let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, '${geom}', ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id}, ${req.body.account_id});`;
-							db.any(sql).catch(function (error) {
+							db.any(sql).then(() =>{
+								res.status(200)
+									.json({
+										status: 'success',
+										message: 'Inserted one roadtrip',
+										id:rows[0].roadtrip_id
+									});
+							}).catch(function (error) {
 								console.error(`Problem during insert DB (waypoint): ${error}`);
 								res.status(500).json({
 									status: 'error',
@@ -73,13 +81,14 @@ function createRoadtrip(req, res, next) {
 								});
 							});
 						});
-					}
-					res.status(200)
+					} else {
+						res.status(200)
 						.json({
 							status: 'success',
 							message: 'Inserted one roadtrip',
 							id:rows[0].roadtrip_id
 						});
+					}					
 				}).catch(function (error) {
 					console.error(`Problem during insert DB (participate): ${error}`);
 					res.status(500).json({
