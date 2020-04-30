@@ -61,7 +61,7 @@ function createRoadtrip(req, res, next) {
 					if(req.body.waypoints){ // insert waypoints in relative table
 						req.body.waypoints.forEach(waypoint => {
 							let geom = new STPoint(waypoint.latitude, waypoint.longitude)
-							let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, '${geom}', ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id});`;
+							let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, '${geom}', ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id}, ${req.body.account_id});`;
 							db.any(sql).catch(function (error) {
 								console.error(`Problem during update DB (waypoint): ${error}`);
 								res.status(500).json({
