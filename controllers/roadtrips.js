@@ -35,26 +35,28 @@ function createRoadtrip(req, res, next) {
 			}
 			// essential : title/departure/arrival/start/end
 			console.log(req.body)
+			
 			let roadtrip = req.body.roadtrip
-			roadtrip.title = req.body.roadtrip.title
-			roadtrip.departure = req.body.roadtrip.departure
-			roadtrip.arrival = req.body.roadtrip.arrival
-			roadtrip.start = req.body.roadtrip.start
-			roadtrip.end = req.body.roadtrip.end
-			roadtrip.departurelatitude = req.body.roadtrip.departurelatitude
-			roadtrip.departurelongitude = req.body.roadtrip.departurelongitude
-			roadtrip.departuregeom = new STPoint(roadtrip.departurelatitude, roadtrip.departurelongitude)
-			roadtrip.arrivallatitude = req.body.roadtrip.arrivallatitude
-			roadtrip.arrivallongitude = req.body.roadtrip.arrivallongitude
-			roadtrip.arrivalgeom = new STPoint(roadtrip.arrivallatitude, roadtrip.arrivallongitude)
+			// roadtrip.title = req.body.roadtrip.title
+			// roadtrip.departure = req.body.roadtrip.departure
+			// roadtrip.arrival = req.body.roadtrip.arrival
+			// roadtrip.start = req.body.roadtrip.start
+			// roadtrip.end = req.body.roadtrip.end
+			// roadtrip.departurelatitude = req.body.roadtrip.departurelatitude
+			// roadtrip.departurelongitude = req.body.roadtrip.departurelongitude
+			roadtrip.departuregeom = new STPoint( roadtrip.departurelongitude, roadtrip.departurelatitude)
+			// roadtrip.arrivallatitude = req.body.roadtrip.arrivallatitude
+			// roadtrip.arrivallongitude = req.body.roadtrip.arrivallongitude
+			roadtrip.arrivalgeom = new STPoint(roadtrip.arrivallongitude,roadtrip.arrivallatitude)
 			roadtrip.distance = (req.body.roadtrip.distance !== null) ? req.body.roadtrip.distance : null
 			roadtrip.duration = (req.body.roadtrip.duration !== null) ? req.body.roadtrip.duration : null
 			roadtrip.hashtag = (req.body.roadtrip.hashtag !== null) ? JSON.stringify(req.body.roadtrip.hashtag) : null
 			roadtrip.public = 2
 			roadtrip.status_id = 3
-			let sql = `INSERT INTO roadtrip(title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) VALUES('${roadtrip.title}', '${roadtrip.departure}', '${roadtrip.arrival}', '${roadtrip.start}', '${roadtrip.end}', ${roadtrip.distance}, ${roadtrip.duration}, ${roadtrip.hashtag}, ${roadtrip.public}, ${roadtrip.status_id}, ${roadtrip.departurelongitude}, ${roadtrip.departurelatitude}, '${roadtrip.departuregeom}', ${roadtrip.arrivallongitude}, ${roadtrip.arrivallatitude}, '${roadtrip.arrivalgeom}');`
-
-			db.any(sql, roadtrip).then(function (rows) {
+			//let sql = `INSERT INTO roadtrip(title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) VALUES('${roadtrip.title}', '${roadtrip.departure}', '${roadtrip.arrival}', '${roadtrip.start}', '${roadtrip.end}', ${roadtrip.distance}, ${roadtrip.duration}, ${roadtrip.hashtag}, ${roadtrip.public}, ${roadtrip.status_id}, ${roadtrip.departurelongitude}, ${roadtrip.departurelatitude}, '${roadtrip.departuregeom}', ${roadtrip.arrivallongitude}, ${roadtrip.arrivallatitude}, '${roadtrip.arrivalgeom}');`
+			
+			//db.any(sql, roadtrip).then(function (rows) {
+			db.any('INSERT INTO roadtrip ($1:name) VALUES($1:csv) RETURNING id;', [roadtrip]).then(function (rows) {
 				let roadtrip_id = rows[0].id
 				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${req.body.account_id}, ${roadtrip_id});`;
 				db.any(sql).then(function (rows) {
