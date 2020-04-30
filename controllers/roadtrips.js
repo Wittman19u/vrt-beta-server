@@ -33,40 +33,25 @@ function createRoadtrip(req, res, next) {
 					message: 'account id missing'
 				})
 			}
-			// essential : title/departure/arrival/start/end
-			console.log(req.body)
-			
+			// essential : title/departure/arrival/start/end						
 			let roadtrip = req.body.roadtrip
 			waypoints = roadtrip["waypoints"].slice();
 			delete roadtrip["waypoints"]
-			// roadtrip.title = req.body.roadtrip.title
-			// roadtrip.departure = req.body.roadtrip.departure
-			// roadtrip.arrival = req.body.roadtrip.arrival
-			// roadtrip.start = req.body.roadtrip.start
-			// roadtrip.end = req.body.roadtrip.end
-			// roadtrip.departurelatitude = req.body.roadtrip.departurelatitude
-			// roadtrip.departurelongitude = req.body.roadtrip.departurelongitude
 			roadtrip.departuregeom = new STPoint( roadtrip.departurelongitude, roadtrip.departurelatitude)
-			// roadtrip.arrivallatitude = req.body.roadtrip.arrivallatitude
-			// roadtrip.arrivallongitude = req.body.roadtrip.arrivallongitude
 			roadtrip.arrivalgeom = new STPoint(roadtrip.arrivallongitude,roadtrip.arrivallatitude)
 			roadtrip.distance = (req.body.roadtrip.distance !== null) ? req.body.roadtrip.distance : null
 			roadtrip.duration = (req.body.roadtrip.duration !== null) ? req.body.roadtrip.duration : null
 			roadtrip.hashtag = (req.body.roadtrip.hashtag !== null) ? JSON.stringify(req.body.roadtrip.hashtag) : null
 			roadtrip.public = 2
 			roadtrip.status_id = 3
-			//let sql = `INSERT INTO roadtrip(title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) VALUES('${roadtrip.title}', '${roadtrip.departure}', '${roadtrip.arrival}', '${roadtrip.start}', '${roadtrip.end}', ${roadtrip.distance}, ${roadtrip.duration}, ${roadtrip.hashtag}, ${roadtrip.public}, ${roadtrip.status_id}, ${roadtrip.departurelongitude}, ${roadtrip.departurelatitude}, '${roadtrip.departuregeom}', ${roadtrip.arrivallongitude}, ${roadtrip.arrivallatitude}, '${roadtrip.arrivalgeom}');`
-			
-			//db.any(sql, roadtrip).then(function (rows) {
 			db.any('INSERT INTO roadtrip ($1:name) VALUES($1:csv) RETURNING id;', [roadtrip]).then(function (rows) {
-				let roadtrip_id = rows[0].id
+				let roadtrip_id = rows[0].id;
 				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${req.body.account_id}, ${roadtrip_id}) RETURNING id;`;
 				db.any(sql).then(function (rows) {
-					console.log(waypoints)
-					if(waypoints){ // insert waypoints in relative table						
+					if(waypoints){ // insert waypoints in relative table
 						waypoints.forEach(waypoint => {
-							let geom = new STPoint(waypoint.longitude, waypoint.latitude)
-							let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, '${geom}', ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id}, ${req.body.account_id});`;
+							let geom = `POINT(${waypoint.longitude} ${waypoint.latitude})`;
+							let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, 'ST_GeomFromText(${geom},4326)', ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id}, ${req.body.account_id});`;
 							db.any(sql).then(() =>{
 								res.status(200)
 									.json({
