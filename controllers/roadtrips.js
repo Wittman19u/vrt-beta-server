@@ -63,8 +63,8 @@ function createRoadtrip(req, res, next) {
 				db.any(sql).then(function (rows) {
 					if(req.body.waypoints){ // insert waypoints in relative table
 						req.body.waypoints.forEach(waypoint => {
-							let geom = new STPoint(waypoint.latitude, waypoint.longitude)
-							let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, '${geom}', ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id});`;
+							let geom = new STPoint(waypoint.longitude, waypoint.latitude)
+							let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, '${geom}', ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id}, ${req.body.account_id});`;
 							db.any(sql).catch(function (error) {
 								console.error(`Problem during update DB (waypoint): ${error}`);
 								res.status(500).json({
@@ -227,10 +227,10 @@ function updateRoadtrip(req, res, next) {
 					roadtrip.end = req.body.roadtrip.end
 					roadtrip.departurelatitude = req.body.roadtrip.departurelatitude
 					roadtrip.departurelongitude = req.body.roadtrip.departurelongitude
-					roadtrip.departuregeom = new STPoint(roadtrip.departurelatitude, roadtrip.departurelongitude)
+					roadtrip.departuregeom = new STPoint(roadtrip.departurelongitude, roadtrip.departurelatitude)
 					roadtrip.arrivallatitude = req.body.roadtrip.arrivallatitude
 					roadtrip.arrivallongitude = req.body.roadtrip.arrivallongitude
-					roadtrip.arrivalgeom = new STPoint(roadtrip.arrivallatitude, roadtrip.arrivallongitude)
+					roadtrip.arrivalgeom = new STPoint(roadtrip.arrivallongitude, roadtrip.arrivallatitude)
 					roadtrip.distance = (req.body.roadtrip.distance !== null) ? req.body.roadtrip.distance : null
 					roadtrip.duration = (req.body.roadtrip.duration !== null) ? req.body.roadtrip.duration : null
 					roadtrip.hashtag = (req.body.roadtrip.hashtag !== null) ? JSON.stringify(req.body.roadtrip.hashtag) : null

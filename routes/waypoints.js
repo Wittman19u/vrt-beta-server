@@ -50,27 +50,33 @@ var router = express.Router();
 // router.get('/:id', waypointController.getSingleWaypoint);
 
 
-// /**
-//  * @swagger
-//  * /api/waypoints:
-//  *   post:
-//  *     tags:
-//  *       - Waypoints
-//  *     description: Creates a new waypoint
-//  *     produces:
-//  *       - application/json
-//  *     parameters:
-//  *       - name: waypoint
-//  *         description: Fields for new Waypoint resource
-//  *         in: body
-//  *         required: true
-//  *         schema:
-//  *           $ref: '#/definitions/Waypoint'
-//  *     responses:
-//  *       200:
-//  *         description: Successfully created
-//  */
-// router.post('/', waypointController.createWaypoint);
+/**
+ * @swagger
+ * /api/waypoints:
+ *   post:
+ *     tags:
+ *       - Waypoints
+ *     description: Creates a new waypoint
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - authorisationJWT: []
+ *     parameters:
+ *       - name: waypoint
+ *         description: Fields for new Waypoint resource
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/Waypoint'
+ *     responses:
+ *       200:
+ *         description: Successfully created
+ *       403:
+ *         description: The user does not have rights to create the waypoint (he does not participate in the roadtrip)
+ *       500:
+ *         description: DB/login error
+ */
+router.post('/', waypointController.createWaypoint);
 
 
 /**
