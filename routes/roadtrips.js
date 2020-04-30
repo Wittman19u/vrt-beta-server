@@ -219,4 +219,34 @@ router.get('/user/:id', roadtripController.getUserRoadtrips);
  */
 router.get('/public', roadtripController.getPublicRoadtrips);
 
+
+/**
+ * @swagger
+ * /api/roadtrips/{id}:
+ *   put:
+ *     tags:
+ *       - Roadtrips
+ *     description: Updates a single roadtrip
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - authorisationJWT: []
+ *     requestBody:
+ *        parameters:
+ *          - name: roadtrip
+ *            description: The updated roadtrip
+ *            in: body
+ *            required: true
+ *            schema:
+ *              $ref: '#/definitions/Roadtrip'
+ *     responses:
+ *       200:
+ *         description: Successfully updated
+ *       403:
+ *         description: Missing authorization / The user does not participate in the roadtrip
+ *       500:
+ *         description: Database query error
+ */
+router.put('/:id', roadtripController.updateRoadtrip);
+
 module.exports = router;

@@ -88,6 +88,10 @@ var router = express.Router();
  *         type: integer
  *       social:
  *         type: object
+ *       hashtag:
+ *         type: object
+ *       manuallyupdate:
+ *         type: boolean
  *     required:
  *       - label
  *       - latitude
@@ -152,6 +156,8 @@ var router = express.Router();
  *       opening:
  *         type: object
  *         description: see schema.org
+ *       hashtag:
+ *         type: object
  *     required:
  *       - label
  *       - sourceid

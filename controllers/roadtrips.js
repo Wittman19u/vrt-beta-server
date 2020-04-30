@@ -185,9 +185,47 @@ function getPublicRoadtrips(req, res, next) {
 	});
 }
 
+function updateRoadtrip(req, res, next) {
+	passport.authenticate('jwt', { session: false },function (error, user, info) {
+		if (user === false || error || info !== undefined) {
+			let message = {
+				status: 'error',
+				error: error,
+				user: user
+			};
+			if(info !== undefined){
+				message['message']= info.message;
+				message['info']= info;
+			}
+			console.error(message);
+			res.status(403).json(message);
+		} else {
+			var roadtrip_id = parseInt(req.params.id);
+			let sql = `select * from participate WHERE account_id = ${user.id} AND roadtrip_id = ${roadtrip_id}`
+			db.any(sql).then(function (rows) {
+				if (rows[0].id !== null) {
+					// TODO	change just roadtrip ()
+
+				} else {
+					res.status(403).json({
+						status: 'error',
+						message: 'The user does not participate in the roadtrip'
+					})
+				}
+			}).catch(function (err) {
+				res.status(500).json({
+					status: 'error',
+					message: `Problem during query DB (participate): ${err}`
+				})
+			});
+		}
+	})(req, res, next);
+}
+
 module.exports = {
 	createRoadtrip: createRoadtrip,
 	getRoadtripDetails: getRoadtripDetails,
 	getUserRoadtrips: getUserRoadtrips,
-	getPublicRoadtrips: getPublicRoadtrips
+	getPublicRoadtrips: getPublicRoadtrips,
+	updateRoadtrip: updateRoadtrip
 };

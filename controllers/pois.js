@@ -2,7 +2,6 @@ const db = require('./db');
 const moment = require('moment');
 const passport = require('passport');
 
-
 // function getAllPois(req, res, next) {
 // 	let limit = 16;
 // 	if (typeof req.query.limit !== 'undefined'){
@@ -24,7 +23,6 @@ const passport = require('passport');
 // 			return next(err);
 // 		});
 // }
-
 
 function getPoisByQuery(req, res, next) {
 	passport.authenticate('jwt', { session: false },function (error, user, info) {
@@ -162,7 +160,8 @@ function createPoi(req, res, next) {
 			data.longitude = parseFloat(req.body.longitude).toFixed(5);
 			data.point = `POINT(${data.longitude} ${data.latitude})`;
 			data.source = 'Community';
-			let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, start, "end", street, zipcode, city, country, latitude, longitude, email, web, phone, linkimg, description, type, opening, geom, active, duration, rating, price, ocean, pricerange, handicap, social) VALUES( ${source}, ${sourceid}, ${sourcetype}, ${label}, ${sourcetheme}, ${start}, ${end}, ${street}, ${zipcode}, ${city}, ${country}, ${latitude}, ${longitude}, ${email}, ${web}, ${phone},  ${linkimg}, ${description}, ${type}, ${opening}, ST_GeomFromText(${point},4326), false, ${duration}, ${rating}, ${price}, ${ocean}, ${pricerange}, ${handicap}, ${social} ) RETURNING id;'
+			data.manuallyupdate = true;
+			let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, start, "end", street, zipcode, city, country, latitude, longitude, email, web, phone, linkimg, description, type, opening, geom, active, duration, rating, price, ocean, pricerange, handicap, social, hashtag, manuallyupdate) VALUES( ${source}, ${sourceid}, ${sourcetype}, ${label}, ${sourcetheme}, ${start}, ${end}, ${street}, ${zipcode}, ${city}, ${country}, ${latitude}, ${longitude}, ${email}, ${web}, ${phone},  ${linkimg}, ${description}, ${type}, ${opening}, ST_GeomFromText(${point},4326), false, ${duration}, ${rating}, ${price}, ${ocean}, ${pricerange}, ${handicap}, ${social}, ${hashtag}, ${manuallyupdate} ) RETURNING id;'
 
 			db.any(sql, data).then(function (rows) {
 				res.status(200).json({
@@ -242,11 +241,6 @@ function updatePoi(req, res, next) {
 // 			return next(err);
 // 		});
 // }
-
-
-
-
-
 
 module.exports = {
 //	getAllPois: getAllPois,

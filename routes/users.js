@@ -31,6 +31,28 @@ var router = express.Router();
  *         type: string
  *       media_id:
  *         type: integer
+ *       status_id:
+ *         type: integer
+ *       role_id:
+ *         type: integer
+ *       codetemp:
+ *         type: integer
+ *       expirescodetemp:
+ *         type: string
+ *         format: date
+ *       localtoken:
+ *         type: string
+ *       expireslocaltoken:
+ *         type: string
+ *         format: date
+ *       googleid:
+ *         type: string
+ *       googletoken:
+ *         type: string
+ *       facebookid:
+ *         type: string
+ *       facebooktoken:
+ *         type: string
  *       consent:
  *         type: boolean
  *       consentthird:
@@ -136,6 +158,7 @@ var router = express.Router();
  *       - email
  *       - password
  *       - gender
+ *       - language
  *       - created_at
  *       - updated_at
  *       - consent_at

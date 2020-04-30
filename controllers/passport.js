@@ -48,6 +48,7 @@ passport.use(
 						password: hashedPassword,
 						firstname: req.body.firstname.charAt(0).toUpperCase() + req.body.firstname.toLowerCase().substr(1),
 						lastname: req.body.lastname.charAt(0).toUpperCase() + req.body.lastname.toLowerCase().substr(1),
+						gender: req.body.gender,
 						language: req.body.language
 					};
 					db.any('INSERT INTO account($1:name) VALUES($1:csv) RETURNING id;',[newUser]).then( row => {
