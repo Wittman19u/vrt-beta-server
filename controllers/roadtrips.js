@@ -67,14 +67,13 @@ function createRoadtrip(req, res, next) {
 								});
 							});
 						});
-					} else {
-						res.status(200)
-						.json({
-							status: 'success',
-							message: 'Inserted one roadtrip',
-							id:rows[0].roadtrip_id
-						});
-					}					
+					} 
+					res.status(200)
+					.json({
+						status: 'success',
+						message: 'Inserted one roadtrip',
+						id:rows[0].roadtrip_id
+					});				
 				}).catch(function (error) {
 					console.error(`Problem during insert DB (participate): ${error}`);
 					res.status(500).json({
