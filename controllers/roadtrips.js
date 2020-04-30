@@ -59,17 +59,17 @@ function createRoadtrip(req, res, next) {
 			//db.any(sql, roadtrip).then(function (rows) {
 			db.any('INSERT INTO roadtrip ($1:name) VALUES($1:csv) RETURNING id;', [roadtrip]).then(function (rows) {
 				let roadtrip_id = rows[0].id
-				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${req.body.account_id}, ${roadtrip_id});`;
+				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${req.body.account_id}, ${roadtrip_id}) RETURNING id;`;
 				db.any(sql).then(function (rows) {
 					if(req.body.waypoints){ // insert waypoints in relative table
 						req.body.waypoints.forEach(waypoint => {
 							let geom = new STPoint(waypoint.longitude, waypoint.latitude)
 							let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, '${geom}', ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id}, ${req.body.account_id});`;
 							db.any(sql).catch(function (error) {
-								console.error(`Problem during update DB (waypoint): ${error}`);
+								console.error(`Problem during insert DB (waypoint): ${error}`);
 								res.status(500).json({
 									status: 'error',
-									message: `Problem during update DB (waypoint): ${error}`
+									message: `Problem during insert DB (waypoint): ${error}`
 								});
 							});
 						});
@@ -78,20 +78,20 @@ function createRoadtrip(req, res, next) {
 						.json({
 							status: 'success',
 							message: 'Inserted one roadtrip',
-							id:rows[0].id
+							id:rows[0].roadtrip_id
 						});
 				}).catch(function (error) {
-					console.error(`Problem during update DB (participate): ${error}`);
+					console.error(`Problem during insert DB (participate): ${error}`);
 					res.status(500).json({
 						status: 'error',
-						message: `Problem during update DB (participate): ${error}`
+						message: `Problem during insert DB (participate): ${error}`
 					});
 				});
 			}).catch(function (error) {
-				console.error(`Problem during update DB (roadtrip): ${error}`);
+				console.error(`Problem during insert DB (roadtrip): ${error}`);
 				res.status(500).json({
 					status: 'error',
-					message: `Problem during update DB (roadtrip): ${error}`
+					message: `Problem during insert DB (roadtrip): ${error}`
 				});
 			});
 		}
