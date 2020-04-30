@@ -52,7 +52,7 @@ function createRoadtrip(req, res, next) {
 			roadtrip.hashtag = (req.body.roadtrip.hashtag !== null) ? JSON.stringify(req.body.roadtrip.hashtag) : null
 			roadtrip.public = 2
 			roadtrip.status_id = 3
-			let sql = `INSERT INTO roadtrip(title, departure, arrival, start, end, distance, duration, hashtag, public, status_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) VALUES(${roadtrip.title}, ${roadtrip.departure}, ${roadtrip.arrival}, ${roadtrip.start}, ${roadtrip.end}, ${roadtrip.distance}, ${roadtrip.duration}, ${roadtrip.hashtag}, ${roadtrip.public}, ${roadtrip.status_id}, ${roadtrip.departurelongitude}, ${roadtrip.departurelatitude}, ${roadtrip.departuregeom}, ${roadtrip.arrivallongitude}, ${roadtrip.arrivallatitude}, ${roadtrip.arrivalgeom});`
+			let sql = `INSERT INTO roadtrip(title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) VALUES(${roadtrip.title}, ${roadtrip.departure}, ${roadtrip.arrival}, ${roadtrip.start}, ${roadtrip.end}, ${roadtrip.distance}, ${roadtrip.duration}, ${roadtrip.hashtag}, ${roadtrip.public}, ${roadtrip.status_id}, ${roadtrip.departurelongitude}, ${roadtrip.departurelatitude}, ${roadtrip.departuregeom}, ${roadtrip.arrivallongitude}, ${roadtrip.arrivallatitude}, ${roadtrip.arrivalgeom});`
 
 			db.any(sql, roadtrip).then(function (rows) {
 				let roadtrip_id = rows[0].id
