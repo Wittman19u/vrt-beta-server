@@ -231,14 +231,13 @@ router.get('/public', roadtripController.getPublicRoadtrips);
  *       - application/json
  *     security:
  *       - authorisationJWT: []
- *     requestBody:
- *        parameters:
- *          - name: roadtrip
- *            description: The updated roadtrip
- *            in: body
- *            required: true
- *            schema:
- *              $ref: '#/definitions/Roadtrip'
+ *     parameters:
+ *       - name: roadtrip
+ *         description: The updated roadtrip
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/Roadtrip'
  *     responses:
  *       200:
  *         description: Successfully updated
