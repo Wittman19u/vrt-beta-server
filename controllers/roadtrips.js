@@ -37,6 +37,7 @@ function createRoadtrip(req, res, next) {
 			console.log(req.body)
 			
 			let roadtrip = req.body.roadtrip
+			delete roadtrip["waypoints"]
 			// roadtrip.title = req.body.roadtrip.title
 			// roadtrip.departure = req.body.roadtrip.departure
 			// roadtrip.arrival = req.body.roadtrip.arrival
