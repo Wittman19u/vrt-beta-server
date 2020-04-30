@@ -37,6 +37,7 @@ function createRoadtrip(req, res, next) {
 			console.log(req.body)
 			
 			let roadtrip = req.body.roadtrip
+			waypoints = roadtrip["waypoints"].slice();
 			delete roadtrip["waypoints"]
 			// roadtrip.title = req.body.roadtrip.title
 			// roadtrip.departure = req.body.roadtrip.departure
@@ -61,9 +62,9 @@ function createRoadtrip(req, res, next) {
 				let roadtrip_id = rows[0].id
 				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${req.body.account_id}, ${roadtrip_id}) RETURNING id;`;
 				db.any(sql).then(function (rows) {
-					console.log(req.body.roadtrip.waypoints)
-					if(req.body.roadtrip.waypoints){ // insert waypoints in relative table						
-						req.body.roadtrip.waypoints.forEach(waypoint => {
+					console.log(waypoints)
+					if(waypoints){ // insert waypoints in relative table						
+						waypoints.forEach(waypoint => {
 							let geom = new STPoint(waypoint.longitude, waypoint.latitude)
 							let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, '${geom}', ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id}, ${req.body.account_id});`;
 							db.any(sql).then(() =>{
