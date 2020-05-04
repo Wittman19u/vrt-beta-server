@@ -36,6 +36,8 @@ function createRoadtrip(req, res, next) {
 			// essential : title/departure/arrival/start/end						
 			let roadtrip = req.body.roadtrip
 			let waypoints = req.body.waypoints
+			// TODO improve object in request (front side) to remove waypoints from roadtrips object
+			delete roadtrip["waypoints"]
 			roadtrip.departuregeom = new STPoint( roadtrip.departurelongitude, roadtrip.departurelatitude)
 			roadtrip.arrivalgeom = new STPoint(roadtrip.arrivallongitude,roadtrip.arrivallatitude)
 			roadtrip.distance = (req.body.roadtrip.distance !== null) ? req.body.roadtrip.distance : null
@@ -75,6 +77,58 @@ function createRoadtrip(req, res, next) {
 						message: 'Inserted one roadtrip',
 						id: roadtrip_id
 					});				
+				}).catch(function (error) {
+					console.error(`Problem during insert DB (participate): ${error}`);
+					res.status(500).json({
+						status: 'error',
+						message: `Problem during insert DB (participate): ${error}`
+					});
+				});
+			}).catch(function (error) {
+				console.error(`Problem during insert DB (roadtrip): ${error}`);
+				res.status(500).json({
+					status: 'error',
+					message: `Problem during insert DB (roadtrip): ${error}`
+				});
+			});
+		}
+	})(req, res, next);
+}
+
+function duplicateRoadtrip(req, res, next) {
+	var roadtripID = parseInt(req.params.id);
+	passport.authenticate('jwt', { session: false },function (error, user, info) {
+		if (user === false || error || info !== undefined) {
+			let message = {
+				status: 'error',
+				error: error,
+				user: user
+			};
+			if(info !== undefined){
+				message['message']= info.message;
+				message['info']= info;
+			}
+			console.error(message);
+			res.status(403).json(message);
+		} else {
+			db.any('INSERT INTO roadtrip (title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) SELECT title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom FROM roadtrip WHERE id = $1', [roadtripID])
+				.then(function (rows) {
+				let duplicatedRoadtripID = rows[0].id;
+				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${user.id}, ${duplicatedRoadtripID}) RETURNING id;`;
+				db.any(sql).then(function () {
+					db.any('INSERT INTO waypoint ("label", "day", "sequence", transport, geom, latitude, longitude, roadtrip_id, account_id) SELECT "label", "day", "sequence", transport, geom, latitude, longitude, $1, $2 FROM waypoint WHERE roadtrip_id = $3', [duplicatedRoadtripID, user.id, roadtripID]).then(function () {
+						res.status(200).json({
+							status: 'success',
+							message: 'Duplicated one roadtrip and its waypoints',
+							id: roadtrip_id
+						});
+					}).catch(function (error) {
+						console.error(`Problem during duplicate DB (waypoint): ${error}`);
+						res.status(500).json({
+							status: 'error',
+							message: `Problem during duplicate DB (waypoint): ${error}`
+						});
+					});			
 				}).catch(function (error) {
 					console.error(`Problem during insert DB (participate): ${error}`);
 					res.status(500).json({
@@ -256,6 +310,7 @@ function updateRoadtrip(req, res, next) {
 
 module.exports = {
 	createRoadtrip: createRoadtrip,
+	duplicateRoadtrip, duplicateRoadtrip,
 	getRoadtripDetails: getRoadtripDetails,
 	getUserRoadtrips: getUserRoadtrips,
 	getPublicRoadtrips: getPublicRoadtrips,

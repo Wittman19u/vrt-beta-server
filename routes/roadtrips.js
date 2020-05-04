@@ -156,6 +156,31 @@ router.post('/', roadtripController.createRoadtrip);
 
 /**
  * @swagger
+ * /api/roadtrips:
+ *   post:
+ *     tags:
+ *       - Roadtrips
+ *     description: Duplicates a new roadtrip with a new user
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - authorisationJWT: []
+ *     parameters:
+ *       - name: id
+ *         description: Id of the roadtrip to duplicate
+ *         in: path
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: Successfully created
+ *       500:
+ *         description: Missing/incorrect parameters or database failure
+ */
+router.post('/duplicate/:id', roadtripController.duplicateRoadtrip);
+
+/**
+ * @swagger
  * /api/roadtrips/{id}:
  *   get:
  *     tags:
