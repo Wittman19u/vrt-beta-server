@@ -91,9 +91,10 @@ function createWaypoint(req, res, next) {
 							return pgp.as.format('ST_SetSRID(ST_MakePoint($1, $2),4326)', [this.x, this.y]);
 						}
 					}
-					let geom = new STPoint(waypoint.longitude, waypoint.latitude)
-					let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, '${geom}', ${waypoint.latitude}, ${waypoint.longitude}, ${waypoint.roadtrip_id}, ${user.id});`;
-					db.any(sql).then(function (rows) {
+					waypoint.geom = new STPoint(waypoint.longitude, waypoint.latitude)
+					waypoint.account_id = user.id
+					// let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, '${geom}', ${waypoint.latitude}, ${waypoint.longitude}, ${waypoint.roadtrip_id}, ${user.id});`;
+					db.any('INSERT INTO waypoint ($1:name) VALUES($1:csv);', [waypoint]).then(function (rows) {
 						res.status(200).json({
 							status: 'success',
 							data: rows[0],
@@ -152,9 +153,11 @@ function updateWaypoint(req, res, next) {
 						}
 					}
 					var waypoint = req.params.waypoint;
-					let geom = new STPoint(waypoint.longitude, waypoint.latitude)
-					let sql = `UPDATE waypoint SET label = '${waypoint.label}, day = ${waypoint.day}, sequence = ${waypoint.sequence}, transport = ${waypoint.transport}, geom = '${geom}', latitude = ${waypoint.latitude}, longitude = ${waypoint.longitude}, roadtrip_id = ${waypoint.roadtrip_id} WHERE id = ${waypoint_id};`;
-					db.any(sql).then(function () {
+					waypoint.geom = new STPoint(waypoint.longitude, waypoint.latitude)		
+					const condition = pgp.as.format(' WHERE id = ${1}', waypoint_id);
+					let sql = pgp.helpers.update(waypoint, ['label', 'day', 'sequence', 'transport', 'geom', 'latitude', 'longitude', 'roadtrip_id'], 'waypoint') + condition;
+					// let sql = `UPDATE waypoint SET label = '${waypoint.label}, day = ${waypoint.day}, sequence = ${waypoint.sequence}, transport = ${waypoint.transport}, geom = '${geom}', latitude = ${waypoint.latitude}, longitude = ${waypoint.longitude}, roadtrip_id = ${waypoint.roadtrip_id} WHERE id = ${waypoint_id};`;
+					db.one(sql).then(function () {
 						res.status(200).json({
 							status: 'success',
 							message: `Successfully updated waypoint ${waypoint_id}`

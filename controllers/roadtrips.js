@@ -35,8 +35,7 @@ function createRoadtrip(req, res, next) {
 			}
 			// essential : title/departure/arrival/start/end						
 			let roadtrip = req.body.roadtrip
-			waypoints = roadtrip["waypoints"].slice();
-			delete roadtrip["waypoints"]
+			let waypoints = req.body.waypoints
 			roadtrip.departuregeom = new STPoint( roadtrip.departurelongitude, roadtrip.departurelatitude)
 			roadtrip.arrivalgeom = new STPoint(roadtrip.arrivallongitude,roadtrip.arrivallatitude)
 			roadtrip.distance = (req.body.roadtrip.distance !== null) ? req.body.roadtrip.distance : null
@@ -50,9 +49,11 @@ function createRoadtrip(req, res, next) {
 				db.any(sql).then(function (rows) {
 					if(waypoints){ // insert waypoints in relative table
 						waypoints.forEach(waypoint => {
-							let geom = `POINT(${waypoint.longitude} ${waypoint.latitude})`;
-							let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, ST_GeomFromText('${geom}',4326), ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id}, ${req.body.account_id});`;
-							db.any(sql).then( function (rowsw) {
+							waypoint.geom = `POINT(${waypoint.longitude} ${waypoint.latitude})`;
+							waypoint.roadtrip_id = roadtrip_id
+							waypoint.account_id = req.body.account_id
+							// let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, ST_GeomFromText('${geom}',4326), ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id}, ${req.body.account_id});`;
+							db.any('INSERT INTO waypoint ($1:name) VALUES ($2:csv);', [waypoint]).then( function (rowsw) {
 								res.status(200)
 									.json({
 										status: 'success',
@@ -214,24 +215,19 @@ function updateRoadtrip(req, res, next) {
 					}
 					console.log(req.body)
 					let roadtrip = req.body.roadtrip
-					roadtrip.title = req.body.roadtrip.title
-					roadtrip.departure = req.body.roadtrip.departure
-					roadtrip.arrival = req.body.roadtrip.arrival
-					roadtrip.start = req.body.roadtrip.start
-					roadtrip.end = req.body.roadtrip.end
-					roadtrip.departurelatitude = req.body.roadtrip.departurelatitude
-					roadtrip.departurelongitude = req.body.roadtrip.departurelongitude
 					roadtrip.departuregeom = new STPoint(roadtrip.departurelongitude, roadtrip.departurelatitude)
-					roadtrip.arrivallatitude = req.body.roadtrip.arrivallatitude
-					roadtrip.arrivallongitude = req.body.roadtrip.arrivallongitude
 					roadtrip.arrivalgeom = new STPoint(roadtrip.arrivallongitude, roadtrip.arrivallatitude)
 					roadtrip.distance = (req.body.roadtrip.distance !== null) ? req.body.roadtrip.distance : null
 					roadtrip.duration = (req.body.roadtrip.duration !== null) ? req.body.roadtrip.duration : null
 					roadtrip.hashtag = (req.body.roadtrip.hashtag !== null) ? JSON.stringify(req.body.roadtrip.hashtag) : null
 					roadtrip.public = 2
 					roadtrip.status_id = 3
-					let sql = `UPDATE roadtrip SET title = '${roadtrip.title}', departure = '${roadtrip.departure}', arrival = '${roadtrip.arrival}', "start" = '${roadtrip.start}', "end" = '${roadtrip.end}', distance = ${roadtrip.distance}, duration = ${roadtrip.duration}, hashtag = ${roadtrip.hashtag}, "public" = ${roadtrip.public}, status_id = ${roadtrip.status_id}, departurelongitude = ${roadtrip.departurelongitude}, departurelatitude = ${roadtrip.departurelatitude}, departuregeom = '${roadtrip.departuregeom}', arrivallongitude = ${roadtrip.arrivallongitude}, arrivallatitude = ${roadtrip.arrivallatitude}, arrivalgeom = '${roadtrip.arrivalgeom}' WHERE id = ${roadtrip_id}`		
-					db.any(sql).then(function () {
+
+					const condition = pgp.as.format(' WHERE id = ${1}', roadtrip_id);
+					let sql = pgp.helpers.update(roadtrip, ['title', 'departure', 'arrival', 'start', 'end', 'distance', 'duration', 'hashtag', 'public', 'status_id', 'departurelongitude', 'departurelatitude', 'departuregeom', 'arrivallongitude', 'arrivallatitude', 'arrivalgeom'], 'roadtrip') + condition;
+
+					db.one(sql).then(function () {
+					// let sql = `UPDATE roadtrip SET title = '${roadtrip.title}', departure = '${roadtrip.departure}', arrival = '${roadtrip.arrival}', "start" = '${roadtrip.start}', "end" = '${roadtrip.end}', distance = ${roadtrip.distance}, duration = ${roadtrip.duration}, hashtag = ${roadtrip.hashtag}, "public" = ${roadtrip.public}, status_id = ${roadtrip.status_id}, departurelongitude = ${roadtrip.departurelongitude}, departurelatitude = ${roadtrip.departurelatitude}, departuregeom = '${roadtrip.departuregeom}', arrivallongitude = ${roadtrip.arrivallongitude}, arrivallatitude = ${roadtrip.arrivallatitude}, arrivalgeom = '${roadtrip.arrivalgeom}' WHERE id = ${roadtrip_id}`
 						res.status(200).json({
 							status: 'success',
 							message: `Successfully updated roadtrip ${roadtrip_id}`
