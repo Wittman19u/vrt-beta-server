@@ -88,4 +88,64 @@ router.post('/', visitController.createVisit);
  */
 router.get('/:id', visitController.getVisitDetails);
 
+/**
+ * @swagger
+ * /api/visit/{id}:
+ *   put:
+ *     tags:
+ *       - Visits
+ *     description: Updates a single visit
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - authorisationJWT: []
+ *     parameters:
+ *       - name: id
+ *         description: Visit's id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *       - name: visit
+ *         description: Fields for Visit resource
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/Visit'
+ *     responses:
+ *       200:
+ *         description: Successfully updated
+ *       403:
+ *         description: The user does not have rights to update this visit
+ *       500:
+ *         description: DB/login error
+ */
+router.put('/:id', visitController.updateVisit);
+
+/**
+ * @swagger
+ * /api/visits/{id}:
+ *   delete:
+ *     tags:
+ *       - Visits
+ *     description: Deletes a visit
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - authorisationJWT: []
+ *     parameters:
+ *       - name: id
+ *         description: Visit's id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: Successfully deleted
+ *       403:
+ *         description: The user does not have rights to remove this visit
+ *       500:
+ *         description: DB/login error
+ */
+router.delete('/:id', visitController.removeVisit);
+
 module.exports = router;

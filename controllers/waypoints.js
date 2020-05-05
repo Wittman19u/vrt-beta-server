@@ -152,7 +152,7 @@ function updateWaypoint(req, res, next) {
 							return pgp.as.format('ST_SetSRID(ST_MakePoint($1, $2),4326)', [this.x, this.y]);
 						}
 					}
-					var waypoint = req.params.waypoint;
+					var waypoint = req.body.waypoint;
 					waypoint.geom = new STPoint(waypoint.longitude, waypoint.latitude)		
 					const condition = pgp.as.format(' WHERE id = ${1}', waypoint_id);
 					let sql = pgp.helpers.update(waypoint, ['label', 'day', 'sequence', 'transport', 'geom', 'latitude', 'longitude', 'roadtrip_id'], 'waypoint') + condition;

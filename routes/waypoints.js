@@ -134,7 +134,7 @@ router.put('/:id', waypointController.updateWaypoint);
  *       200:
  *         description: Successfully deleted
  *       403:
- *         description: The user does not have rights to update this waypoint
+ *         description: The user does not have rights to remove this waypoint
  *       500:
  *         description: DB/login error
  */
