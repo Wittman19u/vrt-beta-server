@@ -219,6 +219,23 @@ router.get('/:id', roadtripController.getRoadtripDetails);
  *         in: path
  *         required: true
  *         type: integer
+ *       - name: limit
+ *         description: Limit of results returned
+ *         in: query
+ *         default: 10
+ *         required: false
+ *         type: integer
+ *       - name: offset
+ *         description: Offset in db
+ *         in: query
+ *         default: 0
+ *         required: false
+ *         type: integer
+ *       - name: status
+ *         description: Restrain the results to roadtrips of this specific status
+ *         in: query
+ *         required: false
+ *         type: integer
  *     responses:
  *       200:
  *         description: A list of roadtrips. There is also an account and participate columns containing the informations of the participants
@@ -236,6 +253,19 @@ router.get('/user/:id', roadtripController.getUserRoadtrips);
  *     description: Returns every public roadtrip and the account of their respective promoters.
  *     produces:
  *       - application/json
+ *     parameters:
+ *       - name: limit
+ *         description: Limit of results returned
+ *         in: query
+ *         default: 10
+ *         required: false
+ *         type: integer
+ *       - name: offset
+ *         description: Offset in db
+ *         in: query
+ *         default: 0
+ *         required: false
+ *         type: integer
  *     responses:
  *       200:
  *         description: A list of roadtrips. There is also an account and participate columns containing the informations of the promoter

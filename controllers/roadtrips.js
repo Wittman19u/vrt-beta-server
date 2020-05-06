@@ -187,6 +187,9 @@ function getRoadtripDetails(req, res, next) {
 }
 
 function getUserRoadtrips(req, res, next) {
+	var limit = (req.query.limit !== null) ? req.query.limit : 10
+	var offset = (req.query.offset !== null) ? req.query.offset : 0
+	var status = req.query.status
 	passport.authenticate('jwt', { session: false },function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
@@ -202,7 +205,9 @@ function getUserRoadtrips(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			var userId = parseInt(req.params.id);
-			let sql= `select * from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${userId}) ORDER BY roadtrip.id, participate.roadtrip_id`;
+			let sql= `select * from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${userId})`;
+			if (status !== null) sql += ` AND status_id = ${status}`;
+			sql += ` ORDER BY roadtrip.id, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
 			db.any(sql).then(function (roadtrips) {
 				roadtrips.waypoints = waypoints
 				res.status(200).json({
@@ -221,7 +226,9 @@ function getUserRoadtrips(req, res, next) {
 }
 
 function getPublicRoadtrips(req, res, next) {
-	let sql= `select * from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id WHERE roadtrip.public = ${1} AND participate.promoter = ${true} ORDER BY roadtrip.id, participate.roadtrip_id`;
+	var limit = (req.query.limit !== null) ? req.query.limit : 10
+	var offset = (req.query.offset !== null) ? req.query.offset : 0
+	let sql= `select * from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id WHERE roadtrip.public = ${1} AND participate.promoter = ${true} ORDER BY roadtrip.id, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
 	db.any(sql).then(function (roadtrips) {
 		roadtrips.waypoints = waypoints
 		res.status(200).json({
