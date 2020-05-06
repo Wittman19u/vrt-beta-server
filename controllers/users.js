@@ -555,21 +555,30 @@ function updateUser(req, res, next) {
 			console.error(message);
 			res.status(401).json(message);
 		} else {
-			db.none('update account set firstname = $1, lastname = $2, email = $3 where id=$4',
-				[req.body.firstname, req.body.lastname, req.body.email.toLowerCase(), parseInt(req.params.id)]
-			).then(function () {
-				res.status(200)
-					.json({
-						status: 'success',
-						message: 'Updated user!'
+			if (user.id === req.params.id) {
+				const pgp = db.$config.pgp;
+				let userUpdate = req.body.user
+				const condition = pgp.as.format(' WHERE id = ${1}', user.id);
+				let sql = pgp.helpers.update(userUpdate, ['firstname', 'lastname', 'dateborn', 'gender', 'biography', 'email', 'phone', 'language'], 'account') + condition;
+				db.one(sql).then(function () {
+					res.status(200)
+						.json({
+							status: 'success',
+							message: 'Updated user!'
+						});
+				}).catch((error) => {
+					console.error(`Problem during update DB: ${error}`);
+					res.status(500).json({
+						status: 'error',
+						message: `Problem during update DB: ${error}`
 					});
-			}).catch((error) => {
-				console.error(`Problem during update DB: ${error}`);
-				res.status(500).json({
-					status: 'error',
-					message: `Problem during update DB: ${error}`
 				});
-			});
+			} else {
+				res.status(403).json({
+					status: 'error',
+					message: `Auth issue`
+				});
+			}
 		}
 	})(req, res, next);
 }
