@@ -332,7 +332,7 @@ router.post('/loginuser', userController.loginUser);
 
 /**
  * @swagger
- * /api/users/loginuser:
+ * /api/users/checkuser:
  *   post:
  *     tags:
  *       - Users

@@ -181,29 +181,6 @@ router.post('/duplicate/:id', roadtripController.duplicateRoadtrip);
 
 /**
  * @swagger
- * /api/roadtrips/{id}:
- *   get:
- *     tags:
- *       - Roadtrips
- *     description: Returns a roadtrip. Must include authorisationJWT if the roadtrip is not public.
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: id
- *         description: Roadtrip's id
- *         in: path
- *         required: true
- *         type: integer
- *     responses:
- *       200:
- *         description: A single roadtrip. There is a "waypoints" attribute containing the associated waypoints and visits
- *         schema:
- *           $ref: '#/definitions/Roadtrip'
- */
-router.get('/:id', roadtripController.getRoadtripDetails);
-
-/**
- * @swagger
  * /api/roadtrips/user/{id}:
  *   get:
  *     tags:
@@ -274,6 +251,28 @@ router.get('/user/:id', roadtripController.getUserRoadtrips);
  */
 router.get('/public', roadtripController.getPublicRoadtrips);
 
+/**
+ * @swagger
+ * /api/roadtrips/{id}:
+ *   get:
+ *     tags:
+ *       - Roadtrips
+ *     description: Returns a roadtrip. Must include authorisationJWT if the roadtrip is not public.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         description: Roadtrip's id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: A single roadtrip. There is a "waypoints" attribute containing the associated waypoints and visits
+ *         schema:
+ *           $ref: '#/definitions/Roadtrip'
+ */
+router.get('/:id', roadtripController.getRoadtripDetails);
 
 /**
  * @swagger

@@ -149,7 +149,7 @@ function duplicateRoadtrip(req, res, next) {
 
 function getRoadtripDetails(req, res, next) {
 	var roadtripID = parseInt(req.params.id);
-	let sql= `select * from waypoint INNER JOIN visit ON visit.waypoint_id = waypoint.id INNER JOIN poi ON poi.id = visit.poi_id WHERE waypoint.roadtrip_id = ${roadtripID} ORDER BY waypoint.day, waypoint.sequence, visit.sequence`;
+	let sql= `select * from waypoint LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id WHERE waypoint.roadtrip_id = ${roadtripID} ORDER BY waypoint.day, waypoint.sequence, visit.sequence`;
 	console.log(sql);
 	db.any(sql).then(function (waypoints) {
 		db.one('select * from roadtrip where id = $1', roadtripID
@@ -209,7 +209,6 @@ function getUserRoadtrips(req, res, next) {
 			if (status !== null) sql += ` AND roadtrip.status_id = ${status}`;
 			sql += ` ORDER BY roadtrip.id, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
 			db.any(sql).then(function (roadtrips) {
-				roadtrips.waypoints = waypoints
 				res.status(200).json({
 					status: 'success',
 					data: roadtrips,
@@ -226,11 +225,10 @@ function getUserRoadtrips(req, res, next) {
 }
 
 function getPublicRoadtrips(req, res, next) {
-	var limit = (req.query.limit !== null) ? req.query.limit : 10
-	var offset = (req.query.offset !== null) ? req.query.offset : 0
-	let sql= `select * from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id WHERE roadtrip.public = ${1} AND participate.promoter = ${true} ORDER BY roadtrip.id, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
+	var limit = (parseInt(req.query.limit) !== null) ? parseInt(req.query.limit) : 10
+	var offset = (parseInt(req.query.offset) !== null) ? parseInt(req.query.offset) : 0
+	let sql= `select * from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id WHERE roadtrip.public = ${1} AND participate.promoter = true ORDER BY roadtrip.id, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
 	db.any(sql).then(function (roadtrips) {
-		roadtrips.waypoints = waypoints
 		res.status(200).json({
 			status: 'success',
 			data: roadtrips,
