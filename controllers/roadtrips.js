@@ -187,9 +187,14 @@ function getRoadtripDetails(req, res, next) {
 }
 
 function getUserRoadtrips(req, res, next) {
-	var limit = (req.query.limit !== null) ? req.query.limit : 10
-	var offset = (req.query.offset !== null) ? req.query.offset : 0
-	var status = req.query.status
+	function parseParam(param, defaultValue) {
+		const parsed = parseInt(param);
+		if (isNaN(parsed)) { return defaultValue; }
+		return parsed;
+	  }
+	var limit = parseParam(req.params.limit, 10)
+	var offset = parseParam(req.params.offset, 0)
+	var status = parseParam(req.params.status, null)
 	passport.authenticate('jwt', { session: false },function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
@@ -225,8 +230,13 @@ function getUserRoadtrips(req, res, next) {
 }
 
 function getPublicRoadtrips(req, res, next) {
-	var limit = (parseInt(req.query.limit) !== null) ? parseInt(req.query.limit) : 10
-	var offset = (parseInt(req.query.offset) !== null) ? parseInt(req.query.offset) : 0
+	function parseParam(param, defaultValue) {
+		const parsed = parseInt(param);
+		if (isNaN(parsed)) { return defaultValue; }
+		return parsed;
+	  }
+	var limit = parseParam(req.params.limit, 10)
+	var offset = parseParam(req.params.offset, 0)
 	let sql= `select * from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id WHERE roadtrip.public = ${1} AND participate.promoter = true ORDER BY roadtrip.id, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
 	db.any(sql).then(function (roadtrips) {
 		res.status(200).json({
