@@ -149,7 +149,7 @@ function duplicateRoadtrip(req, res, next) {
 
 function getRoadtripDetails(req, res, next) {
 	var roadtripID = parseInt(req.params.id);
-	let sql= `select * from waypoint LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id WHERE waypoint.roadtrip_id = ${roadtripID} ORDER BY waypoint.day, waypoint.sequence, visit.sequence`;
+	let sql= `select waypoint.*, visit.id AS visit_id, visit.sequence AS visit_sequence, visit.transport AS visit_transport, poi.id as poi_id, poi.sourceid, poi.sourcetype, poi.label AS poi_label, poi.sourcetheme, poi.start, poi.end, poi.stree, poi.zipcode, poi.city, poi.country, poi.latitude AS poi_latitude, poi.longitude AS poi_longitude, poi.geom AS poi_geom, poi.email, poi.web, poi.phone, poi.linkimg, poi.description, poi.type, poi.priority, poi.visnumber, poi.opening, poi.created_at, poi.updated_at, poi.source, poi.sourcelastupdate, poi.active, poi.profiles, poi.duration, poi.price, poi.rating, poi.ocean, poi.pricerange, poi.social, poi.handicap, poi.manuallyupdate, poi.hashtag from waypoint LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id WHERE waypoint.roadtrip_id = ${roadtripID} ORDER BY waypoint.day, waypoint.sequence, visit.sequence`;
 	db.any(sql).then(function (waypoints) {
 		console.log(waypoints)
 		db.one('select * from roadtrip where id = $1', roadtripID).then(function (roadtrip) {
