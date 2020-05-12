@@ -150,34 +150,15 @@ function duplicateRoadtrip(req, res, next) {
 function getRoadtripDetails(req, res, next) {
 	var roadtripID = parseInt(req.params.id);
 	let sql= `select * from waypoint LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id WHERE waypoint.roadtrip_id = ${roadtripID} ORDER BY waypoint.day, waypoint.sequence, visit.sequence`;
-	console.log(sql);
 	db.any(sql).then(function (waypoints) {
-		db.one('select * from roadtrip where id = $1', roadtripID
-		).then(function (roadtrip) {
+		console.log(waypoints)
+		db.one('select * from roadtrip where id = $1', roadtripID).then(function (roadtrip) {
 			roadtrip.waypoints = waypoints;
-			let result = {
+			res.status(200).json({
 				status: 'success',
 				data: roadtrip,
 				message: 'Retrieved ONE roadtrip'
-			};
-
-			if(parseInt(roadtrip.public) === 1 ){
-				res.status(200).json(result);
-			} else {
-				passport.authenticate('jwt', { session: false }, (err, user, info) => {
-					if (err) {
-						console.error(err);
-					}
-					if (info !== undefined) {
-						console.error(info.message);
-						res.status(403).json({
-							message: info.message
-						});
-					} else {
-						res.status(200).json(result);
-					}
-				})(req, res, next);
-			}
+			});
 		}).catch(function (err) {
 			return next(err);
 		});
