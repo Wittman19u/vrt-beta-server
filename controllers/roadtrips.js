@@ -55,7 +55,7 @@ function createRoadtrip(req, res, next) {
 							waypoint.roadtrip_id = roadtrip_id
 							waypoint.account_id = req.body.account_id
 							// let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, ST_GeomFromText('${geom}',4326), ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id}, ${req.body.account_id});`;
-							db.any('INSERT INTO waypoint ($1:name) VALUES ($2:csv);', [waypoint]).then( function (rowsw) {
+							db.any('INSERT INTO waypoint ($1:name) VALUES ($1:csv);', [waypoint]).then( function (rowsw) {
 								res.status(200)
 									.json({
 										status: 'success',
@@ -70,13 +70,14 @@ function createRoadtrip(req, res, next) {
 								});
 							});
 						});
-					} 
-					res.status(200)
-					.json({
-						status: 'success',
-						message: 'Inserted one roadtrip',
-						id: roadtrip_id
-					});				
+					} else {
+						res.status(200)
+						.json({
+							status: 'success',
+							message: 'Inserted one roadtrip',
+							id: roadtrip_id
+						});
+					}			
 				}).catch(function (error) {
 					console.error(`Problem during insert DB (participate): ${error}`);
 					res.status(500).json({
