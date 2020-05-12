@@ -191,7 +191,7 @@ function getUserRoadtrips(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			var userId = parseInt(req.params.id);
-			let sql= `select * from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${userId})`;
+			let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id as accountcolumn_id FROM roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${userId})`;
 			if (status !== null) sql += ` AND roadtrip.status_id = ${status}`;
 			sql += ` ORDER BY roadtrip.id, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
 			db.any(sql).then(function (roadtrips) {
@@ -218,7 +218,7 @@ function getPublicRoadtrips(req, res, next) {
 	  }
 	var limit = parseParam(req.params.limit, 10)
 	var offset = parseParam(req.params.offset, 0)
-	let sql= `select * from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id WHERE roadtrip.public = ${1} AND participate.promoter = true ORDER BY roadtrip.id, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
+	let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id as accountcolumn_id from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id WHERE roadtrip.public = ${1} AND participate.promoter = true ORDER BY roadtrip.id, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
 	db.any(sql).then(function (roadtrips) {
 		res.status(200).json({
 			status: 'success',
