@@ -148,6 +148,7 @@ function duplicateRoadtrip(req, res, next) {
 }
 
 function getRoadtripDetails(req, res, next) {
+	// TODO -> un seul appel
 	var roadtripID = parseInt(req.params.id);
 	let sql= `select waypoint.*, visit.id AS visit_id, visit.sequence AS visit_sequence, visit.transport AS visit_transport, poi.id as poi_id, poi.sourceid, poi.sourcetype, poi.label AS poi_label, poi.sourcetheme, poi.start, poi.end, poi.stree, poi.zipcode, poi.city, poi.country, poi.latitude AS poi_latitude, poi.longitude AS poi_longitude, poi.geom AS poi_geom, poi.email, poi.web, poi.phone, poi.linkimg, poi.description, poi.type, poi.priority, poi.visnumber, poi.opening, poi.created_at AS poi_created_at, poi.updated_at AS poi_updated_at, poi.source, poi.sourcelastupdate, poi.active, poi.profiles, poi.duration, poi.price, poi.rating, poi.ocean, poi.pricerange, poi.social, poi.handicap, poi.manuallyupdate, poi.hashtag from waypoint LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id WHERE waypoint.roadtrip_id = ${roadtripID} ORDER BY waypoint.day, waypoint.sequence, visit.sequence`;
 	db.any(sql).then(function (waypoints) {
@@ -213,27 +214,24 @@ function getUserRoadtrips(req, res, next) {
 			if (status !== null) sql += ` AND roadtrip.status_id = ${status}`;
 			sql += ` ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
 			db.any(sql).then(function (roadtrips) {
-				var participates = []
-				var accounts = []
 				var uniqueRoadtrips = []
 				var roadtripsId = []
-				var accountsId = []
 				roadtrips.forEach(roadtrip => {
 					if (!roadtripsId.includes(roadtrip.id)){
-						uniqueRoadtrips.push({"id": roadtrip.id, "title": roadtrip.title, "departure": roadtrip.departure, "arrival": roadtrip.arrival, "start": roadtrip.start, "end": roadtrip.end, "distance": roadtrip.distance, "duration": roadtrip.duration, "hashtag": roadtrip.hashtag, "public": roadtrip.public, "created_at": roadtrip.created_at, "updated_at": roadtrip.updated_at, "status_id": roadtrip.status_id, "comment_id": roadtrip.comment_id, "departurelongitude": roadtrip.departurelongitude, "departurelatitude": roadtrip.departurelatitude, "departuregeom": roadtrip.departuregeom, "arrivallongitude": roadtrip.arrivallongitude, "arrivallatitude": roadtrip.arrivallatitude, "arrivalgeom": roadtrip.arrivalgeom})
+						uniqueRoadtrips.push({"id": roadtrip.id, "title": roadtrip.title, "departure": roadtrip.departure, "arrival": roadtrip.arrival, "start": roadtrip.start, "end": roadtrip.end, "distance": roadtrip.distance, "duration": roadtrip.duration, "hashtag": roadtrip.hashtag, "public": roadtrip.public, "created_at": roadtrip.created_at, "updated_at": roadtrip.updated_at, "status_id": roadtrip.status_id, "comment_id": roadtrip.comment_id, "departurelongitude": roadtrip.departurelongitude, "departurelatitude": roadtrip.departurelatitude, "departuregeom": roadtrip.departuregeom, "arrivallongitude": roadtrip.arrivallongitude, "arrivallatitude": roadtrip.arrivallatitude, "arrivalgeom": roadtrip.arrivalgeom, "participates": [], "accounts": []})
 						roadtripsId.push(roadtrip.id)
 					}
 					if (roadtrip.participatecolumn_id !== null) {
-						participates.push({"id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id})
+						// add to the latest roadtrip we added
+						uniqueRoadtrips[uniqueRoadtrips.length-1].participates.push({"id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id})
 					}
-					if (roadtrip.accountcollumn_id !== null && !accountsId.includes(roadtrip.account_id)) {
-						accounts.push({"id": roadtrip.account_id, "firstname": roadtrip.firstname, "lastname": roadtrip.lastname, "dateborn": roadtrip.dateborn, "gender": roadtrip.gender, "biography": roadtrip.biography, "email": roadtrip.email, "phone": roadtrip.phone, "created_at": roadtrip.account_created_at, "updated_at": roadtrip.account_updated_at, "media_id": roadtrip.media_id, "status_id": roadtrip.account_status_id, "role_id": roadtrip.role_id})
-						accountsId.push(roadtrip.account_id)
+					if (roadtrip.accountcollumn_id !== null) {
+						uniqueRoadtrips[uniqueRoadtrips.length-1].accounts.push({"id": roadtrip.account_id, "firstname": roadtrip.firstname, "lastname": roadtrip.lastname, "dateborn": roadtrip.dateborn, "gender": roadtrip.gender, "biography": roadtrip.biography, "email": roadtrip.email, "phone": roadtrip.phone, "created_at": roadtrip.account_created_at, "updated_at": roadtrip.account_updated_at, "media_id": roadtrip.media_id, "status_id": roadtrip.account_status_id, "role_id": roadtrip.role_id})
 					}
 				})
 				res.status(200).json({
 					status: 'success',
-					data: {"roadtrips": uniqueRoadtrips, "participates": participates, "accounts": accounts},
+					data: uniqueRoadtrips,
 					message: 'Retrieved ALL the roadtrips and associated participants from user'
 				})
 			}).catch(function (err) {
@@ -256,27 +254,23 @@ function getPublicRoadtrips(req, res, next) {
 	var offset = parseParam(req.params.offset, 0)
 	let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id as account_id , account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id FROM roadtrip LEFT JOIN participate ON participate.roadtrip_id = roadtrip.id LEFT JOIN account ON account.id = participate.account_id WHERE roadtrip.public = ${1} ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
 	db.any(sql).then(function (roadtrips) {
-		var participates = []
-		var accounts = []
 		var uniqueRoadtrips = []
 		var roadtripsId = []
-		var accountsId = []
 		roadtrips.forEach(roadtrip => {
 			if (!roadtripsId.includes(roadtrip.id)){
-				uniqueRoadtrips.push({"id": roadtrip.id, "title": roadtrip.title, "departure": roadtrip.departure, "arrival": roadtrip.arrival, "start": roadtrip.start, "end": roadtrip.end, "distance": roadtrip.distance, "duration": roadtrip.duration, "hashtag": roadtrip.hashtag, "public": roadtrip.public, "created_at": roadtrip.created_at, "updated_at": roadtrip.updated_at, "status_id": roadtrip.status_id, "comment_id": roadtrip.comment_id, "departurelongitude": roadtrip.departurelongitude, "departurelatitude": roadtrip.departurelatitude, "departuregeom": roadtrip.departuregeom, "arrivallongitude": roadtrip.arrivallongitude, "arrivallatitude": roadtrip.arrivallatitude, "arrivalgeom": roadtrip.arrivalgeom})
+				uniqueRoadtrips.push({"id": roadtrip.id, "title": roadtrip.title, "departure": roadtrip.departure, "arrival": roadtrip.arrival, "start": roadtrip.start, "end": roadtrip.end, "distance": roadtrip.distance, "duration": roadtrip.duration, "hashtag": roadtrip.hashtag, "public": roadtrip.public, "created_at": roadtrip.created_at, "updated_at": roadtrip.updated_at, "status_id": roadtrip.status_id, "comment_id": roadtrip.comment_id, "departurelongitude": roadtrip.departurelongitude, "departurelatitude": roadtrip.departurelatitude, "departuregeom": roadtrip.departuregeom, "arrivallongitude": roadtrip.arrivallongitude, "arrivallatitude": roadtrip.arrivallatitude, "arrivalgeom": roadtrip.arrivalgeom, "participates": [], "accounts": []})
 				roadtripsId.push(roadtrip.id)
 			}
 			if (roadtrip.participatecolumn_id !== null) {
-				participates.push({"id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id})
+				uniqueRoadtrips[uniqueRoadtrips.length-1].participates.push({"id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id})
 			}
-			if (roadtrip.account_id !== null && !accountsId.includes(roadtrip.account_id)) {
-				accounts.push({"id": roadtrip.account_id, "firstname": roadtrip.firstname, "lastname": roadtrip.lastname, "dateborn": roadtrip.dateborn, "gender": roadtrip.gender, "biography": roadtrip.biography, "email": roadtrip.email, "phone": roadtrip.phone, "created_at": roadtrip.account_created_at, "updated_at": roadtrip.account_updated_at, "media_id": roadtrip.media_id, "status_id": roadtrip.account_status_id, "role_id": roadtrip.role_id})
-				accountsId.push(roadtrip.account_id)
+			if (roadtrip.account_id !== null) {
+				uniqueRoadtrips[uniqueRoadtrips.length-1].accounts.push({"id": roadtrip.account_id, "firstname": roadtrip.firstname, "lastname": roadtrip.lastname, "dateborn": roadtrip.dateborn, "gender": roadtrip.gender, "biography": roadtrip.biography, "email": roadtrip.email, "phone": roadtrip.phone, "created_at": roadtrip.account_created_at, "updated_at": roadtrip.account_updated_at, "media_id": roadtrip.media_id, "status_id": roadtrip.account_status_id, "role_id": roadtrip.role_id})
 			}
 		})
 		res.status(200).json({
 			status: 'success',
-			data: {"roadtrips": uniqueRoadtrips, "participates": participates, "accounts": accounts},
+			data: uniqueRoadtrips,
 			message: 'Retrieved ALL the roadtrips and associated promoter'
 		})
 	}).catch(function (err) {

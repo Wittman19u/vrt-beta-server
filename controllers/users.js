@@ -30,22 +30,20 @@ function getAllUsers(req, res, next) {
 			db.any('select account.*, media.id AS id_media, media.title, media.descript, media.link, media.filename, media.filepath, media.filesize, media.type, media.created_at AS media_created_at, media.updated_at AS media_updated_at, media.status_id AS media_status_id, media.account_id from account LEFT JOIN media ON media.account_id = account.id ORDER BY account.id LIMIT $1', limit
 			).then(function (data) {
 				var accounts = []
-				var medias = []
 				var accountsId = []
 				data.forEach(data => {
 					if (!accountsId.includes(data.id)){
-						accounts.push({"id": data.id, "firstname": data.firstname, "lastname": data.lastname, "dateborn": data.dateborn, "gender": data.gender, "biography": data.biography, "email": data.email, "phone": data.phone, "codetemp": data.codetemp, "expirescodetemp": data.expirescodetemp, "created_at": data.created_at, "updated_at": data.updated_at, "status_id": data.status_id, "localtoken": data.localtoken, "facebookid": data.facebookid, "facebooktoken": data.facebooktoken, "googleid": data.googleid, "googletoken": data.googletoken, "consent": data.consent, "consentthird": data.consentthird, "consent_at": data.consent_at, "language": data.language, "media_id": data.media_id, "expireslocaltoken": data.expireslocaltoken})
+						accounts.push({"id": data.id, "firstname": data.firstname, "lastname": data.lastname, "dateborn": data.dateborn, "gender": data.gender, "biography": data.biography, "email": data.email, "phone": data.phone, "codetemp": data.codetemp, "expirescodetemp": data.expirescodetemp, "created_at": data.created_at, "updated_at": data.updated_at, "status_id": data.status_id, "localtoken": data.localtoken, "facebookid": data.facebookid, "facebooktoken": data.facebooktoken, "googleid": data.googleid, "googletoken": data.googletoken, "consent": data.consent, "consentthird": data.consentthird, "consent_at": data.consent_at, "language": data.language, "media_id": data.media_id, "expireslocaltoken": data.expireslocaltoken, "medias": []})
 						accountsId.push(data.id)
 					}
 					if (data.id_media !== null) {
-						medias.push({"id": data.id_media, "title": data.title, "descript": data.descript, "link": data.link, "filename": data.filename, "filepath": data.filepath, "filesize": data.filesize, "type": data.type, "created_at": data.media_created_at, "updated_at": data.media_updated_at, "status_id": data.media_status_id, "account_id": data.account_id})
+						accounts[accounts.length-1].medias.push({"id": data.id_media, "title": data.title, "descript": data.descript, "link": data.link, "filename": data.filename, "filepath": data.filepath, "filesize": data.filesize, "type": data.type, "created_at": data.media_created_at, "updated_at": data.media_updated_at, "status_id": data.media_status_id, "account_id": data.account_id})
 					}
 				})
-				var dataFormatted = {"accounts": accounts, "medias": medias}
 				res.status(200)
 					.json({
 						status: 'success',
-						data: dataFormatted,
+						data: accounts,
 						message: 'Retrieved users'
 					});
 			}).catch(function (error) {
