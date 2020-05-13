@@ -149,11 +149,29 @@ function duplicateRoadtrip(req, res, next) {
 
 function getRoadtripDetails(req, res, next) {
 	var roadtripID = parseInt(req.params.id);
-	let sql= `select waypoint.*, visit.id AS visit_id, visit.sequence AS visit_sequence, visit.transport AS visit_transport, poi.id as poi_id, poi.sourceid, poi.sourcetype, poi.label AS poi_label, poi.sourcetheme, poi.start, poi.end, poi.stree, poi.zipcode, poi.city, poi.country, poi.latitude AS poi_latitude, poi.longitude AS poi_longitude, poi.geom AS poi_geom, poi.email, poi.web, poi.phone, poi.linkimg, poi.description, poi.type, poi.priority, poi.visnumber, poi.opening, poi.created_at, poi.updated_at, poi.source, poi.sourcelastupdate, poi.active, poi.profiles, poi.duration, poi.price, poi.rating, poi.ocean, poi.pricerange, poi.social, poi.handicap, poi.manuallyupdate, poi.hashtag from waypoint LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id WHERE waypoint.roadtrip_id = ${roadtripID} ORDER BY waypoint.day, waypoint.sequence, visit.sequence`;
+	let sql= `select waypoint.*, visit.id AS visit_id, visit.sequence AS visit_sequence, visit.transport AS visit_transport, poi.id as poi_id, poi.sourceid, poi.sourcetype, poi.label AS poi_label, poi.sourcetheme, poi.start, poi.end, poi.stree, poi.zipcode, poi.city, poi.country, poi.latitude AS poi_latitude, poi.longitude AS poi_longitude, poi.geom AS poi_geom, poi.email, poi.web, poi.phone, poi.linkimg, poi.description, poi.type, poi.priority, poi.visnumber, poi.opening, poi.created_at AS poi_created_at, poi.updated_at AS poi_updated_at, poi.source, poi.sourcelastupdate, poi.active, poi.profiles, poi.duration, poi.price, poi.rating, poi.ocean, poi.pricerange, poi.social, poi.handicap, poi.manuallyupdate, poi.hashtag from waypoint LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id WHERE waypoint.roadtrip_id = ${roadtripID} ORDER BY waypoint.day, waypoint.sequence, visit.sequence`;
 	db.any(sql).then(function (waypoints) {
 		console.log(waypoints)
+		var visits = []
+		var pois = []
+		var uniqueWaypoints = []
+		var waypointsId = []
+		waypoints.forEach(waypoint => {
+			if (!waypointsId.includes(waypoint.id)){
+				uniqueWaypoints.push({"id": waypoint.id, "label": waypoint.label, "day": waypoint.day, "sequence": waypoint.sequence, "transport": waypoint.transport, "geom": waypoint.geom, "latitude": waypoint.latitude, "longitude": waypoint.longitude, "roadtrip_id": waypoint.roadtrip_id, "account_id": waypoint.account_id})
+				waypointsId.push(waypoint.id)
+			}
+			if (waypoint.visit_id !== null) {
+				visits.push({"id": waypoint.visit_id, "sequence": waypoint.visit_sequence, "transport": waypoint.visit_transport})
+			}
+			if (waypoint.poi_id !== null) {
+				pois.push({"id": waypoint.poi_id, "sourceid": waypoint.sourceid, "sourcetype": waypoint.sourcetype, "poi_label": waypoint.poi_label, "sourcetheme": waypoint.sourcetheme, "start": waypoint.start, "end": waypoint.end, "stree": waypoint.stree, "zipcode": waypoint.zipcode, "city": waypoint.city, "country": waypoint.country, "latitude": waypoint.poi_latitude, "longitude": waypoint.poi_longitude, "geom": waypoint.poi_geom, "email": waypoint.email, "web": waypoint.web, "phone": waypoint.phone, "linkimg": waypoint.linkimg, "description": waypoint.description, "type": waypoint.type, "priority": waypoint.priority, "visnumber": waypoint.visnumber, "opening": waypoint.opening, "created_at": waypoint.poi_created_at, "updated_at": waypoint.poi_updated_at, "source": waypoint.source, "sourcelastupdate": waypoint.sourcelastupdate, "active": waypoint.active, "profiles": waypoint.profiles, "id": waypoint.duration, "id": waypoint.price, "id": waypoint.rating, "id": waypoint.ocean, "id": waypoint.pricerange, "id": waypoint.social, "id": waypoint.handicap, "id": waypoint.manuallyupdate, "id": waypoint.hashtag})
+			}
+		})
 		db.one('select * from roadtrip where id = $1', roadtripID).then(function (roadtrip) {
-			roadtrip.waypoints = waypoints;
+			roadtrip.waypoints = uniqueWaypoints;
+			roadtrip.visits = visits;
+			roadtrip.pois = pois;
 			res.status(200).json({
 				status: 'success',
 				data: roadtrip,
@@ -193,7 +211,7 @@ function getUserRoadtrips(req, res, next) {
 			var userId = parseInt(req.params.id);
 			let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id as accountcolumn_id FROM roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${userId})`;
 			if (status !== null) sql += ` AND roadtrip.status_id = ${status}`;
-			sql += ` ORDER BY roadtrip.id, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
+			sql += ` ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
 			db.any(sql).then(function (roadtrips) {
 				res.status(200).json({
 					status: 'success',

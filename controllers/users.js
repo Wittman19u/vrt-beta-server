@@ -27,7 +27,7 @@ function getAllUsers(req, res, next) {
 			if (typeof req.query.limit !== 'undefined'){
 				limit = req.query.limit;
 			}
-			db.any('select * from account LEFT JOIN media ON media.account_id = account.id limit $1', limit
+			db.any('select account.*, media.id AS media_id, media.title, media.descript. media.link, media.filename, media.filepath, media.filesize, media.type, media.created_at AS media_created_at, media.updated_at AS media_updated_at, media.status_id AS media_status_id, media.account_id from account LEFT JOIN media ON media.account_id = account.id limit $1', limit
 			).then(function (data) {
 				res.status(200)
 					.json({

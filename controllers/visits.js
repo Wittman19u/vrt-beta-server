@@ -42,7 +42,7 @@ function createVisit(req, res, next) {
 
 function getVisitDetails(req, res, next) {
 	var visitId = parseInt(req.params.id);
-	db.one('select * from visit INNER JOIN poi on poi.id = visit.poi_id where id = $1', visitId).then(function (visit) {
+	db.one('select visit.*, poi.id as poi_id, poi.sourceid, poi.sourcetype, poi.label AS poi_label, poi.sourcetheme, poi.start, poi.end, poi.stree, poi.zipcode, poi.city, poi.country, poi.latitude AS poi_latitude, poi.longitude AS poi_longitude, poi.geom AS poi_geom, poi.email, poi.web, poi.phone, poi.linkimg, poi.description, poi.type, poi.priority, poi.visnumber, poi.opening, poi.created_at AS poi_created_at, poi.updated_at AS poi_updated_at, poi.source, poi.sourcelastupdate, poi.active, poi.profiles, poi.duration, poi.price, poi.rating, poi.ocean, poi.pricerange, poi.social, poi.handicap, poi.manuallyupdate, poi.hashtag from visit INNER JOIN poi on poi.id = visit.poi_id where id = $1', visitId).then(function (visit) {
 		res.status(200).json({
 			status: 'success',
 			data: visit,
