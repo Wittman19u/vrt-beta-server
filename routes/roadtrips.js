@@ -108,6 +108,22 @@ var router = express.Router();
  *       - latitude
  *       - longitude
  *       - roadtrip_id
+ * 
+ *   Participate:
+ *     properties:
+ *       id:
+ *         type: integer
+ *       promoter:
+ *         type: boolean
+ *       roadtrip_id:
+ *         type: integer
+ *       account_id:
+ *         type: integer
+ *     required:
+ *       - id
+ *       - promoter
+ *       - account_id
+ *       - roadtrip_id
 
  *   RoadtripWithWaypoints:
  *     type: object
@@ -217,7 +233,20 @@ router.post('/duplicate/:id', roadtripController.duplicateRoadtrip);
  *       200:
  *         description: A list of roadtrips. There is also an account and participate columns containing the informations of the participants
  *         schema:
- *           $ref: '#/definitions/Roadtrip'
+ *           type: object
+ *           properties:
+ *             roadtrips:
+ *               type: array
+ *               items:
+ *                 $ref: '#/definitions/Roadtrip'
+ *             participates:
+ *               type: array
+ *               items:
+ *                 $ref: '#/definitions/Participate'
+ *             accounts:
+ *               type: array
+ *               items:
+ *                 $ref: '#/definitions/User'
  */
 router.get('/user/:id', roadtripController.getUserRoadtrips);
 
@@ -247,7 +276,20 @@ router.get('/user/:id', roadtripController.getUserRoadtrips);
  *       200:
  *         description: A list of roadtrips. There is also an account and participate columns containing the informations of the promoter
  *         schema:
- *           $ref: '#/definitions/Roadtrip'
+ *           type: object
+ *           properties:
+ *             roadtrips:
+ *               type: array
+ *               items:
+ *                 $ref: '#/definitions/Roadtrip'
+ *             participates:
+ *               type: array
+ *               items:
+ *                 $ref: '#/definitions/Participate'
+ *             accounts:
+ *               type: array
+ *               items:
+ *                 $ref: '#/definitions/User'
  */
 router.get('/public', roadtripController.getPublicRoadtrips);
 
@@ -268,7 +310,7 @@ router.get('/public', roadtripController.getPublicRoadtrips);
  *         type: integer
  *     responses:
  *       200:
- *         description: A single roadtrip. There is a "waypoints" attribute containing the associated waypoints and visits
+ *         description: A single roadtrip. There is a "waypoints" attribute containing the associated waypoints, a "visits" for visits, and "pois" for pois
  *         schema:
  *           $ref: '#/definitions/Roadtrip'
  */

@@ -188,9 +188,16 @@ var router = express.Router();
  *       200:
  *         description: An array of users and their media
  *         schema:
- *           type: array
- *           items:
- *             $ref: '#/definitions/UserWithMedia'
+ *           type: object
+ *           properties:
+ *             accounts:
+ *               type: array
+ *               items:
+ *                 $ref: '#/definitions/User'
+ *             medias:
+ *               type: array
+ *               items:
+ *                 $ref: '#/definitions/Media'
  *       403:
  *         description: Authenticated error
  *       500:

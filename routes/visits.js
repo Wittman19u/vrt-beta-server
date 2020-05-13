@@ -84,7 +84,12 @@ router.post('/', visitController.createVisit);
  *       200:
  *         description: A single visit and its poi.
  *         schema:
- *           $ref: '#/definitions/VisitWithPoi'
+ *           type: object
+ *           properties:
+ *             visit:
+ *               $ref: '#/definitions/Visit'
+ *             poi:
+ *               $ref: '#/definitions/Poi'
  */
 router.get('/:id', visitController.getVisitDetails);
 
