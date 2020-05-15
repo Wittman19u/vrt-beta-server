@@ -318,8 +318,8 @@ function updateRoadtrip(req, res, next) {
 					roadtrip.distance = (req.body.roadtrip.distance !== null) ? req.body.roadtrip.distance : null
 					roadtrip.duration = (req.body.roadtrip.duration !== null) ? req.body.roadtrip.duration : null
 					roadtrip.hashtag = (req.body.roadtrip.hashtag !== null) ? JSON.stringify(req.body.roadtrip.hashtag) : null
-					roadtrip.public = 2
-					roadtrip.status_id = 3
+					roadtrip.public = (req.body.roadtrip.public !== null) ? parseInt(req.body.roadtrip.public) : 2
+					roadtrip.status_id = (req.body.roadtrip.status_id !== null) ? parseInt(req.body.roadtrip.status_id) : 3
 
 					const condition = pgp.as.format(' WHERE id = ${1}', roadtrip_id);
 					let sql = pgp.helpers.update(roadtrip, ['title', 'departure', 'arrival', 'start', 'end', 'distance', 'duration', 'hashtag', 'public', 'status_id', 'departurelongitude', 'departurelatitude', 'departuregeom', 'arrivallongitude', 'arrivallatitude', 'arrivalgeom'], 'roadtrip') + condition;
