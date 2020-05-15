@@ -51,6 +51,7 @@ function createRoadtrip(req, res, next) {
 				db.any(sql).then(function (rows) {
 					if(waypoints){ // insert waypoints in relative table
 						waypoints.forEach(waypoint => {
+							delete waypoint["visits"]
 							waypoint.geom = `POINT(${waypoint.longitude} ${waypoint.latitude})`;
 							waypoint.roadtrip_id = roadtrip_id
 							waypoint.account_id = req.body.account_id
