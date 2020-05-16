@@ -17,10 +17,10 @@ function createVisit(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			let data = req.body
-			data.sequence = req.body.sequence
-			data.waypoint_id = req.body.waypoint_id
-			data.poi_id = req.body.poi_id
-			let sql = `INSERT INTO visit(sequence, waypoint_id, poi_id) VALUES(${data.sequence}, ${data.waypoint_id}, ${data.poi_id});`
+			// data.sequence = req.body.sequence
+			// data.waypoint_id = req.body.waypoint_id
+			// data.poi_id = req.body.poi_id
+			let sql = `INSERT INTO visit(sequence, waypoint_id, poi_id, transport) VALUES(${data.sequence}, ${data.waypoint_id}, ${data.poi_id}, ${data.transport})  RETURNING id;`
 
 			db.any(sql, data).then(function (rows) {
 				res.status(200)
