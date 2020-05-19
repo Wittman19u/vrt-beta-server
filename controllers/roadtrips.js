@@ -158,17 +158,22 @@ function getRoadtripDetails(req, res, next) {
 		var pois = []
 		var uniqueWaypoints = []
 		var waypointsId = []
-		waypoints.forEach(waypoint => {
+		waypoints.forEach(waypoint => {	
 			if (!waypointsId.includes(waypoint.id)){
-				uniqueWaypoints.push({"id": waypoint.id, "label": waypoint.label, "day": waypoint.day, "sequence": waypoint.sequence, "transport": waypoint.transport, "geom": waypoint.geom, "latitude": waypoint.latitude, "longitude": waypoint.longitude, "roadtrip_id": waypoint.roadtrip_id, "account_id": waypoint.account_id})
+				uniqueWaypoints.push({"id": waypoint.id, "label": waypoint.label, "day": waypoint.day, "sequence": waypoint.sequence, "transport": waypoint.transport, "geom": waypoint.geom, "latitude": waypoint.latitude, "longitude": waypoint.longitude, "roadtrip_id": waypoint.roadtrip_id, "account_id": waypoint.account_id,"visits": []})
 				waypointsId.push(waypoint.id)
-			}
+			}		
+
 			if (waypoint.visit_id !== null) {
-				visits.push({"id": waypoint.visit_id, "sequence": waypoint.visit_sequence, "transport": waypoint.visit_transport})
+				visit = {"id": waypoint.visit_id,"waypoint_id": waypoint.id, "sequence": waypoint.visit_sequence, "transport": waypoint.visit_transport, "latitude": waypoint.poi_latitude, "longitude": waypoint.poi_longitude,"label": waypoint.poi_label}
+				// if (waypoint.poi_id !== null) {
+				// 	pois.push({"id": waypoint.poi_id, "sourceid": waypoint.sourceid, "sourcetype": waypoint.sourcetype, "poi_label": waypoint.poi_label, "sourcetheme": waypoint.sourcetheme, "start": waypoint.start, "end": waypoint.end, "stree": waypoint.stree, "zipcode": waypoint.zipcode, "city": waypoint.city, "country": waypoint.country, "latitude": waypoint.poi_latitude, "longitude": waypoint.poi_longitude, "geom": waypoint.poi_geom, "email": waypoint.email, "web": waypoint.web, "phone": waypoint.phone, "linkimg": waypoint.linkimg, "description": waypoint.description, "type": waypoint.type, "priority": waypoint.priority, "visnumber": waypoint.visnumber, "opening": waypoint.opening, "created_at": waypoint.poi_created_at, "updated_at": waypoint.poi_updated_at, "source": waypoint.source, "sourcelastupdate": waypoint.sourcelastupdate, "active": waypoint.active, "profiles": waypoint.profiles, "duration": waypoint.duration, "price": waypoint.price, "rating": waypoint.rating, "ocean": waypoint.ocean, "pricerange": waypoint.pricerange, "social": waypoint.social, "handicap": waypoint.handicap, "manuallyupdate": waypoint.manuallyupdate, "hashtag": waypoint.hashtag})
+				// }
 			}
-			if (waypoint.poi_id !== null) {
-				pois.push({"id": waypoint.poi_id, "sourceid": waypoint.sourceid, "sourcetype": waypoint.sourcetype, "poi_label": waypoint.poi_label, "sourcetheme": waypoint.sourcetheme, "start": waypoint.start, "end": waypoint.end, "stree": waypoint.stree, "zipcode": waypoint.zipcode, "city": waypoint.city, "country": waypoint.country, "latitude": waypoint.poi_latitude, "longitude": waypoint.poi_longitude, "geom": waypoint.poi_geom, "email": waypoint.email, "web": waypoint.web, "phone": waypoint.phone, "linkimg": waypoint.linkimg, "description": waypoint.description, "type": waypoint.type, "priority": waypoint.priority, "visnumber": waypoint.visnumber, "opening": waypoint.opening, "created_at": waypoint.poi_created_at, "updated_at": waypoint.poi_updated_at, "source": waypoint.source, "sourcelastupdate": waypoint.sourcelastupdate, "active": waypoint.active, "profiles": waypoint.profiles, "duration": waypoint.duration, "price": waypoint.price, "rating": waypoint.rating, "ocean": waypoint.ocean, "pricerange": waypoint.pricerange, "social": waypoint.social, "handicap": waypoint.handicap, "manuallyupdate": waypoint.manuallyupdate, "hashtag": waypoint.hashtag})
-			}
+			const index = uniqueWaypoints.findIndex(element => element.id = waypoint.id);
+
+			uniqueWaypoints[index].visits.push(visit)
+			
 		})
 		db.one('select * from roadtrip where id = $1', roadtripID).then(function (roadtrip) {
 			roadtrip.waypoints = uniqueWaypoints;
