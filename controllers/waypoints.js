@@ -94,10 +94,10 @@ function createWaypoint(req, res, next) {
 					waypoint.geom = new STPoint(waypoint.longitude, waypoint.latitude)
 					waypoint.account_id = user.id
 					// let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, '${geom}', ${waypoint.latitude}, ${waypoint.longitude}, ${waypoint.roadtrip_id}, ${user.id});`;
-					db.any('INSERT INTO waypoint ($1:name) VALUES($1:csv);', [waypoint]).then(function (rows) {
+					db.any('INSERT INTO waypoint ($1:name) VALUES($1:csv) RETURNING id;', [waypoint]).then(function (rows) {
 						res.status(200).json({
 							status: 'success',
-							data: rows[0],
+							id: rows[0].id,
 							message: `Successfully inserted waypoint`
 						})
 					}).catch(function (err) {

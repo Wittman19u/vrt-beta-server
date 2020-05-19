@@ -328,6 +328,11 @@ router.get('/:id', roadtripController.getRoadtripDetails);
  *     security:
  *       - authorisationJWT: []
  *     parameters:
+ *       - name: id
+ *         description: The id of the roadtrip
+ *         in: path
+ *         required: true
+ *         type: integer
  *       - name: roadtrip
  *         description: The updated roadtrip
  *         in: body

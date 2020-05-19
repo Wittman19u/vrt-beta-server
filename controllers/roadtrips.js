@@ -43,7 +43,7 @@ function createRoadtrip(req, res, next) {
 			roadtrip.distance = (req.body.roadtrip.distance !== null) ? req.body.roadtrip.distance : null
 			roadtrip.duration = (req.body.roadtrip.duration !== null) ? req.body.roadtrip.duration : null
 			roadtrip.hashtag = (req.body.roadtrip.hashtag !== null) ? JSON.stringify(req.body.roadtrip.hashtag) : null
-			roadtrip.public = 2
+			roadtrip.public = parseParam(req.body.roadtrip.public, 2)
 			roadtrip.status_id = 3
 			db.any('INSERT INTO roadtrip ($1:name) VALUES($1:csv) RETURNING id;', [roadtrip]).then(function (rows) {
 				let roadtrip_id = rows[0].id;
@@ -112,7 +112,7 @@ function duplicateRoadtrip(req, res, next) {
 			console.error(message);
 			res.status(403).json(message);
 		} else {
-			db.any('INSERT INTO roadtrip (title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) SELECT title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom FROM roadtrip WHERE id = $1', [roadtripID])
+			db.any('INSERT INTO roadtrip (title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) SELECT title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom FROM roadtrip WHERE id = $1 RETURNING id', [roadtripID])
 				.then(function (rows) {
 				let duplicatedRoadtripID = rows[0].id;
 				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${user.id}, ${duplicatedRoadtripID}) RETURNING id;`;
@@ -192,12 +192,7 @@ function getRoadtripDetails(req, res, next) {
 	});
 }
 
-function getUserRoadtrips(req, res, next) {
-	function parseParam(param, defaultValue) {
-		const parsed = parseInt(param);
-		if (isNaN(parsed)) { return defaultValue; }
-		return parsed;
-	  }
+function getUserRoadtrips(req, res, next) {	
 	var limit = parseParam(req.params.limit, 10)
 	var offset = parseParam(req.params.offset, 0)
 	var status = parseParam(req.params.status, null)
@@ -251,11 +246,6 @@ function getUserRoadtrips(req, res, next) {
 }
 
 function getPublicRoadtrips(req, res, next) {
-	function parseParam(param, defaultValue) {
-		const parsed = parseInt(param);
-		if (isNaN(parsed)) { return defaultValue; }
-		return parsed;
-	  }
 	var limit = parseParam(req.params.limit, 10)
 	var offset = parseParam(req.params.offset, 0)
 	let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id as account_id , account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id FROM roadtrip LEFT JOIN participate ON participate.roadtrip_id = roadtrip.id LEFT JOIN account ON account.id = participate.account_id WHERE roadtrip.public = ${1} ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
@@ -327,10 +317,10 @@ function updateRoadtrip(req, res, next) {
 					roadtrip.public = (req.body.roadtrip.public !== null) ? parseInt(req.body.roadtrip.public) : 2
 					roadtrip.status_id = (req.body.roadtrip.status_id !== null) ? parseInt(req.body.roadtrip.status_id) : 3
 
-					const condition = pgp.as.format(' WHERE id = ${1}', roadtrip_id);
+					const condition = pgp.as.format(' WHERE id = $1', roadtrip_id);
 					let sql = pgp.helpers.update(roadtrip, ['title', 'departure', 'arrival', 'start', 'end', 'distance', 'duration', 'hashtag', 'public', 'status_id', 'departurelongitude', 'departurelatitude', 'departuregeom', 'arrivallongitude', 'arrivallatitude', 'arrivalgeom'], 'roadtrip') + condition;
 
-					db.one(sql).then(function () {
+					db.any(sql).then(function () {
 					// let sql = `UPDATE roadtrip SET title = '${roadtrip.title}', departure = '${roadtrip.departure}', arrival = '${roadtrip.arrival}', "start" = '${roadtrip.start}', "end" = '${roadtrip.end}', distance = ${roadtrip.distance}, duration = ${roadtrip.duration}, hashtag = ${roadtrip.hashtag}, "public" = ${roadtrip.public}, status_id = ${roadtrip.status_id}, departurelongitude = ${roadtrip.departurelongitude}, departurelatitude = ${roadtrip.departurelatitude}, departuregeom = '${roadtrip.departuregeom}', arrivallongitude = ${roadtrip.arrivallongitude}, arrivallatitude = ${roadtrip.arrivallatitude}, arrivalgeom = '${roadtrip.arrivalgeom}' WHERE id = ${roadtrip_id}`
 						res.status(200).json({
 							status: 'success',
@@ -356,6 +346,13 @@ function updateRoadtrip(req, res, next) {
 			});
 		}
 	})(req, res, next);
+}
+
+// to parse limit/offset/etc... (any optional int parameters)
+function parseParam(param, defaultValue) {
+	const parsed = parseInt(param);
+	if (isNaN(parsed)) { return defaultValue; }
+	return parsed;
 }
 
 module.exports = {
