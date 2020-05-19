@@ -43,7 +43,7 @@ function createRoadtrip(req, res, next) {
 			roadtrip.distance = (req.body.roadtrip.distance !== null) ? req.body.roadtrip.distance : null
 			roadtrip.duration = (req.body.roadtrip.duration !== null) ? req.body.roadtrip.duration : null
 			roadtrip.hashtag = (req.body.roadtrip.hashtag !== null) ? JSON.stringify(req.body.roadtrip.hashtag) : null
-			roadtrip.public = JSON.parseParam(req.body.roadtrip.public, 2)
+			roadtrip.public = parseParam(req.body.roadtrip.public, 2)
 			roadtrip.status_id = 3
 			db.any('INSERT INTO roadtrip ($1:name) VALUES($1:csv) RETURNING id;', [roadtrip]).then(function (rows) {
 				let roadtrip_id = rows[0].id;
