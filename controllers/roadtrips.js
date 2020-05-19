@@ -312,10 +312,10 @@ function updateRoadtrip(req, res, next) {
 					roadtrip.public = (req.body.roadtrip.public !== null) ? parseInt(req.body.roadtrip.public) : 2
 					roadtrip.status_id = (req.body.roadtrip.status_id !== null) ? parseInt(req.body.roadtrip.status_id) : 3
 
-					const condition = pgp.as.format(' WHERE id = ${1}', roadtrip_id);
+					const condition = pgp.as.format(' WHERE id = $1', roadtrip_id);
 					let sql = pgp.helpers.update(roadtrip, ['title', 'departure', 'arrival', 'start', 'end', 'distance', 'duration', 'hashtag', 'public', 'status_id', 'departurelongitude', 'departurelatitude', 'departuregeom', 'arrivallongitude', 'arrivallatitude', 'arrivalgeom'], 'roadtrip') + condition;
 
-					db.one(sql).then(function () {
+					db.any(sql).then(function () {
 					// let sql = `UPDATE roadtrip SET title = '${roadtrip.title}', departure = '${roadtrip.departure}', arrival = '${roadtrip.arrival}', "start" = '${roadtrip.start}', "end" = '${roadtrip.end}', distance = ${roadtrip.distance}, duration = ${roadtrip.duration}, hashtag = ${roadtrip.hashtag}, "public" = ${roadtrip.public}, status_id = ${roadtrip.status_id}, departurelongitude = ${roadtrip.departurelongitude}, departurelatitude = ${roadtrip.departurelatitude}, departuregeom = '${roadtrip.departuregeom}', arrivallongitude = ${roadtrip.arrivallongitude}, arrivallatitude = ${roadtrip.arrivallatitude}, arrivalgeom = '${roadtrip.arrivalgeom}' WHERE id = ${roadtrip_id}`
 						res.status(200).json({
 							status: 'success',
