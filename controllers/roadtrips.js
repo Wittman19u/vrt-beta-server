@@ -43,7 +43,7 @@ function createRoadtrip(req, res, next) {
 			roadtrip.distance = (req.body.roadtrip.distance !== null) ? req.body.roadtrip.distance : null
 			roadtrip.duration = (req.body.roadtrip.duration !== null) ? req.body.roadtrip.duration : null
 			roadtrip.hashtag = (req.body.roadtrip.hashtag !== null) ? JSON.stringify(req.body.roadtrip.hashtag) : null
-			roadtrip.public = 2
+			roadtrip.public = JSON.parseParam(req.body.roadtrip.public, 2)
 			roadtrip.status_id = 3
 			db.any('INSERT INTO roadtrip ($1:name) VALUES($1:csv) RETURNING id;', [roadtrip]).then(function (rows) {
 				let roadtrip_id = rows[0].id;
@@ -187,12 +187,7 @@ function getRoadtripDetails(req, res, next) {
 	});
 }
 
-function getUserRoadtrips(req, res, next) {
-	function parseParam(param, defaultValue) {
-		const parsed = parseInt(param);
-		if (isNaN(parsed)) { return defaultValue; }
-		return parsed;
-	  }
+function getUserRoadtrips(req, res, next) {	
 	var limit = parseParam(req.params.limit, 10)
 	var offset = parseParam(req.params.offset, 0)
 	var status = parseParam(req.params.status, null)
@@ -246,11 +241,6 @@ function getUserRoadtrips(req, res, next) {
 }
 
 function getPublicRoadtrips(req, res, next) {
-	function parseParam(param, defaultValue) {
-		const parsed = parseInt(param);
-		if (isNaN(parsed)) { return defaultValue; }
-		return parsed;
-	  }
 	var limit = parseParam(req.params.limit, 10)
 	var offset = parseParam(req.params.offset, 0)
 	let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id as account_id , account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id FROM roadtrip LEFT JOIN participate ON participate.roadtrip_id = roadtrip.id LEFT JOIN account ON account.id = participate.account_id WHERE roadtrip.public = ${1} ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
@@ -351,6 +341,13 @@ function updateRoadtrip(req, res, next) {
 			});
 		}
 	})(req, res, next);
+}
+
+// to parse limit/offset/etc... (any optional int parameters)
+function parseParam(param, defaultValue) {
+	const parsed = parseInt(param);
+	if (isNaN(parsed)) { return defaultValue; }
+	return parsed;
 }
 
 module.exports = {
