@@ -168,7 +168,7 @@ function getRoadtripDetails(req, res, next) {
 				// if (waypoint.poi_id !== null) {
 				// 	pois.push({"id": waypoint.poi_id, "sourceid": waypoint.sourceid, "sourcetype": waypoint.sourcetype, "poi_label": waypoint.poi_label, "sourcetheme": waypoint.sourcetheme, "start": waypoint.start, "end": waypoint.end, "stree": waypoint.stree, "zipcode": waypoint.zipcode, "city": waypoint.city, "country": waypoint.country, "latitude": waypoint.poi_latitude, "longitude": waypoint.poi_longitude, "geom": waypoint.poi_geom, "email": waypoint.email, "web": waypoint.web, "phone": waypoint.phone, "linkimg": waypoint.linkimg, "description": waypoint.description, "type": waypoint.type, "priority": waypoint.priority, "visnumber": waypoint.visnumber, "opening": waypoint.opening, "created_at": waypoint.poi_created_at, "updated_at": waypoint.poi_updated_at, "source": waypoint.source, "sourcelastupdate": waypoint.sourcelastupdate, "active": waypoint.active, "profiles": waypoint.profiles, "duration": waypoint.duration, "price": waypoint.price, "rating": waypoint.rating, "ocean": waypoint.ocean, "pricerange": waypoint.pricerange, "social": waypoint.social, "handicap": waypoint.handicap, "manuallyupdate": waypoint.manuallyupdate, "hashtag": waypoint.hashtag})
 				// }
-				const index = uniqueWaypoints.findIndex(element => element.id = waypoint.id);
+				// const index = uniqueWaypoints.findIndex(element => element.id = waypoint.id);
 
 				visits.push(visit)
 			}
