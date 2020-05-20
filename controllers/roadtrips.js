@@ -170,7 +170,7 @@ function getRoadtripDetails(req, res, next) {
 				// }
 				const index = uniqueWaypoints.findIndex(element => element.id = waypoint.id);
 
-				uniqueWaypoints[index].visits.push(visit)
+				visits.push(visit)
 			}
 		})
 		db.one('select * from roadtrip where id = $1', roadtripID).then(function (roadtrip) {
