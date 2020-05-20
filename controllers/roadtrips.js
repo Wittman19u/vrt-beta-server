@@ -162,8 +162,7 @@ function getRoadtripDetails(req, res, next) {
 			if (!waypointsId.includes(waypoint.id)){
 				uniqueWaypoints.push({"id": waypoint.id, "label": waypoint.label, "day": waypoint.day, "sequence": waypoint.sequence, "transport": waypoint.transport, "geom": waypoint.geom, "latitude": waypoint.latitude, "longitude": waypoint.longitude, "roadtrip_id": waypoint.roadtrip_id, "account_id": waypoint.account_id,"visits": []})
 				waypointsId.push(waypoint.id)
-			}		
-
+			}
 			if (waypoint.visit_id !== null) {
 				visit = {"id": waypoint.visit_id,"waypoint_id": waypoint.id, "sequence": waypoint.visit_sequence, "transport": waypoint.visit_transport, "latitude": waypoint.poi_latitude, "longitude": waypoint.poi_longitude,"label": waypoint.poi_label, "linkimg": waypoint.linkimg}
 				// if (waypoint.poi_id !== null) {
@@ -173,8 +172,6 @@ function getRoadtripDetails(req, res, next) {
 
 				uniqueWaypoints[index].visits.push(visit)
 			}
-			
-			
 		})
 		db.one('select * from roadtrip where id = $1', roadtripID).then(function (roadtrip) {
 			roadtrip.waypoints = uniqueWaypoints;
@@ -193,10 +190,10 @@ function getRoadtripDetails(req, res, next) {
 	});
 }
 
-function getUserRoadtrips(req, res, next) {	
-	var limit = parseParam(req.params.limit, 10)
-	var offset = parseParam(req.params.offset, 0)
-	var status = parseParam(req.params.status, null)
+function getUserRoadtrips(req, res, next) {
+	var limit = parseParam(req.query.limit, 10)
+	var offset = parseParam(req.query.offset, 0)
+	var status = parseParam(req.query.status, null)
 	passport.authenticate('jwt', { session: false },function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
@@ -212,9 +209,12 @@ function getUserRoadtrips(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			var userId = parseInt(req.params.id);
-			let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, poi.linkimg FROM roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${userId})`;
+			let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, poi.linkimg `
+			sql += `FROM (SELECT * FROM roadtrip WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${userId})`
 			if (status !== null) sql += ` AND roadtrip.status_id = ${status}`;
-			sql += ` ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
+			sql += `ORDER BY updated_at DESC LIMIT ${limit} OFFSET ${offset}) roadtrip `
+			sql += `INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id`
+			sql += ` ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id`;
 			db.any(sql).then(function (roadtrips) {
 				var uniqueRoadtrips = []
 				var roadtripsId = []
@@ -263,9 +263,12 @@ function getUserRoadtrips(req, res, next) {
 }
 
 function getPublicRoadtrips(req, res, next) {
-	var limit = parseParam(req.params.limit, 10)
-	var offset = parseParam(req.params.offset, 0)
-	let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id as account_id , account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, poi.linkimg FROM roadtrip LEFT JOIN participate ON participate.roadtrip_id = roadtrip.id LEFT JOIN account ON account.id = participate.account_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id WHERE roadtrip.public = ${1} ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id LIMIT ${limit} OFFSET ${offset}`;
+	var limit = parseParam(req.query.limit, 10)
+	var offset = parseParam(req.query.offset, 0)
+	let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, poi.linkimg `
+	sql += `FROM (SELECT * FROM roadtrip WHERE roadtrip.public = 1 ORDER BY updated_at DESC LIMIT ${limit} OFFSET ${offset}) roadtrip `
+	sql += `LEFT JOIN participate ON participate.roadtrip_id = roadtrip.id LEFT JOIN account ON account.id = participate.account_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id`
+	sql += ` ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id`;
 	db.any(sql).then(function (roadtrips) {
 		var uniqueRoadtrips = []
 		var roadtripsId = []
