@@ -172,6 +172,7 @@ function getRoadtripDetails(req, res, next) {
 
 				visits.push(visit)
 			}
+			// TODO rajouter participants et accounts -> si on participe au roadtrip, toutes les infos, sinon comme dans roadtrippublic
 		})
 		db.one('select * from roadtrip where id = $1', roadtripID).then(function (roadtrip) {
 			roadtrip.waypoints = uniqueWaypoints;
@@ -265,7 +266,7 @@ function getUserRoadtrips(req, res, next) {
 function getPublicRoadtrips(req, res, next) {
 	var limit = parseParam(req.query.limit, 10)
 	var offset = parseParam(req.query.offset, 0)
-	let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, poi.linkimg `
+	let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.id AS account_id, account.media_id, poi.linkimg `
 	sql += `FROM (SELECT * FROM roadtrip WHERE roadtrip.public = 1 ORDER BY updated_at DESC LIMIT ${limit} OFFSET ${offset}) roadtrip `
 	sql += `LEFT JOIN participate ON participate.roadtrip_id = roadtrip.id LEFT JOIN account ON account.id = participate.account_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id`
 	sql += ` ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id`;
@@ -290,7 +291,7 @@ function getPublicRoadtrips(req, res, next) {
 			}
 			if (roadtrip.account_id !== null) {
 				if (!accountsId.includes(roadtrip.account_id)) {
-					uniqueRoadtrips[uniqueRoadtrips.length-1].accounts.push({"id": roadtrip.account_id, "firstname": roadtrip.firstname, "lastname": roadtrip.lastname, "dateborn": roadtrip.dateborn, "gender": roadtrip.gender, "biography": roadtrip.biography, "email": roadtrip.email, "phone": roadtrip.phone, "created_at": roadtrip.account_created_at, "updated_at": roadtrip.account_updated_at, "media_id": roadtrip.media_id, "status_id": roadtrip.account_status_id, "role_id": roadtrip.role_id})
+					uniqueRoadtrips[uniqueRoadtrips.length-1].accounts.push({"id": roadtrip.account_id, "firstname": roadtrip.firstname, "media_id": roadtrip.media_id})
 					accountsId.push(roadtrip.account_id)
 				}
 			}

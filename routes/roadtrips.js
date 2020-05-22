@@ -172,7 +172,7 @@ router.post('/', roadtripController.createRoadtrip);
 
 /**
  * @swagger
- * /api/roadtrips:
+ * /api/roadtrips/duplicate/{id}:
  *   post:
  *     tags:
  *       - Roadtrips
