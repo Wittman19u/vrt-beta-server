@@ -112,16 +112,16 @@ function duplicateRoadtrip(req, res, next) {
 			console.error(message);
 			res.status(403).json(message);
 		} else {
-			db.any('INSERT INTO roadtrip (title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) SELECT title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom FROM roadtrip WHERE id = $1 RETURNING id', [roadtripID])
+			db.any('INSERT INTO roadtrip (title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) SELECT title, departure, arrival, "start", "end", distance, duration, hashtag, $1, status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom FROM roadtrip WHERE id = $2 RETURNING id', [3, roadtripID])
 				.then(function (rows) {
 				let duplicatedRoadtripID = rows[0].id;
 				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${user.id}, ${duplicatedRoadtripID}) RETURNING id;`;
 				db.any(sql).then(function () {
-					db.any('INSERT INTO waypoint ("label", "day", "sequence", transport, geom, latitude, longitude, roadtrip_id, account_id) SELECT "label", "day", "sequence", transport, geom, latitude, longitude, $1, $2 FROM waypoint WHERE roadtrip_id = $3', [duplicatedRoadtripID, user.id, roadtripID]).then(function () {
+					db.any('INSERT INTO waypoint ("label", "day", "sequence", transport, geom, latitude, longitude, roadtrip_id, account_id) SELECT "label", "day", "sequence", transport, geom, latitude, longitude, $1, $2 FROM waypoint WHERE waypoint.roadtrip_id = $3', [duplicatedRoadtripID, user.id, roadtripID]).then(function () {
 						res.status(200).json({
 							status: 'success',
 							message: 'Duplicated one roadtrip and its waypoints',
-							id: roadtrip_id
+							id: duplicatedRoadtripID
 						});
 					}).catch(function (error) {
 						console.error(`Problem during duplicate DB (waypoint): ${error}`);
