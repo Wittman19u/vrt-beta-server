@@ -302,6 +302,8 @@ router.get('/public', roadtripController.getPublicRoadtrips);
  *     description: Returns a roadtrip.
  *     produces:
  *       - application/json
+ *     security:
+ *       - authorisationJWT: []
  *     parameters:
  *       - name: id
  *         description: Roadtrip's id
