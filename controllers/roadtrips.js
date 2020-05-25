@@ -112,7 +112,7 @@ function duplicateRoadtrip(req, res, next) {
 			console.error(message);
 			res.status(403).json(message);
 		} else {
-			db.any('INSERT INTO roadtrip (title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) SELECT title, departure, arrival, "start", "end", distance, duration, hashtag, $1, status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom FROM roadtrip WHERE id = $2 RETURNING id', [3, roadtripID])
+			db.any('INSERT INTO roadtrip (title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) SELECT title, departure, arrival, "start", "end", distance, duration, hashtag, $1, $2, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom FROM roadtrip WHERE id = $3 RETURNING id', [2, 3, roadtripID])
 				.then(function (rows) {
 				let duplicatedRoadtripID = rows[0].id;
 				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${user.id}, ${duplicatedRoadtripID}) RETURNING id;`;
