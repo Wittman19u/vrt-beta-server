@@ -117,11 +117,25 @@ function duplicateRoadtrip(req, res, next) {
 				let duplicatedRoadtripID = rows[0].id;
 				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${user.id}, ${duplicatedRoadtripID}) RETURNING id;`;
 				db.any(sql).then(function () {
-					db.any('INSERT INTO waypoint ("label", "day", "sequence", transport, geom, latitude, longitude, roadtrip_id, account_id) SELECT "label", "day", "sequence", transport, geom, latitude, longitude, $1, $2 FROM waypoint WHERE waypoint.roadtrip_id = $3', [duplicatedRoadtripID, user.id, roadtripID]).then(function () {
-						res.status(200).json({
-							status: 'success',
-							message: 'Duplicated one roadtrip and its waypoints',
-							id: duplicatedRoadtripID
+					db.any('INSERT INTO waypoint ("label", "day", "sequence", transport, geom, latitude, longitude, roadtrip_id, account_id) SELECT "label", "day", "sequence", transport, geom, latitude, longitude, $1, $2 FROM waypoint WHERE waypoint.roadtrip_id = $3 returning id, label', [duplicatedRoadtripID, user.id, roadtripID]).then(function (waypointsInfo) {
+						// do foreach sur les ids, créer chaque requete avec waypoint_id fixe et les lancer toutes d'un coup dans une promise.all 
+						let requests = []
+						waypointsInfo.forEach(waypointInfo => {
+							// TODO maybe find a better way to differentiate the correct waypoint than using label, could have duplicates ?
+							requests.push(db.any(`INSERT INTO visit (sequence, waypoint_id, poi_id, transport) SELECT sequence, ${waypointInfo.id}, poi_id, transport FROM visit WHERE visit.waypoint_id IN (SELECT id from waypoint WHERE waypoint.roadtrip_id = ${roadtripID} AND waypoint.label = '${waypointInfo.label}')`))
+						});
+						Promise.all(requests).then(() => {
+							res.status(200).json({
+								status: 'success',
+								message: 'Duplicated one roadtrip and its waypoints and visits',
+								id: duplicatedRoadtripID
+							});
+						}).catch(function (error) {
+							console.error(`Problem during duplicate DB (visit): ${error}`);
+							res.status(500).json({
+								status: 'error',
+								message: `Problem during duplicate DB (visit): ${error}`
+							});
 						});
 					}).catch(function (error) {
 						console.error(`Problem during duplicate DB (waypoint): ${error}`);
