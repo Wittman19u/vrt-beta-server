@@ -234,7 +234,7 @@ function cancelMultiPartUpload(bucketName, itemName, uploadID) {
 }
 
 // Constants for IBM COS values
-const COS_ENDPOINT = "https://control.cloud-object-storage.cloud.ibm.com/v2/endpoints";  // example: s3.us-south.cloud-object-storage.appdomain.cloud
+const COS_ENDPOINT = "s3.eu-de.cloud-object-storage.appdomain.cloud";  // example: s3.us-south.cloud-object-storage.appdomain.cloud
 const COS_API_KEY_ID = "nAg5hDvZppW4pcIc99GQ5mdh-8NbfpzVd3XzsBasneD5";
 const COS_AUTH_ENDPOINT = "https://iam.cloud.ibm.com/identity/token";
 const COS_SERVICE_CRN = "crn:v1:bluemix:public:iam-identity::a/baf52389f8564282bb3c67ccab31bcc8::serviceid:ServiceId-074b2b89-f35f-4009-afaf-987d01e76785";
@@ -253,23 +253,31 @@ var cos = new ibm.S3(config);
 // Main app
 function main() {
     try {
-        var newBucketName = "js.bucket." + getUUID();
+
+        var bucketName = 'cloud-object-storage-6f-cos-standard-fjc'
+
+        // var params = {
+        //     Bucket: bucketName /* required */
+        // };
+        // cos.headBucket(params, function(err, data) {
+        //   if (err) console.log(err, err.stack); // an error occurred
+        //   else     console.log(data);           // successful response
+        // });
+
+        // var newBucketName = "js.bucket." + getUUID();
         var newTextFileName = "js_file_" + getUUID() + ".txt";
         var newTextFileContents = "This is a test file from Node.js code sample!!!";
         var newLargeFileName = "js_large_file_" + getUUID() + ".bin";
         var newLargeFileSize = 1024 * 1024 * 20;
 
-        createBucket(newBucketName) // create a new bucket
-            .then(() => getBuckets()) // get the list of buckets
-            .then(() => createTextFile(newBucketName, newTextFileName, newTextFileContents)) // create a new text file
-            .then(() => getBucketContents(newBucketName)) // get the list of files from the new bucket
-            .then(() => getItem(newBucketName, newTextFileName)) // get the text file contents
+        createTextFile(bucketName, newTextFileName, newTextFileContents) // create a new bucket
+            .then(() => getBucketContents(bucketName)) // get the list of files from the new bucket
+            .then(() => getItem(bucketName, newTextFileName)) // get the text file contents
             .then(() => generateBigRandomFile(newLargeFileName, newLargeFileSize)) // create a new local binary file that is 20 MB
-            .then(() => multiPartUpload(newBucketName, newLargeFileName, newLargeFileName)) // upload the large file using transfer manager
-            .then(() => getBucketContents(newBucketName)) // get the list of files from the new bucket
-            .then(() => deleteItem(newBucketName, newLargeFileName)) // remove the large file
-            .then(() => deleteItem(newBucketName, newTextFileName)) // remove the text file
-            .then(() => deleteBucket(newBucketName)); // remove the new bucket
+            .then(() => multiPartUpload(bucketName, newLargeFileName, newLargeFileName)) // upload the large file using transfer manager
+            .then(() => getBucketContents(bucketName)) // get the list of files from the new bucket
+            .then(() => deleteItem(bucketName, newLargeFileName)) // remove the large file
+            .then(() => deleteItem(bucketName, newTextFileName)) // remove the text file
     }
     catch(ex) {
         logError(ex);
