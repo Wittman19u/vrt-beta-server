@@ -284,4 +284,57 @@ function main() {
     }
 }
 
-main();
+// upload the file specified by the filepath
+function saveFileInBucket(filePath) {
+    try {
+        var bucketName = 'cloud-object-storage-6f-cos-standard-fjc'
+        multiPartUpload(bucketName, filePath, filePath)
+    } catch (err) {
+        logError(err)
+    }
+}
+
+function createMedia(req, res, next) {
+    // TODO : save in media in db aswell as uploading the file
+    var fileName = req.body.fileName
+    var fileBuffer = req.body.fileBuffer
+    fs.writeFile(fileName, fileBuffer, function (err) {
+        if (err) {
+            res.status(500).json({
+                status: 'Error',
+                message: `Error creating the temporary file! : ${err}`
+            })
+        } else {
+            try {
+                var bucketName = 'cloud-object-storage-6f-cos-standard-fjc'
+                multiPartUpload(bucketName, fileName, fileName).then(function () {
+                    fs.unlink(fileName, function (error) {
+                        if (error) {
+                            res.status(500).json({
+                                status: 'Error',
+                                message: 'Error removing the temporary file!'
+                            })
+                        } else {
+                            res.status(200).json({
+                                status: 'Success',
+                                message: 'Succesfully uploaded image onto server bucket!'
+                            })
+                        }
+                    })  
+                })
+            } catch (err) {
+                res.status(500).json({
+                    status: 'Error',
+                    message: 'Error removing uploading onto bucket!'
+                })
+            }
+        }
+    });
+    
+}
+
+// main();
+
+module.exports = {
+    createMedia: createMedia
+}
