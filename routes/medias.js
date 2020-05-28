@@ -4,6 +4,18 @@ var router = express.Router();
 
 /**
  * @swagger
+ * definitions:
+ *   FileBuffer:
+ *     type: object
+ *     properties:
+ *       fileBuffer:
+ *         type: string
+ *         format: byte
+ *         description: Buffer for the image
+ */
+
+/**
+ * @swagger
  * /api/medias:
  *   post:
  *     tags:
@@ -11,11 +23,15 @@ var router = express.Router();
  *     description: Creates a new media and save the file on the ibm server
  *     produces:
  *       - application/json
+ *     security:
+ *       - authorisationJWT: []
  *     parameters:
  *       - name: body
  *         in: body
- *         description: data to send {fileName, fileBuffer}
+ *         description: data to send {fileBuffer}
  *         required: true
+ *         schema:
+ *           $ref: '#/definitions/FileBuffer'
  *     responses:
  *       200:
  *         description: Successfully created
