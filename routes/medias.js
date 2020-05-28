@@ -32,6 +32,11 @@ var router = express.Router();
  *         required: true
  *         type: file
  *         consumes: multipart/form-data
+ *       - name: type
+ *         in: query
+ *         description: type of the media -> can be 'account' or 'poi'
+ *         required: true
+ *         type: string
  *     responses:
  *       200:
  *         description: Successfully created

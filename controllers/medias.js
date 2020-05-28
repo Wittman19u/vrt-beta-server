@@ -4,8 +4,6 @@
 const ibm = require('ibm-cos-sdk');
 const fs = require('fs');
 const async = require('async');
-const uuidv1 = require('uuid/v1');
-const crypto = require('crypto');
 // db
 const db = require('./db');
 const passport = require('passport');
@@ -18,26 +16,6 @@ function logDone() {
     console.log('DONE!\n');
 }
 
-function getUUID() {
-    return uuidv1().toString().replace(/-/g, "");
-}
-
-function generateBigRandomFile(fileName, size) {
-    return new Promise(function(resolve, reject) {
-        crypto.randomBytes(size, (err, buf) => {
-            if (err) reject(err);
-
-            fs.writeFile(fileName, buf, function (err) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve();
-                }
-            });     
-        });      
-    });
-}
 
 // Retrieve the list of available buckets
 function getBuckets() {
@@ -107,21 +85,6 @@ function createBucket(bucketName) {
     .catch(logError);
 }
 
-// Create new text file
-function createTextFile(bucketName, itemName, fileText) {
-    console.log(`Creating new item: ${itemName}`);
-    return cos.putObject({
-        Bucket: bucketName, 
-        Key: itemName, 
-        Body: fileText
-    }).promise()
-    .then(() => {
-        console.log(`Item: ${itemName} created!`);
-        logDone();
-    })
-    .catch(logError);
-}
-
 // Delete item
 function deleteItem(bucketName, itemName) {
     console.log(`Deleting item: ${itemName}`);
@@ -131,19 +94,6 @@ function deleteItem(bucketName, itemName) {
     }).promise()
     .then(() => {
         console.log(`Item: ${itemName} deleted!`);
-        logDone();
-    })
-    .catch(logError);
-}
-
-// Delete bucket
-function deleteBucket(bucketName) {
-    console.log(`Deleting bucket: ${bucketName}`);
-    return cos.deleteBucket({
-        Bucket: bucketName
-    }).promise()
-    .then(() => {
-        console.log(`Bucket: ${bucketName} deleted!`);
         logDone();
     })
     .catch(logError);
@@ -224,20 +174,9 @@ function multiPartUpload(bucketName, itemName, filePath) {
     });
 }
 
-function cancelMultiPartUpload(bucketName, itemName, uploadID) {
-    return cos.abortMultipartUpload({
-        Bucket: bucketName,
-        Key: itemName,
-        UploadId: uploadID
-    }).promise()
-    .then(() => {
-        console.log(`Multi-part upload aborted for ${itemName}`);
-    })
-    .catch(logError);
-}
-
 // Constants for IBM COS values
-const COS_ENDPOINT = "s3.eu-de.cloud-object-storage.appdomain.cloud";  // example: s3.us-south.cloud-object-storage.appdomain.cloud
+// Values are for the specific bucket cloud-object-storage-6f-cos-standard-fjc
+const COS_ENDPOINT = "s3.eu-de.cloud-object-storage.appdomain.cloud";
 const COS_API_KEY_ID = "nAg5hDvZppW4pcIc99GQ5mdh-8NbfpzVd3XzsBasneD5";
 const COS_AUTH_ENDPOINT = "https://iam.cloud.ibm.com/identity/token";
 const COS_SERVICE_CRN = "crn:v1:bluemix:public:iam-identity::a/baf52389f8564282bb3c67ccab31bcc8::serviceid:ServiceId-074b2b89-f35f-4009-afaf-987d01e76785";
@@ -253,54 +192,11 @@ var config = {
 
 var cos = new ibm.S3(config);
 
-// Main app
-function main() {
-    try {
-
-        var bucketName = 'cloud-object-storage-6f-cos-standard-fjc'
-
-        // var params = {
-        //     Bucket: bucketName /* required */
-        // };
-        // cos.headBucket(params, function(err, data) {
-        //   if (err) console.log(err, err.stack); // an error occurred
-        //   else     console.log(data);           // successful response
-        // });
-
-        // var newBucketName = "js.bucket." + getUUID();
-        var newTextFileName = "js_file_" + getUUID() + ".txt";
-        var newTextFileContents = "This is a test file from Node.js code sample!!!";
-        var newLargeFileName = "js_large_file_" + getUUID() + ".bin";
-        var newLargeFileSize = 1024 * 1024 * 20;
-
-        createTextFile(bucketName, newTextFileName, newTextFileContents) // create a new bucket
-            .then(() => getBucketContents(bucketName)) // get the list of files from the new bucket
-            .then(() => getItem(bucketName, newTextFileName)) // get the text file contents
-            .then(() => generateBigRandomFile(newLargeFileName, newLargeFileSize)) // create a new local binary file that is 20 MB
-            .then(() => multiPartUpload(bucketName, newLargeFileName, newLargeFileName)) // upload the large file using transfer manager
-            .then(() => getBucketContents(bucketName)) // get the list of files from the new bucket
-            .then(() => deleteItem(bucketName, newLargeFileName)) // remove the large file
-            .then(() => deleteItem(bucketName, newTextFileName)) // remove the text file
-    }
-    catch(ex) {
-        logError(ex);
-    }
-}
-
-// upload the file specified by the filepath
-function saveFileInBucket(filePath) {
-    try {
-        var bucketName = 'cloud-object-storage-6f-cos-standard-fjc'
-        multiPartUpload(bucketName, filePath, filePath)
-    } catch (err) {
-        logError(err)
-    }
-}
-
 function isImage(mimetype) {
     return mimetype.substring(0, 6) == 'image/'
 }
 
+// TODO -> SWITCH BUCKET + RESIZE IMAGE
 function createMedia(req, res, next) {
     passport.authenticate('jwt', { session: false },function (error, user, info) {
 		if (user === false || error || info !== undefined) {
@@ -316,9 +212,6 @@ function createMedia(req, res, next) {
 			console.error(message);
 			res.status(403).json(message);
 		} else {
-            // TODO : save in media in db aswell as uploading the file
-            // TODO : split create pour user et create pour poi
-            // Compresser le fichier (256px pour photo profil) -> resize
             if (!req.files) {
                 res.status(401).json({
                     status: 'Error',
@@ -326,7 +219,7 @@ function createMedia(req, res, next) {
                 })
             } else {
                 var file = req.files.file
-    
+                console.log(file)
                 if (!isImage(file.mimetype)){
                     res.status(401).json({
                         status: 'Error',
@@ -334,6 +227,10 @@ function createMedia(req, res, next) {
                     })
                 } else {
                     var fileName = user.id.toString() + '_' + new Date().toISOString() + '.' + file.mimetype.slice(6)
+                    var type = req.query.type
+                    if (type == 'account') {
+                        // TODO : compresser fichier (256px pour photo profil) -> resize
+                    }
                     fs.writeFile(fileName, file.data, function (err) {
                         if (err) {
                             res.status(500).json({
@@ -342,6 +239,7 @@ function createMedia(req, res, next) {
                             })
                         } else {
                             try {
+                                // TODO switch bucket depending on if type is account or poi
                                 var bucketName = 'cloud-object-storage-6f-cos-standard-fjc'
                                 multiPartUpload(bucketName, fileName, fileName).then(function () {
                                     fs.unlink(fileName, function (error) {
@@ -351,10 +249,33 @@ function createMedia(req, res, next) {
                                                 message: 'Error removing the temporary file!'
                                             })
                                         } else {
-                                            res.status(200).json({
-                                                status: 'Success',
-                                                message: 'Succesfully uploaded image onto server bucket!'
-                                            })
+                                            let media = {title: fileName, filename: fileName, filepath: bucketName, filesize: file.size, type: file.mimetype, account_id: user.id}
+                                            db.any('INSERT INTO media ($1:name) VALUES($1:csv) RETURNING id;', [media]).then(function (rows) {
+                                                let media_id = rows[0].id
+                                                if (type == 'account') {
+                                                    db.none('UPDATE account SET media_id = $1 WHERE id = $2', [media_id, user.id]).then(function () {
+                                                        res.status(200).json({
+                                                            status: 'Success',
+                                                            message: 'Succesfully uploaded image onto server bucket and updated user media!'
+                                                        })
+                                                    }).catch (function (err) {
+                                                        res.status(500).json({
+                                                            status: 'Error',
+                                                            message: `Error updating account : ${err}`
+                                                        })
+                                                    })
+                                                } else {
+                                                    res.status(200).json({
+                                                        status: 'Success',
+                                                        message: 'Succesfully uploaded image onto server bucket!'
+                                                    })
+                                                }
+                                            }).catch (function (err) {
+                                                res.status(500).json({
+                                                    status: 'Error',
+                                                    message: `Error inserting into media : ${err}`
+                                                })
+                                            })                                            
                                         }
                                     })
                                 })
@@ -371,8 +292,6 @@ function createMedia(req, res, next) {
         }
 	})(req, res, next);
 }
-
-// main();
 
 module.exports = {
     createMedia: createMedia
