@@ -7,6 +7,7 @@ const async = require('async');
 const uuidv1 = require('uuid/v1');
 const crypto = require('crypto');
 const FileType = require('file-type');
+// db
 const db = require('./db');
 const passport = require('passport');
 
@@ -297,6 +298,10 @@ function saveFileInBucket(filePath) {
     }
 }
 
+function isImage(mimetype) {
+    return mimetype.substring(0, 6) == 'image/'
+}
+
 function createMedia(req, res, next) {
     passport.authenticate('jwt', { session: false },function (error, user, info) {
 		if (user === false || error || info !== undefined) {
@@ -315,51 +320,55 @@ function createMedia(req, res, next) {
             // TODO : save in media in db aswell as uploading the file
             // TODO : split create pour user et create pour poi
             // Compresser le fichier (256px pour photo profil) -> resize
-            var fileName = user.id.toString() + '_' + new Date().toISOString()
-            // TODO change, give directly the buffer
-            var fileBuffer = Buffer.from(req.body.fileBuffer);
-            FileType.fromBuffer(fileBuffer).then(function (fileType) {
-                // TODO check if the filetype is an image
-                console.log(fileType);
-                fs.writeFile(fileName, fileBuffer, function (err) {
-                    if (err) {
-                        res.status(500).json({
-                            status: 'Error',
-                            message: `Error creating the temporary file! : ${err}`
-                        })
-                    } else {
-                        try {
-                            var bucketName = 'cloud-object-storage-6f-cos-standard-fjc'
-                            multiPartUpload(bucketName, fileName, fileName).then(function () {
-                                fs.unlink(fileName, function (error) {
-                                    if (error) {
-                                        res.status(500).json({
-                                            status: 'Error',
-                                            message: 'Error removing the temporary file!'
-                                        })
-                                    } else {
-                                        res.status(200).json({
-                                            status: 'Success',
-                                            message: 'Succesfully uploaded image onto server bucket!'
-                                        })
-                                    }
-                                })
-                            })
-                        } catch (err) {
+            if (!req.files) {
+                res.status(401).json({
+                    status: 'Error',
+                    message: `No file uploaded !`
+                })
+            } else {
+                var file = req.files.file
+    
+                if (!isImage(file.mimetype)){
+                    res.status(401).json({
+                        status: 'Error',
+                        message: `The file is not an image!`
+                    })
+                } else {
+                    var fileName = user.id.toString() + '_' + new Date().toISOString() + '.' + file.mimetype.slice(6)
+                    fs.writeFile(fileName, file.data, function (err) {
+                        if (err) {
                             res.status(500).json({
                                 status: 'Error',
-                                message: 'Error uploading onto bucket!'
+                                message: `Error creating the temporary file! : ${err}`
                             })
+                        } else {
+                            try {
+                                var bucketName = 'cloud-object-storage-6f-cos-standard-fjc'
+                                multiPartUpload(bucketName, fileName, fileName).then(function () {
+                                    fs.unlink(fileName, function (error) {
+                                        if (error) {
+                                            res.status(500).json({
+                                                status: 'Error',
+                                                message: 'Error removing the temporary file!'
+                                            })
+                                        } else {
+                                            res.status(200).json({
+                                                status: 'Success',
+                                                message: 'Succesfully uploaded image onto server bucket!'
+                                            })
+                                        }
+                                    })
+                                })
+                            } catch (err) {
+                                res.status(500).json({
+                                    status: 'Error',
+                                    message: 'Error uploading onto bucket!'
+                                })
+                            }
                         }
-                    }
-                });
-            }).catch(function (error) {
-                console.error(`Problem reading the buffer: ${error}`);
-				res.status(500).json({
-					status: 'error',
-					message: `Problem reading the buffer: ${error}`
-				});
-            })
+                    });
+                }
+            }
         }
 	})(req, res, next);
 }

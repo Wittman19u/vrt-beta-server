@@ -26,12 +26,12 @@ var router = express.Router();
  *     security:
  *       - authorisationJWT: []
  *     parameters:
- *       - name: body
- *         in: body
- *         description: data to send {fileBuffer}
+ *       - name: file
+ *         in: formData
+ *         description: file to upload to media
  *         required: true
- *         schema:
- *           $ref: '#/definitions/FileBuffer'
+ *         type: file
+ *         consumes: multipart/form-data
  *     responses:
  *       200:
  *         description: Successfully created
