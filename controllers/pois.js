@@ -2,6 +2,7 @@ const db = require('./db');
 const moment = require('moment');
 const passport = require('passport');
 
+
 // function getAllPois(req, res, next) {
 // 	let limit = 16;
 // 	if (typeof req.query.limit !== 'undefined'){
@@ -23,6 +24,7 @@ const passport = require('passport');
 // 			return next(err);
 // 		});
 // }
+
 
 function getPoisByQuery(req, res, next) {
 	passport.authenticate('jwt', { session: false },function (error, user, info) {
@@ -139,40 +141,6 @@ function getPois(req, res, next) {
 	});
 }
 
-function getPoisByRadius(req, res, next) {
-	let radius = parseInt(req.query.radius) || 5;
-	let latitude = req.query.latitude;
-	let longitude = req.query.longitude;
-	let startDate = moment().format('YYYY-MM-DD');
-	if( typeof req.query.datetime !== 'undefined'){
-		startDate = req.query.datetime;
-	}
-
-	let typecond = ` (type=3 OR (type=2 AND sourcetype LIKE '%CulturalSite%' ) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
-	switch (req.query.type) {
-	case "act":
-		typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
-		break;
-	case "poi":
-		typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
-		break;
-	}
-	
-	let sql= `SELECT * FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND poi.source='Datatourisme' AND ${typecond} ORDER BY priority DESC`;
-	db.any(sql).then(function (data) {
-		res.status(200)
-			.json({
-				status: 'success',
-				itemsNumber: data.length,
-				data: data,
-				message: 'Retrieved pois in radius'
-			});
-	}).catch(function (err) {
-		console.error(err);
-		return next(err);
-	});
-}
-
 function createPoi(req, res, next) {
 	passport.authenticate('jwt', { session: false },function (error, user, info) {
 		if (user === false || error || info !== undefined) {
@@ -194,8 +162,7 @@ function createPoi(req, res, next) {
 			data.longitude = parseFloat(req.body.longitude).toFixed(5);
 			data.point = `POINT(${data.longitude} ${data.latitude})`;
 			data.source = 'Community';
-			data.manuallyupdate = true;
-			let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, start, "end", street, zipcode, city, country, latitude, longitude, email, web, phone, linkimg, description, type, opening, geom, active, duration, rating, price, ocean, pricerange, handicap, social, hashtag, manuallyupdate) VALUES( ${source}, ${sourceid}, ${sourcetype}, ${label}, ${sourcetheme}, ${start}, ${end}, ${street}, ${zipcode}, ${city}, ${country}, ${latitude}, ${longitude}, ${email}, ${web}, ${phone},  ${linkimg}, ${description}, ${type}, ${opening}, ST_GeomFromText(${point},4326), false, ${duration}, ${rating}, ${price}, ${ocean}, ${pricerange}, ${handicap}, ${social}, ${hashtag}, ${manuallyupdate} ) RETURNING id;'
+			let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, start, "end", street, zipcode, city, country, latitude, longitude, email, web, phone, linkimg, description, type, opening, geom, active, duration, rating, price, ocean, pricerange, handicap, social) VALUES( ${source}, ${sourceid}, ${sourcetype}, ${label}, ${sourcetheme}, ${start}, ${end}, ${street}, ${zipcode}, ${city}, ${country}, ${latitude}, ${longitude}, ${email}, ${web}, ${phone},  ${linkimg}, ${description}, ${type}, ${opening}, ST_GeomFromText(${point},4326), false, ${duration}, ${rating}, ${price}, ${ocean}, ${pricerange}, ${handicap}, ${social} ) RETURNING id;'
 
 			db.any(sql, data).then(function (rows) {
 				res.status(200).json({
@@ -276,11 +243,15 @@ function updatePoi(req, res, next) {
 // 		});
 // }
 
+
+
+
+
+
 module.exports = {
 //	getAllPois: getAllPois,
 	getPois: getPois,
 	getPoisByQuery: getPoisByQuery,
-	getPoisByRadius: getPoisByRadius,
 	getPoiDetails: getPoiDetails,
 	createPoi: createPoi,
 	updatePoi: updatePoi,

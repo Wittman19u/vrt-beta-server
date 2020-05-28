@@ -12,11 +12,6 @@ const swaggerUi = require('swagger-ui-express');
 const helmet = require('helmet');
 const favicon = require('serve-favicon');
 const passport = require('passport');
-// file upload
-const fileUpload = require('express-fileupload');
-const bodyParser = require('body-parser');
-const _ = require('lodash');
-
 
 const app = express();
 
@@ -43,11 +38,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Passport init
 app.use(passport.initialize());
 require('./controllers/passport');
-// enable files upload
-app.use(fileUpload({createParentPath: true}));
-//add other middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
 
 // ROUTES
 const indexRouter = require('./routes/index');
@@ -56,13 +46,10 @@ const poisRouter = require('./routes/pois');
 const restaurantsRouter = require('./routes/restaurants');
 const activitiesRouter = require('./routes/activities');
 const hotelsRouter = require('./routes/hotels');
-// const itinerariesRouter = require('./routes/itineraries');
-// const waypointsRouter = require('./routes/waypoints');
+const itinerariesRouter = require('./routes/itineraries');
+const waypointsRouter = require('./routes/waypoints');
 const messagesRouter = require('./routes/messages');
 const directionsRouter = require('./routes/directions');
-const roadtripsRouter = require('./routes/roadtrips');
-const visitsRouter = require('./routes/visits');
-const mediasRouter = require('./routes/medias');
 
 app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
@@ -70,13 +57,10 @@ app.use('/api/pois', poisRouter);
 app.use('/api/restaurants', restaurantsRouter);
 app.use('/api/activities', activitiesRouter);
 app.use('/api/hotels', hotelsRouter);
-// app.use('/api/itineraries', itinerariesRouter);
-// app.use('/api/waypoints', waypointsRouter);
+app.use('/api/itineraries', itinerariesRouter);
+app.use('/api/waypoints', waypointsRouter);
 app.use('/api/messages', messagesRouter);
 app.use('/api/directions', directionsRouter);
-app.use('/api/roadtrips', roadtripsRouter);
-app.use('/api/visits', visitsRouter);
-app.use('/api/medias', mediasRouter);
 
 // *****Swagger***********
 // swagger definition
