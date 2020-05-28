@@ -88,6 +88,10 @@ var router = express.Router();
  *         type: integer
  *       social:
  *         type: object
+ *       hashtag:
+ *         type: object
+ *       manuallyupdate:
+ *         type: boolean
  *     required:
  *       - label
  *       - latitude
@@ -152,6 +156,8 @@ var router = express.Router();
  *       opening:
  *         type: object
  *         description: see schema.org
+ *       hashtag:
+ *         type: object
  *     required:
  *       - label
  *       - sourceid
@@ -293,7 +299,67 @@ router.get('/findByLabel', poiController.getPoisByQuery);
  */
 router.get('/', poiController.getPois);
 
-
+/**
+ * @swagger
+ * /api/pois/byRadius:
+ *   get:
+ *     tags:
+ *       - Pois
+ *     description: Returns POIs within the specified radius and coordinates (16 max)
+ *     summary: Returns POIs within the specified radius and coordinates (16 max)
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: latitude
+ *         description: |
+ *           Search around a geographical point. The latitude is specified in decimal degrees.
+ *           Example: 49.117459
+ *           Should be used together with longitude+radius
+ *         in: query
+ *         required: true
+ *         type: number
+ *       - name: longitude
+ *         description: |
+ *           Search around a geographical point. The longitude is specified in decimal degrees.
+ *           Example: 6.179013
+ *           Should be used together with longitude+radius
+ *         in: query
+ *         required: true
+ *         type: number
+ *       - name: radius
+ *         description: Search radius (in km)
+ *         in: query
+ *         type: integer
+ *         default: 5
+ *       - name: datetime
+ *         in: query
+ *         type: string
+ *         description: Date time start (if empty = now() )
+ *         format: date
+ *       - name: type
+ *         in: query
+ *         type: integer
+ *         description: type pois selected 1 == ACT, 2 == POI, 3 == PDT (if empty = ALL )
+ *     responses:
+ *       200:
+ *         description: An array of pois contained in the specified radius around the lat/lon given
+ *         schema:
+ *           type: object
+ *           properties:
+ *             status:
+ *               type: string
+ *               example: success
+ *             itemsNumber:
+ *               type: integer
+ *             message:
+ *               type: string
+ *               example: Retrieved pois
+ *             data:
+ *               type: array
+ *               items:
+ *                 $ref: '#/definitions/Poi'
+ */
+router.get('/byRadius', poiController.getPoisByRadius);
 
 
 /**
