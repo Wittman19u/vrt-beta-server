@@ -46,7 +46,6 @@ const pgPromiseOptions = {
 const pgp = require('pg-promise')(pgPromiseOptions);
 // pgMonitor = require('pg-monitor');
 // pgMonitor.attach(pgPromiseOptions, ['query', 'error']);
-
 const db = pgp({
 	// CONFIG
 	host: process.env.DB_HOST, // server name or IP address;

@@ -31,28 +31,6 @@ var router = express.Router();
  *         type: string
  *       media_id:
  *         type: integer
- *       status_id:
- *         type: integer
- *       role_id:
- *         type: integer
- *       codetemp:
- *         type: integer
- *       expirescodetemp:
- *         type: string
- *         format: date
- *       localtoken:
- *         type: string
- *       expireslocaltoken:
- *         type: string
- *         format: date
- *       googleid:
- *         type: string
- *       googletoken:
- *         type: string
- *       facebookid:
- *         type: string
- *       facebooktoken:
- *         type: string
  *       consent:
  *         type: boolean
  *       consentthird:
@@ -73,40 +51,6 @@ var router = express.Router();
  *       - created_at
  *       - updated_at
  *       - consent_at
- * 
- *   Media:
- *     properties:
- *       id:
- *         type: integer
- *       title:
- *         type: string
- *       descript:
- *         type: string
- *       link:
- *         type: string
- *       filename:
- *         type: string
- *       filepath:
- *         type: string
- *       filesize:
- *         type: integer
- *       type:
- *         type: string
- *       status_id:
- *         type: integer
- *       account_id:
- *         type: integer
- *       created_at:
- *         type: string
- *         format: date-time
- *       updated_at:
- *         type: string
- *         format: date-time
- * 
- *   UserWithMedia:
- *     allOf:
- *       - $ref: '#/definitions/User'
- *       - $ref: '#/definitions/Media'
  */
 
 
@@ -158,7 +102,6 @@ var router = express.Router();
  *       - email
  *       - password
  *       - gender
- *       - language
  *       - created_at
  *       - updated_at
  *       - consent_at
@@ -186,18 +129,9 @@ var router = express.Router();
  *         maximum: 16
  *     responses:
  *       200:
- *         description: An array of users and their media
+ *         description: An array of users
  *         schema:
- *           type: object
- *           properties:
- *             accounts:
- *               type: array
- *               items:
- *                 $ref: '#/definitions/User'
- *             medias:
- *               type: array
- *               items:
- *                 $ref: '#/definitions/Media'
+ *           $ref: '#/definitions/User'
  *       403:
  *         description: Authenticated error
  *       500:
@@ -212,8 +146,8 @@ router.get('/', userController.getAllUsers);
  *   get:
  *     tags:
  *       - Users
- *     description: Returns a single user and its media
- *     summary: Returns a single user and its media
+ *     description: Returns a single user
+ *     summary: Returns a single user
  *     security:
  *       - authorisationJWT: []
  *     produces:
@@ -226,18 +160,11 @@ router.get('/', userController.getAllUsers);
  *         type: integer
  *     responses:
  *       200:
- *         description: A single user and its media
+ *         description: A single user
  *         schema:
- *           type: object
- *           properties:
- *             user:
- *               $ref: '#/definitions/User'
- *             media:
- *               $ref: '#/definitions/Media'
+ *           $ref: '#/definitions/User'
  *       403:
  *         description: Authenticated error
- *       500:
- *         description: error fetching media
  */
 router.get('/:id', userController.getUserDetails);
 
@@ -339,33 +266,6 @@ router.post('/loginuser', userController.loginUser);
 
 /**
  * @swagger
- * /api/users/checkuser:
- *   post:
- *     tags:
- *       - Users
- *     summary: Checks if a user is registered
- *     consumes:
- *       - application/x-www-form-urlencoded
- *     parameters:
- *       - name: email
- *         type: string
- *         format: email
- *         in: formData
- *         required: true
- *     responses:
- *       200:
- *         description: User is in the database
- *       403:
- *         description: User is not in the database
- *       401:
- *         description: Bad email
- *       500:
- *         description: Problem communicating with DB
- */
-router.post('/checkuser', userController.checkUser);
-
-/**
- * @swagger
  * /api/users/forgotpassword:
  *   post:
  *     tags:
@@ -392,111 +292,6 @@ router.post('/checkuser', userController.checkUser);
  *         description: There was an error sending email or Problem during update DB
  */
 router.post('/forgotpassword', userController.forgotPassword);
-
-/**
- * @swagger
- * /api/users/forgotpasswordinapp:
- *   post:
- *     tags:
- *       - Users
- *     summary: Sends an email with a reset password code when a user inevitably forgets their password
- *     produces:
- *       - application/json
- *     consumes:
- *       - application/x-www-form-urlencoded
- *     parameters:
- *       - name: email
- *         type: string
- *         format: email
- *         in: formData
- *         required: true
- *     responses:
- *       200:
- *         description: Reset email sent
- *       400:
- *         description: Email required
- *       403:
- *         description: Email not found in db
- *       500:
- *         description: There was an error sending email or Problem during update DB
- */
-router.post('/forgotpasswordinapp', userController.forgotPasswordInApp);
-
-/**
- * @swagger
- * /api/users/checkresetcode:
- *   put:
- *     tags:
- *       - Users
- *     summary: Checks if the code the user is sending is valid
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: body
- *         in: body
- *         description: data to send {email, resetPasswordCode}
- *         schema:
- *           type: object
- *           required:
- *             - email
- *             - resetPasswordCode
- *           properties:
- *             email:
- *               type: string
- *               format: email
- *             resetPasswordCode:
- *               type: integer
- *     responses:
- *       200:
- *         description: The code is correct
- *       400:
- *         description: Field required.
- *       403:
- *         description: No user exists in db or password reset is invalid or has expired.
- *       500:
- *         description: Problem during update DB or Problem during password hash
- */
-router.post('/checkresetcode', userController.checkResetCode);
-
-/**
- * @swagger
- * /api/users/updatepasswordviaapp:
- *   put:
- *     tags:
- *       - Users
- *     summary: Update user's password after they've forgotten it
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: body
- *         in: body
- *         description: data to send {email, resetPasswordCode, password}
- *         schema:
- *           type: object
- *           required:
- *             - email
- *             - resetPasswordCode
- *             - password
- *           properties:
- *             email:
- *               type: string
- *               format: email
- *             resetPasswordCode:
- *               type: integer
- *             password:
- *               type: string
- *               format: password
- *     responses:
- *       200:
- *         description: User's password successfully updated.
- *       400:
- *         description: Field required.
- *       403:
- *         description: No user exists in db or password reset code is invalid or has expired.
- *       500:
- *         description: Problem during update DB or Problem during password hash
- */
-router.put('/updatepasswordviaapp', userController.updatePasswordViaApp);
 
 /**
  * @swagger
@@ -537,6 +332,8 @@ router.put('/updatepasswordviaapp', userController.updatePasswordViaApp);
  *         description: Problem during update DB or Problem during password hash
  */
 router.put('/updatepasswordviaemail', userController.updatePasswordViaEmail);
+
+
 
 /**
  * @swagger

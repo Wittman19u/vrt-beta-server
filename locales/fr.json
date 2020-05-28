@@ -2,6 +2,5 @@
 	"mail.signup.content": "Bonjour,\nVous venez de créer un espace personnel sur notre application Web et nous vous en remercions.\nVous pouvez désormais utiliser pleinement toutes nos fonctionnalités.\nBon voyage !\nL'équipe Very Road Trip.",
     "mail.signup.subject": "Bienvenue sur Very Road Trip !",
     "mail.forgotPassword.content": "Vous recevez ce mail car vous avez demandé une réinitialisation de votre mot de passe.\n\nCliquez sur le lien suivant ou copiez-collez le dans votre navigateur pour compléter la réinitialisation de votre mot de passe (sous un délai d'une heure):\n\n{{link}}\n\n Si vous n'avez pas fait cette demande, ignorez cet email et votre mot de passe restera inchangé.\n",
-    "mail.forgotPasswordInApp.content": "Vous recevez ce mail car vous avez demandé une réinitialisation de votre mot de passe.\n\nVeuillez rentrer le code suivant dans l'application Very Road Trip pour continuer : {{code}}\n\n Si vous n'avez pas fait cette demande, ignorez cet email et votre mot de passe restera inchangé.\n",
     "mail.forgotPassword.subject": "Lien pour réinitialiser votre mot de passe"
 }
