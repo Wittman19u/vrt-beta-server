@@ -6,7 +6,6 @@ const fs = require('fs');
 const async = require('async');
 const uuidv1 = require('uuid/v1');
 const crypto = require('crypto');
-const FileType = require('file-type');
 // db
 const db = require('./db');
 const passport = require('passport');

@@ -35,6 +35,8 @@ var router = express.Router();
  *     responses:
  *       200:
  *         description: Successfully created
+ *       401:
+ *         description: No file or the file is not an image
  *       500:
  *         description: Missing/incorrect parameters or database failure
  */

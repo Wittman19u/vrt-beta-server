@@ -282,7 +282,11 @@ function getUserRoadtrips(req, res, next) {
 			var userId = parseInt(req.params.id);
 			let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, poi.linkimg `
 			sql += `FROM (SELECT * FROM roadtrip WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${userId})`
-			if (status !== null) sql += ` AND roadtrip.status_id = ${status}`;
+			if (status !== null) {
+				sql += ` AND roadtrip.status_id = ${status}`;
+				var todayString = new Date().toISOString().substr(0, 10)
+				if (status == 1) sql += ` AND roadtrip.start >= '${todayString}'`
+			}
 			sql += `ORDER BY updated_at DESC LIMIT ${limit} OFFSET ${offset}) roadtrip `
 			sql += `INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id`
 			sql += ` ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id`;
