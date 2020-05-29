@@ -62,7 +62,7 @@ function getVisitDetails(req, res, next) {
 function updateVisit(req, res, next) {
 	passport.authenticate('jwt', { session: false },function (error, user, info) {
 		if (user === false || error || info !== undefined) {
-			let message = {
+			let message = { 
 				status: 'error',
 				error: error,
 				user: user
@@ -80,9 +80,11 @@ function updateVisit(req, res, next) {
 				if (rows[0].id !== null) {
 					const pgp = db.$config.pgp;
 					let visit = req.body.visit
+					console.log(visit)
 					const condition = pgp.as.format(' WHERE id = ${1}', visit_id);
 					let sql = pgp.helpers.update(visit, ['sequence', 'waypoint_id', 'poi_id'], 'visit') + condition;
-					db.one(sql).then(function () {
+					
+					db.none(sql).then(function () {
 						res.status(200).json({
 							status: 'success',
 							message: `Successfully updated visit ${visit_id}`
