@@ -190,13 +190,13 @@ var config = {
 var cos = new ibm.S3(config);
 
 // returns true if png, gif, jpg or jpeg
-function isImage(buffer) {
+function imageType(buffer) {
     var arr = (new Uint8Array(buffer)).subarray(0, 4);
     var header = "";
     for(var i = 0; i < arr.length; i++) {
         header += arr[i].toString(16);
     }
-    let type = "uknown"
+    let type = "unknown"
     switch (header) {
         case "89504e47":
             type = "image/png";
@@ -215,8 +215,10 @@ function isImage(buffer) {
             type = "image/jpeg";
             break;
     }
-    return type.substring(0,6) == 'image/'
+    return type
 }
+
+// TODO -> completer la nouvelle colonne
 
 // TODO -> ADD public PARAMETER to method, and use it when inserting new media
 // TODO -> POPULATE relation tables aswell
@@ -244,13 +246,14 @@ function createMedia(req, res, next) {
             } else {
                 var file = req.files.file
                 console.log(file)
-                if (!isImage(file.data)) {
+                var type = imageType(file.data)
+                if (type.substring(0,6) != 'image/') {
                     res.status(401).json({
                         status: 'Error',
                         message: `The file is not an image!`
                     })
                 } else {
-                    var fileName = user.id.toString() + '_' + new Date().toISOString() + '.' + file.mimetype.slice(6)
+                    var fileName = user.id.toString() + '_' + new Date().toISOString() + '.' + type.slice(6)
                     var type = req.query.type
                     if (type == 'account') {
                         // TODO : compresser fichier (256px pour photo profil) -> resize

@@ -14,6 +14,8 @@ var router = express.Router();
  *         description: Buffer for the image
  */
 
+ // TODO rajouter param id category
+ // TODO rajouter param public
 /**
  * @swagger
  * /api/medias:

@@ -95,7 +95,7 @@ router.get('/:id', visitController.getVisitDetails);
 
 /**
  * @swagger
- * /api/visit/{id}:
+ * /api/visits/{id}:
  *   put:
  *     tags:
  *       - Visits
