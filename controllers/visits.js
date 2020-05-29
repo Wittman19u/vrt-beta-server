@@ -80,7 +80,7 @@ function updateVisit(req, res, next) {
 				if (rows[0].id !== null) {
 					const pgp = db.$config.pgp;
 					let visit = req.body.visit
-					console.log(visit)
+					console.log(req.body)
 					const condition = pgp.as.format(' WHERE id = ${1}', visit_id);
 					let sql = pgp.helpers.update(visit, ['sequence', 'waypoint_id', 'poi_id'], 'visit') + condition;
 					
