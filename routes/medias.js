@@ -47,4 +47,50 @@ var router = express.Router();
  */
 router.post('/', mediaController.createMedia);
 
+// /**
+//  * @swagger
+//  * /api/medias/user/public/{id}:
+//  *   get:
+//  *     tags:
+//  *       - Medias
+//  *     description: Retrieves the public media associated with account
+//  *     produces:
+//  *       - application/json
+//  *     parameters:
+//  *       - name: id
+//  *         in: path
+//  *         description: id of the account
+//  *         required: true
+//  *         type: integer
+//  *     responses:
+//  *       200:
+//  *         description: Successfully retrieved image
+//  *       401:
+//  *         description: No file exists for the specified account
+//  *       500:
+//  *         description: Missing/incorrect parameters or database failure
+//  */
+// router.get('/user/public/:id', mediaController.getUserMediaPublic);
+
+// /**
+//  * @swagger
+//  * /api/medias/user/{id}:
+//  *   get:
+//  *     tags:
+//  *       - Medias
+//  *     description: Retrieves all media associated with authenticated account
+//  *     produces:
+//  *       - application/json
+//  *     security:
+//  *       - authorisationJWT: []
+//  *     responses:
+//  *       200:
+//  *         description: Successfully retrieved medias
+//  *       401:
+//  *         description: No file exists for the specified account
+//  *       500:
+//  *         description: Missing/incorrect parameters or database failure
+//  */
+// router.get('/user/public/:id', mediaController.getUserMediaAuthenticated);
+
 module.exports = router;
