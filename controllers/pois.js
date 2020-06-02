@@ -72,26 +72,42 @@ function getPoisByQuery(req, res, next) {
 }
 
 function getPoiDetails(req, res, next) {
-	var poiID = parseInt(req.params.id);
-	db.oneOrNone('select * from poi where id = $1', poiID)
-		.then(function (data) {
-			// TODO Update priority
-			//update priority when clicked
-			// db.any('UPDATE public.poi SET po_priority = po_priority+50 WHERE po_latitude = $1 and po_longitude = $2;', [lat, lng])
-			// .then(function() {
-			//   db.any('UPDATE public.poi SET po_priority = (100*(po_priority - min))/(max-min) FROM (SELECT MAX(po_priority) as max, MIN(po_priority) as min FROM public.poi) as extremum WHERE extremum.min != 0 OR extremum.max != 100; ')
-			//   .catch(function(error){throw error});
-			// })
-			res.status(200)
-				.json({
+	passport.authenticate('jwt', { session: false },function (error, user, info) {
+		if (user === false || user.role_id != 1 || error || info !== undefined) {
+			let message = {
+				status: 'error',
+				error: error,
+				user: user
+			};
+			if(info !== undefined){
+				message['message']= info.message;
+				message['info']= info;
+			}
+			console.error(message);
+			res.status(403).json(message);
+		} else {
+			var poiID = parseInt(req.params.id);
+			db.oneOrNone('select * from poi where id = $1', poiID)
+			.then(function (data) {
+				// TODO Update priority
+				//update priority when clicked
+				// db.any('UPDATE public.poi SET po_priority = po_priority+50 WHERE po_latitude = $1 and po_longitude = $2;', [lat, lng])
+				// .then(function() {
+				//   db.any('UPDATE public.poi SET po_priority = (100*(po_priority - min))/(max-min) FROM (SELECT MAX(po_priority) as max, MIN(po_priority) as min FROM public.poi) as extremum WHERE extremum.min != 0 OR extremum.max != 100; ')
+				//   .catch(function(error){throw error});
+				// })
+				res.status(200).json({
 					status: 'success',
 					data: data,
 					message: 'Retrieved ONE poi'
 				});
-		})
-		.catch(function (err) {
-			return next(err);
-		});
+			})
+			.catch(function (err) {
+				return next(err);
+			});
+		}
+	})(req, res, next);
+
 }
 
 function getPois(req, res, next) {
@@ -140,37 +156,59 @@ function getPois(req, res, next) {
 }
 
 function getPoisByRadius(req, res, next) {
-	let radius = parseInt(req.query.radius) || 5;
-	let latitude = req.query.latitude;
-	let longitude = req.query.longitude;
-	let startDate = moment().format('YYYY-MM-DD');
-	if( typeof req.query.datetime !== 'undefined'){
-		startDate = req.query.datetime;
-	}
+	passport.authenticate('jwt', { session: false },function (error, user, info) {
+		if (user === false || user.role_id != 1 || error || info !== undefined) {
+			let message = {
+				status: 'error',
+				error: error,
+				user: user
+			};
+			if(info !== undefined){
+				message['message']= info.message;
+				message['info']= info;
+			}
+			console.error(message);
+			res.status(403).json(message);
+		} else {
+			let query = req.query.query
+			let radius = parseInt(req.query.radius) || 5;
+			let latitude = req.query.latitude;
+			let longitude = req.query.longitude;
+			let startDate = moment().format('YYYY-MM-DD');
+			if( typeof req.query.datetime !== 'undefined'){
+				startDate = req.query.datetime;
+			}
 
-	let typecond = ` (type=3 OR (type=2 AND sourcetype LIKE '%CulturalSite%' ) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
-	switch (req.query.type) {
-	case "act":
-		typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
-		break;
-	case "poi":
-		typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
-		break;
-	}
-	
-	let sql= `SELECT * FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND poi.source='Datatourisme' AND ${typecond} ORDER BY priority DESC`;
-	db.any(sql).then(function (data) {
-		res.status(200)
-			.json({
-				status: 'success',
-				itemsNumber: data.length,
-				data: data,
-				message: 'Retrieved pois in radius'
+			let typecond = ` (type=3 OR (type=2 AND sourcetype LIKE '%CulturalSite%' ) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
+			switch (req.query.type) {
+			case "act":
+				typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
+				break;
+			case "poi":
+				typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
+				break;
+			}
+			
+			let sql = `SELECT * FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND poi.source='Datatourisme' AND ${typecond} `
+			if (query !== undefined) {
+				// we use lower to make it case insensitive
+				sql += ` AND LOWER(label) like LOWER('%${query}%') `
+			}
+			sql += `ORDER BY priority DESC`;
+			db.any(sql).then(function (data) {
+				res.status(200)
+					.json({
+						status: 'success',
+						itemsNumber: data.length,
+						data: data,
+						message: 'Retrieved pois in radius'
+					});
+			}).catch(function (err) {
+				console.error(err);
+				return next(err);
 			});
-	}).catch(function (err) {
-		console.error(err);
-		return next(err);
-	});
+		}
+	})(req, res, next);
 }
 
 function createPoi(req, res, next) {

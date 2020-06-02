@@ -309,7 +309,14 @@ router.get('/', poiController.getPois);
  *     summary: Returns POIs within the specified radius and coordinates (16 max)
  *     produces:
  *       - application/json
+ *     security:
+ *       - authorisationJWT: []
  *     parameters:
+ *       - name: query
+ *         required: false
+ *         in: query
+ *         type: string
+ *         description: text to find in label
  *       - name: latitude
  *         description: |
  *           Search around a geographical point. The latitude is specified in decimal degrees.
@@ -372,6 +379,8 @@ router.get('/byRadius', poiController.getPoisByRadius);
  *     summary: Returns informations of a single POI
  *     produces:
  *       - application/json
+ *     security:
+ *       - authorisationJWT: []
  *     parameters:
  *       - name: id
  *         description: Poi's id
