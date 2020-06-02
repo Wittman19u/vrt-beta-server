@@ -445,9 +445,12 @@ function getPoiMedia(req, res, next) {
     })
 }
 
+//get id, type, category (optionnel)
+
 module.exports = {
     createMedia: createMedia,
     getUserMediaPublic: getUserMediaPublic,
     getUserMediaAuthenticated: getUserMediaAuthenticated,
-    getPoiMedia: getPoiMedia
+    getPoiMedia: getPoiMedia,
+    getItem: getItem
 }

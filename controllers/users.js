@@ -6,6 +6,7 @@ const passport = require('passport');
 const transporter = require('./email'); // pass nodemailer for configuration
 const moment = require('moment');
 const BCRYPT_SALT_ROUNDS = 12;
+var mediaController = require('../controllers/medias');
 
 // TODO Comment this function
 function getAllUsers(req, res, next) {
@@ -208,14 +209,38 @@ function loginUser(req, res, next) {
 		} else {
 			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '12h'});
 			//req.user = user;
-			res.status(200).json({
-				status: 'success',
-				auth: true,
-				token,
-				id: user.id,
-				user: user,
-				message: 'User found & logged in',
-			});
+			db.any('SELECT media.id, media.filename, media.filepath, media.filesize, media.type, media.status_id, account.id FROM media INNER JOIN account ON account.media_id = media.id WHERE account.id = $1', [user.id]).then(function (media) {
+                if (media[0] == null) {
+                    res.status(200).json({
+						status: 'success',
+						auth: true,
+						token,
+						id: user.id,
+						user: user,
+						message: 'User found & logged in, no media',
+					});
+                } else {
+                    try {
+                        mediaController.getItem(media[0].filepath, media[0].filename).then(function (data) {
+							console.log(data)
+							res.status(200).json({
+								status: 'success',
+								auth: true,
+								token,
+								id: user.id,
+								user: user,
+								media: {file: data, mediaInfo: media[0]},
+								message: 'User found & logged in with media',
+							});
+                        })
+                    } catch (err) {
+                        res.status(500).json({
+                            status: 'Error',
+                            message: `Error retrieving item from bucket: ${err}` 
+                        })
+                    }
+                }
+            })
 		}
 	})(req, res, next);
 }
