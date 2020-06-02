@@ -67,6 +67,40 @@ function getItem(bucketName, itemName) {
         .catch(logError);
 }
 
+// Get url for a specific item
+function getUrl(bucketName, itemName) {
+    return cos.getObject({
+        Bucket: bucketName,
+        Key: itemName
+    }).promise()
+        .then((data) => {
+            var params = {Bucket: bucketName, Key: itemName};
+            var url = cos.getSignedUrl('getObject', params);
+            console.log('The URL is', url);
+            return url;
+        })
+        .catch(logError);
+    // return (getItem(bucketName, itemName)
+    //     .then(function() {
+    //         var params = {Bucket: bucketName, Key: itemName};
+    //         var url = cos.getSignedUrl('getObject', params);
+    //         console.log('The URL is', url);
+    //         return url;
+    //     }))
+    // var params = {Bucket: bucketName, Key: itemName};
+    // var url = cos.getSignedUrl('getObject', params);
+    // console.log('The URL is', url);
+    // return url;
+    // var promise = cos.getSignedUrlPromise('getObject', params);
+    // promise.then(function(url) {
+    //     console.log('The URL is', url);
+    //     return url;
+    // }, function(err) {
+    //     console.error(err)
+    //     return false
+    // });
+}
+
 // Create new bucket
 function createBucket(bucketName) {
     console.log(`Creating new bucket: ${bucketName}`);
@@ -173,11 +207,19 @@ function multiPartUpload(bucketName, itemName, filePath) {
 }
 
 // Constants for IBM COS values
+// const COS_ENDPOINT = "s3.eu-de.cloud-object-storage.appdomain.cloud";
+// const COS_API_KEY_ID = "nAg5hDvZppW4pcIc99GQ5mdh-8NbfpzVd3XzsBasneD5";
+// const COS_AUTH_ENDPOINT = "https://iam.cloud.ibm.com/identity/token";
+// const COS_SERVICE_CRN = "crn:v1:bluemix:public:iam-identity::a/baf52389f8564282bb3c67ccab31bcc8::serviceid:ServiceId-074b2b89-f35f-4009-afaf-987d01e76785";
+// const COS_STORAGE_CLASS = "eu-de-standard";
+// const COS_SIGNATURE_VERSION = 'v4';
 const COS_ENDPOINT = "s3.eu-de.cloud-object-storage.appdomain.cloud";
-const COS_API_KEY_ID = "nAg5hDvZppW4pcIc99GQ5mdh-8NbfpzVd3XzsBasneD5";
+const COS_API_KEY_ID = "BoJC7SPPYPd0jn0EsBy5HzFX49GudaNy6zpkjtb2Y-vX";
 const COS_AUTH_ENDPOINT = "https://iam.cloud.ibm.com/identity/token";
-const COS_SERVICE_CRN = "crn:v1:bluemix:public:iam-identity::a/baf52389f8564282bb3c67ccab31bcc8::serviceid:ServiceId-074b2b89-f35f-4009-afaf-987d01e76785";
+const COS_SERVICE_CRN = "crn:v1:bluemix:public:iam-identity::a/baf52389f8564282bb3c67ccab31bcc8::serviceid:ServiceId-e6a7234b-123b-40c8-8277-9dc57a37b762";
 const COS_STORAGE_CLASS = "eu-de-standard";
+const COS_SIGNATURE_VERSION = 'v4';
+const COS_CREDENTIALS = new ibm.Credentials('6947c52f10de4a59a45924f014ccaa52', '9a116192bab7d438f4ecc6fa9cb5ce282c4acac4db9743f7', null)
 
 // Init IBM COS library
 var config = {
@@ -185,6 +227,8 @@ var config = {
     apiKeyId: COS_API_KEY_ID,
     ibmAuthEndpoint: COS_AUTH_ENDPOINT,
     serviceInstanceId: COS_SERVICE_CRN,
+    credentials: COS_CREDENTIALS,
+    signatureVersion: COS_SIGNATURE_VERSION
 };
 
 var cos = new ibm.S3(config);
@@ -452,5 +496,5 @@ module.exports = {
     getUserMediaPublic: getUserMediaPublic,
     getUserMediaAuthenticated: getUserMediaAuthenticated,
     getPoiMedia: getPoiMedia,
-    getItem: getItem
+    getUrl: getUrl
 }

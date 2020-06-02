@@ -217,22 +217,22 @@ function loginUser(req, res, next) {
 						token,
 						id: user.id,
 						user: user,
-						message: 'User found & logged in, no media',
+						message: 'User found & logged in, no media'
 					});
                 } else {
                     try {
-                        mediaController.getItem(media[0].filepath, media[0].filename).then(function (data) {
-							console.log(data)
+						mediaController.getUrl(media[0].filepath, media[0].filename).then(function (data) {
+							media[0].linkimg = data
 							res.status(200).json({
 								status: 'success',
 								auth: true,
 								token,
 								id: user.id,
 								user: user,
-								media: {file: data, mediaInfo: media[0]},
-								message: 'User found & logged in with media',
+								media: media[0],
+								message: 'User found & logged in with media'
 							});
-                        })
+						})
                     } catch (err) {
                         res.status(500).json({
                             status: 'Error',
