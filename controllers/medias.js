@@ -218,11 +218,6 @@ function imageType(buffer) {
     return type
 }
 
-// TODO -> completer la nouvelle colonne
-
-// TODO -> ADD public PARAMETER to method, and use it when inserting new media
-// TODO -> POPULATE relation tables aswell
-// TODO -> PENDANT L'INSERT, AJOUTER category POUR SPECIFIER LA CATEGORIE DU MEDIA (+ nouveau parametre)
 function createMedia(req, res, next) {
     passport.authenticate('jwt', { session: false }, function (error, user, info) {
         if (user === false || error || info !== undefined) {
@@ -245,16 +240,18 @@ function createMedia(req, res, next) {
                 })
             } else {
                 var file = req.files.file
-                console.log(file)
-                var type = imageType(file.data)
-                if (type.substring(0,6) != 'image/') {
+                var typeFile = imageType(file.data)
+                if (typeFile.substring(0,6) != 'image/') {
                     res.status(401).json({
                         status: 'Error',
                         message: `The file is not an image!`
                     })
                 } else {
-                    var fileName = user.id.toString() + '_' + new Date().toISOString() + '.' + type.slice(6)
+                    var fileName = user.id.toString() + '_' + new Date().toISOString() + '.' + typeFile.slice(6)
                     var type = req.query.type
+                    var publicStatus = req.query.public
+                    var idCategory = req.query.idCategory
+                    var idForeign = req.query.idForeign
                     if (type == 'account') {
                         // TODO : compresser fichier (256px pour photo profil) -> resize
                     }
@@ -278,11 +275,26 @@ function createMedia(req, res, next) {
                                                 message: 'Error removing the temporary file!'
                                             })
                                         } else {
-                                            let media = { title: fileName, filename: fileName, filepath: bucketName, filesize: file.size, type: file.mimetype, account_id: user.id }
+                                            let media = { title: fileName, filename: fileName, filepath: bucketName, filesize: file.size, type: typeFile, account_id: user.id, category_id: idCategory, public: publicStatus }
+                                            switch (type) {
+                                                case 'account':
+                                                    break;
+                                                case 'roadtrip':
+                                                    media.roadtrip_id = idForeign
+                                                    break;
+                                                case 'poi':
+                                                    media.poi_id = idForeign
+                                                    break;
+                                                default:
+                                                    res.status(500).json({
+                                                        status: 'Error',
+                                                        message: `The type parameter ${type} does not correspond to account, roadtrip or poi`
+                                                    })
+                                            }
                                             db.any('INSERT INTO media ($1:name) VALUES($1:csv) RETURNING id;', [media]).then(function (rows) {
                                                 let media_id = rows[0].id
-                                                // if account we insert into the account-media relation table
-                                                if (type == 'account') {
+                                                // if account and category 1 (profile picture), we update the foreign key on account
+                                                if (type == 'account' && idCategory == 1) {
                                                     db.none('UPDATE account SET media_id = $1 WHERE id = $2', [media_id, user.id]).then(function () {
                                                         res.status(200).json({
                                                             status: 'Success',
@@ -295,7 +307,6 @@ function createMedia(req, res, next) {
                                                         })
                                                     })
                                                 } else {
-                                                // if poi we insert into the poi-media relation table
                                                     res.status(200).json({
                                                         status: 'Success',
                                                         message: 'Succesfully uploaded image onto server bucket!'

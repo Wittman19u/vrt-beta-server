@@ -36,9 +36,24 @@ var router = express.Router();
  *         consumes: multipart/form-data
  *       - name: type
  *         in: query
- *         description: type of the media -> can be 'account' or 'poi'
+ *         description: type of the media -> can be 'account', 'poi' or 'roadtrip'
  *         required: true
  *         type: string
+ *       - name: public
+ *         in: query
+ *         description: specifies if the media is public or not (1 = yes, 2 = no)
+ *         required: true
+ *         type: integer
+ *       - name: idCategory
+ *         in: query
+ *         description: specifies the category the media belongs to (profile picture, poi picture, etc...) by its id
+ *         required: true
+ *         type: integer
+ *       - name: idForeign
+ *         in: query
+ *         description: specifies the id for the foreign key (the roadtrip/poi)
+ *         required: true
+ *         type: integer
  *     responses:
  *       200:
  *         description: Successfully created
