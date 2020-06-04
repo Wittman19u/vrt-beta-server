@@ -10,22 +10,22 @@ var mediaController = require('../controllers/medias');
 
 // TODO Comment this function
 function getAllUsers(req, res, next) {
-	passport.authenticate('jwt', { session: false },function (error, user, info) {
+	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
 				status: 'error',
 				error: error,
 				user: user
 			};
-			if(info !== undefined){
-				message['message']= info.message;
-				message['info']= info;
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 			}
 			console.error(message);
 			res.status(403).json(message);
 		} else {
 			let limit = 16;
-			if (typeof req.query.limit !== 'undefined'){
+			if (typeof req.query.limit !== 'undefined') {
 				limit = req.query.limit;
 			}
 			db.any('select account.*, media.id AS id_media, media.title, media.descript, media.link, media.filename, media.filepath, media.filesize, media.type, media.created_at AS media_created_at, media.updated_at AS media_updated_at, media.status_id AS media_status_id, media.account_id from (SELECT * from account ORDER BY account.id LIMIT $1) account LEFT JOIN media ON media.account_id = account.id ORDER BY account.id', limit
@@ -33,12 +33,12 @@ function getAllUsers(req, res, next) {
 				var accounts = []
 				var accountsId = []
 				data.forEach(data => {
-					if (!accountsId.includes(data.id)){
-						accounts.push({"id": data.id, "firstname": data.firstname, "lastname": data.lastname, "dateborn": data.dateborn, "gender": data.gender, "biography": data.biography, "email": data.email, "phone": data.phone, "codetemp": data.codetemp, "expirescodetemp": data.expirescodetemp, "created_at": data.created_at, "updated_at": data.updated_at, "status_id": data.status_id, "localtoken": data.localtoken, "facebookid": data.facebookid, "facebooktoken": data.facebooktoken, "googleid": data.googleid, "googletoken": data.googletoken, "consent": data.consent, "consentthird": data.consentthird, "consent_at": data.consent_at, "language": data.language, "media_id": data.media_id, "expireslocaltoken": data.expireslocaltoken, "medias": []})
+					if (!accountsId.includes(data.id)) {
+						accounts.push({ "id": data.id, "firstname": data.firstname, "lastname": data.lastname, "dateborn": data.dateborn, "gender": data.gender, "biography": data.biography, "email": data.email, "phone": data.phone, "codetemp": data.codetemp, "expirescodetemp": data.expirescodetemp, "created_at": data.created_at, "updated_at": data.updated_at, "status_id": data.status_id, "localtoken": data.localtoken, "facebookid": data.facebookid, "facebooktoken": data.facebooktoken, "googleid": data.googleid, "googletoken": data.googletoken, "consent": data.consent, "consentthird": data.consentthird, "consent_at": data.consent_at, "language": data.language, "media_id": data.media_id, "expireslocaltoken": data.expireslocaltoken, "medias": [] })
 						accountsId.push(data.id)
 					}
 					if (data.id_media !== null) {
-						accounts[accounts.length-1].medias.push({"id": data.id_media, "title": data.title, "descript": data.descript, "link": data.link, "filename": data.filename, "filepath": data.filepath, "filesize": data.filesize, "type": data.type, "created_at": data.media_created_at, "updated_at": data.media_updated_at, "status_id": data.media_status_id, "account_id": data.account_id})
+						accounts[accounts.length - 1].medias.push({ "id": data.id_media, "title": data.title, "descript": data.descript, "link": data.link, "filename": data.filename, "filepath": data.filepath, "filesize": data.filesize, "type": data.type, "created_at": data.media_created_at, "updated_at": data.media_updated_at, "status_id": data.media_status_id, "account_id": data.account_id })
 					}
 				})
 				res.status(200)
@@ -59,16 +59,16 @@ function getAllUsers(req, res, next) {
 }
 
 function getUserDetails(req, res, next) {
-	passport.authenticate('jwt', { session: false },function (error, user, info) {
+	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
 				status: 'error',
 				error: error,
 				user: user
 			};
-			if(info !== undefined){
-				message['message']= info.message;
-				message['info']= info;
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 			}
 			console.error(message);
 			res.status(403).json(message);
@@ -77,7 +77,7 @@ function getUserDetails(req, res, next) {
 			db.one('select * from media where id = $1', user.media_id).then(function (media) {
 				res.status(200).json({
 					status: 'success',
-					data: {user, media},
+					data: { user, media },
 					message: 'Retrieved a user and its associated media'
 				});
 			}).catch(function (error) {
@@ -92,7 +92,7 @@ function getUserDetails(req, res, next) {
 }
 
 function createUser(req, res, next) {
-	passport.authenticate('signup',{ session: false }, function (error, user, info) {
+	passport.authenticate('signup', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
 				status: 'error',
@@ -100,9 +100,9 @@ function createUser(req, res, next) {
 				user: user
 			};
 			let status = 401;
-			if(info !== undefined){
-				message['message']= info.message;
-				message['info']= info;
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 				if (info.message === 'Username or email already taken!') {
 					status = 409;
 				}
@@ -111,7 +111,7 @@ function createUser(req, res, next) {
 			res.status(status).json(message);
 		} else {
 			// TODO reduce expiresIn delay
-			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '12h'});
+			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '12h' });
 			//req.user = user;
 			res.status(200).json({
 				status: 'success',
@@ -138,7 +138,7 @@ function createUser(req, res, next) {
 				}
 				res.status(200).json({
 					status: 'success',
-					message:'Confirmation email sent!'
+					message: 'Confirmation email sent!'
 				});
 			});
 		}
@@ -153,9 +153,9 @@ function removeUser(req, res, next) {
 				error: error,
 				user: user
 			};
-			if(info !== undefined){
-				message['message']= info.message;
-				message['info']= info;
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 			}
 			console.error(message);
 			res.status(401).json(message);
@@ -197,9 +197,9 @@ function loginUser(req, res, next) {
 				user: user
 			};
 			let status = 403;
-			if(info !== undefined){
-				message['message']= info.message;
-				message['info']= info;
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 				if (info.message === 'Bad username / email!') {
 					status = 401;
 				}
@@ -207,11 +207,11 @@ function loginUser(req, res, next) {
 			console.error(message);
 			res.status(status).json(message);
 		} else {
-			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '12h'});
+			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '12h' });
 			//req.user = user;
 			db.any('SELECT media.id, media.filename, media.filepath, media.filesize, media.type, media.status_id, account.id FROM media INNER JOIN account ON account.media_id = media.id WHERE account.id = $1', [user.id]).then(function (media) {
-                if (media[0] == null) {
-                    res.status(200).json({
+				if (media[0] == null) {
+					res.status(200).json({
 						status: 'success',
 						auth: true,
 						token,
@@ -219,8 +219,8 @@ function loginUser(req, res, next) {
 						user: user,
 						message: 'User found & logged in, no media'
 					});
-                } else {
-                    try {
+				} else {
+					try {
 						mediaController.getUrl(media[0].filepath, media[0].filename).then(function (data) {
 							media[0].linkimg = data
 							res.status(200).json({
@@ -233,14 +233,14 @@ function loginUser(req, res, next) {
 								message: 'User found & logged in with media'
 							});
 						})
-                    } catch (err) {
-                        res.status(500).json({
-                            status: 'Error',
-                            message: `Error retrieving item from bucket: ${err}` 
-                        })
-                    }
-                }
-            })
+					} catch (err) {
+						res.status(500).json({
+							status: 'Error',
+							message: `Error retrieving item from bucket: ${err}`
+						})
+					}
+				}
+			})
 		}
 	})(req, res, next);
 }
@@ -252,7 +252,7 @@ function checkUser(req, res, next) {
 			message: 'Email required!'
 		});
 	} else {
-		db.oneOrNone( 'select * from account where email = $1',[req.body.email.toLowerCase()]
+		db.oneOrNone('select * from account where email = $1', [req.body.email.toLowerCase()]
 		).then((user) => {
 			if (user === null) {
 				console.error('Email not in DB!');
@@ -270,14 +270,14 @@ function checkUser(req, res, next) {
 	}
 }
 
-function forgotPassword(req, res, next){
+function forgotPassword(req, res, next) {
 	if (req.body.email === '') {
 		res.status(400).json({
 			status: 'error',
 			message: 'Email required!'
 		});
 	} else {
-		db.oneOrNone( 'select * from account where email = $1',[req.body.email.toLowerCase()]
+		db.oneOrNone('select * from account where email = $1', [req.body.email.toLowerCase()]
 		).then((user) => {
 			if (user === null) {
 				console.error('Email not in DB!');
@@ -286,15 +286,15 @@ function forgotPassword(req, res, next){
 					message: 'Email not in DB!'
 				});
 			} else {
-				const token = cryptoRandomString({length: 20});
-				db.none('update account set localtoken=$1, expireslocaltoken=$2 where id=$3',[token, moment().add(20, 'minutes').format('YYYY-MM-DDTHH:mm'), parseInt(user.id)]
-				).then( () => {
+				const token = cryptoRandomString({ length: 20 });
+				db.none('update account set localtoken=$1, expireslocaltoken=$2 where id=$3', [token, moment().add(20, 'minutes').format('YYYY-MM-DDTHH:mm'), parseInt(user.id)]
+				).then(() => {
 					res.setLocale(user.language)
 					const mailOptions = {
 						from: process.env.SERVER_EMAIL,
 						to: user.email,
 						subject: res.__('mail.forgotPassword.subject'),
-						text: res.__('mail.forgotPassword.content', {link: `https://${process.env.CLIENT_HOST}/reset/${token}`})
+						text: res.__('mail.forgotPassword.content', { link: `https://${process.env.CLIENT_HOST}/reset/${token}` })
 					};
 					transporter.sendMail(mailOptions, (error, response) => {
 						if (error) {
@@ -306,7 +306,7 @@ function forgotPassword(req, res, next){
 						}
 						res.status(200).json({
 							status: 'success',
-							message:'Recovery email sent!'
+							message: 'Recovery email sent!'
 						});
 					});
 				}).catch((error) => {
@@ -327,14 +327,14 @@ function forgotPassword(req, res, next){
 	}
 }
 
-function forgotPasswordInApp(req, res, next){
+function forgotPasswordInApp(req, res, next) {
 	if (req.body.email === '') {
 		res.status(400).json({
 			status: 'error',
 			message: 'Email required!'
 		});
 	} else {
-		db.oneOrNone( 'select * from account where email = $1',[req.body.email.toLowerCase()]
+		db.oneOrNone('select * from account where email = $1', [req.body.email.toLowerCase()]
 		).then((user) => {
 			if (user === null) {
 				console.error('Email not in DB!');
@@ -345,14 +345,14 @@ function forgotPasswordInApp(req, res, next){
 			} else {
 				// random 6 digit number
 				const codeReset = Math.floor(Math.random() * 899999 + 100000)
-				db.none('update account set codetemp=$1, expirescodetemp=$2 where id=$3',[codeReset, moment().add(20, 'minutes').format('YYYY-MM-DDTHH:mm'), parseInt(user.id)]
-				).then( () => {
+				db.none('update account set codetemp=$1, expirescodetemp=$2 where id=$3', [codeReset, moment().add(20, 'minutes').format('YYYY-MM-DDTHH:mm'), parseInt(user.id)]
+				).then(() => {
 					res.setLocale(user.language)
 					const mailOptions = {
 						from: process.env.SERVER_EMAIL,
 						to: user.email,
 						subject: res.__('mail.forgotPassword.subject'),
-						text: res.__('mail.forgotPasswordInApp.content', {code: codeReset})
+						text: res.__('mail.forgotPasswordInApp.content', { code: codeReset })
 					};
 					transporter.sendMail(mailOptions, (error, response) => {
 						if (error) {
@@ -364,7 +364,7 @@ function forgotPasswordInApp(req, res, next){
 						}
 						res.status(200).json({
 							status: 'success',
-							message:'Recovery email sent!'
+							message: 'Recovery email sent!'
 						});
 					});
 				}).catch((error) => {
@@ -385,7 +385,7 @@ function forgotPasswordInApp(req, res, next){
 	}
 }
 
-function checkResetCode(req, res, next){
+function checkResetCode(req, res, next) {
 	if (req.body.email === '' || req.body.resetPasswordCode === '') {
 		res.status(400).json({
 			status: 'error',
@@ -416,7 +416,7 @@ function checkResetCode(req, res, next){
 	}
 }
 
-function updatePasswordViaEmail(req, res, next){
+function updatePasswordViaEmail(req, res, next) {
 	if (req.body.email === '' || req.body.resetPasswordToken === '' || req.body.password === '') {
 		res.status(400).json({
 			status: 'error',
@@ -435,7 +435,7 @@ function updatePasswordViaEmail(req, res, next){
 			console.log('User exists in db');
 			bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS
 			).then(hashedPassword => {
-				db.none('update account set password = $1, localtoken = NULL, expireslocaltoken = NULL where id=$2',[hashedPassword, parseInt(user.id)]
+				db.none('update account set password = $1, localtoken = NULL, expireslocaltoken = NULL where id=$2', [hashedPassword, parseInt(user.id)]
 				).then(() => {
 					console.log('Password updated!');
 					res.status(200).json({
@@ -467,7 +467,7 @@ function updatePasswordViaEmail(req, res, next){
 
 }
 
-function updatePasswordViaApp(req, res, next){
+function updatePasswordViaApp(req, res, next) {
 	if (req.body.email === '' || req.body.resetPasswordCode === '' || req.body.password === '') {
 		res.status(400).json({
 			status: 'error',
@@ -486,7 +486,7 @@ function updatePasswordViaApp(req, res, next){
 			console.log('User exists in db');
 			bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS
 			).then(hashedPassword => {
-				db.none('update account set password = $1, codetemp = NULL where id=$2',[hashedPassword, parseInt(user.id)]
+				db.none('update account set password = $1, codetemp = NULL where id=$2', [hashedPassword, parseInt(user.id)]
 				).then(() => {
 					console.log('Password updated!');
 					res.status(200).json({
@@ -518,7 +518,7 @@ function updatePasswordViaApp(req, res, next){
 
 }
 
-function updatePassword(req, res, next){
+function updatePassword(req, res, next) {
 	passport.authenticate('jwt', { session: false }, (error, user, info) => {
 		if (user === false || error || info !== undefined) {
 			let message = {
@@ -526,9 +526,9 @@ function updatePassword(req, res, next){
 				error: error,
 				user: user
 			};
-			if(info !== undefined){
-				message['message']= info.message;
-				message['info']= info;
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 			}
 			console.error(message);
 			res.status(401).json(message);
@@ -545,7 +545,7 @@ function updatePassword(req, res, next){
 				console.log('User found in db.');
 				bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS
 				).then((hashedPassword) => {
-					db.none('update account set password = $1 where id=$2',[hashedPassword, parseInt(user.id)]
+					db.none('update account set password = $1 where id=$2', [hashedPassword, parseInt(user.id)]
 					).then(() => {
 						console.log('Password updated');
 						res.status(200).json({ message: 'Password updated', auth: true });
@@ -583,18 +583,18 @@ function updateUser(req, res, next) {
 				error: error,
 				user: user
 			};
-			if(info !== undefined){
-				message['message']= info.message;
-				message['info']= info;
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 			}
 			console.error(message);
 			res.status(401).json(message);
 		} else {
-			if (user.id === req.params.id) {
+			if (user.id === parseInt(req.params.id)) {
 				const pgp = db.$config.pgp;
 				let userUpdate = req.body.user
 				const condition = pgp.as.format(' WHERE id = ${1}', user.id);
-				let sql = pgp.helpers.update(userUpdate, ['firstname', 'lastname', 'dateborn', 'gender', 'biography', 'email', 'phone', 'language'], 'account') + condition;
+				let sql = pgp.helpers.update(userUpdate, ['firstname', 'lastname', 'dateborn', 'gender', 'biography', 'email', 'phone', 'language', 'media_id', 'firebasetoken'], 'account') + condition;
 				db.one(sql).then(function () {
 					res.status(200)
 						.json({
