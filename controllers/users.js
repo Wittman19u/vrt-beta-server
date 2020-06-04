@@ -593,7 +593,7 @@ function updateUser(req, res, next) {
 			if (user.id === parseInt(req.params.id)) {
 				const pgp = db.$config.pgp;
 				let userUpdate = req.body.user
-				const condition = pgp.as.format(' WHERE id = ${1}', user.id);
+				const condition = pgp.as.format(' WHERE id = $1', user.id);
 				let sql = pgp.helpers.update(userUpdate, ['firstname', 'lastname', 'dateborn', 'gender', 'biography', 'email', 'phone', 'language', 'media_id', 'firebasetoken'], 'account') + condition;
 				db.one(sql).then(function () {
 					res.status(200)
