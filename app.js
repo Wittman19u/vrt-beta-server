@@ -63,6 +63,8 @@ const directionsRouter = require('./routes/directions');
 const roadtripsRouter = require('./routes/roadtrips');
 const visitsRouter = require('./routes/visits');
 const mediasRouter = require('./routes/medias');
+// TODO delete it, put in different server
+const firebaseRouter = require('./routes/firebase');
 
 app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
@@ -76,6 +78,8 @@ app.use('/api/directions', directionsRouter);
 app.use('/api/roadtrips', roadtripsRouter);
 app.use('/api/visits', visitsRouter);
 app.use('/api/medias', mediasRouter);
+// TODO delete
+app.use('/api/firebase', firebaseRouter);
 
 // *****Swagger***********
 // swagger definition
