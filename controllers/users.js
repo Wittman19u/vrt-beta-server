@@ -209,8 +209,10 @@ function loginUser(req, res, next) {
 		} else {
 			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '12h' });
 			//req.user = user;
-			db.any('SELECT media.id, media.filename, media.filepath, media.filesize, media.type, media.status_id, account.id FROM media INNER JOIN account ON account.media_id = media.id WHERE account.id = $1', [user.id]).then(function (media) {
-				if (media[0] == null) {
+			db.any('SELECT (SELECT COUNT(alert.id) FROM alert WHERE recipient_id = $1 AND isread = false), media.id AS media_id, media.filename, media.filepath, media.filesize, media.type, media.status_id, account.id AS account_id FROM media RIGHT JOIN account ON account.media_id = media.id WHERE account.id = $1', [user.id]).then(function (media) {
+				user.alerts = media[0].count
+				delete media[0].count
+				if (media[0].media_id == null) {
 					res.status(200).json({
 						status: 'success',
 						auth: true,
