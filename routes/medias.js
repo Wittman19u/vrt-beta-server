@@ -52,7 +52,7 @@ var router = express.Router();
  *       - name: idForeign
  *         in: query
  *         description: specifies the id for the foreign key (the roadtrip/poi)
- *         required: true
+ *         required: false
  *         type: integer
  *     responses:
  *       200:

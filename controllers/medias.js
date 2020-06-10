@@ -4,6 +4,8 @@
 const ibm = require('ibm-cos-sdk');
 const fs = require('fs');
 const async = require('async');
+// to resize images
+const im = require('imagemagick');
 // db
 const db = require('./db');
 const passport = require('passport');
@@ -74,7 +76,7 @@ function getUrl(bucketName, itemName) {
         Key: itemName
     }).promise()
         .then((data) => {
-            var params = {Bucket: bucketName, Key: itemName};
+            var params = { Bucket: bucketName, Key: itemName };
             var url = cos.getSignedUrl('getObject', params);
             console.log('The URL is', url);
             return url;
@@ -237,7 +239,7 @@ var cos = new ibm.S3(config);
 function imageType(buffer) {
     var arr = (new Uint8Array(buffer)).subarray(0, 4);
     var header = "";
-    for(var i = 0; i < arr.length; i++) {
+    for (var i = 0; i < arr.length; i++) {
         header += arr[i].toString(16);
     }
     let type = "unknown"
@@ -285,7 +287,7 @@ function createMedia(req, res, next) {
             } else {
                 var file = req.files.file
                 var typeFile = imageType(file.data)
-                if (typeFile.substring(0,6) != 'image/') {
+                if (typeFile.substring(0, 6) != 'image/') {
                     res.status(401).json({
                         status: 'Error',
                         message: `The file is not an image!`
@@ -293,12 +295,9 @@ function createMedia(req, res, next) {
                 } else {
                     var fileName = user.id.toString() + '_' + new Date().toISOString() + '.' + typeFile.slice(6)
                     var type = req.query.type
-                    var publicStatus = req.query.public
-                    var idCategory = req.query.idCategory
-                    var idForeign = req.query.idForeign
-                    if (type == 'account') {
-                        // TODO : compresser fichier (256px pour photo profil) -> resize
-                    }
+                    var publicStatus = parseInt(req.query.public)
+                    var idCategory = parseInt(req.query.idCategory)
+                    var idForeign = parseInt(req.query.idForeign)
                     fs.writeFile(fileName, file.data, function (err) {
                         if (err) {
                             res.status(500).json({
@@ -306,6 +305,20 @@ function createMedia(req, res, next) {
                                 message: `Error creating the temporary file! : ${err}`
                             })
                         } else {
+                            if (type == 'account' && idCategory == 1) {
+                                // resize if account profile picture
+                                im.resize({
+                                    srcData: fs.readFileSync(fileName, 'binary'),
+                                    width: 256
+                                }, function (err, stdout, stderr) {
+                                    if (err) throw err
+                                    // remove the old file
+                                    fs.unlinkSync(fileName)
+                                    // write the resized one with the same name
+                                    fs.writeFileSync(fileName, stdout, 'binary');
+                                    console.log('resized to fit within 256px width')
+                                });
+                            }
                             try {
                                 var bucketName = 'cloud-object-storage-6f-cos-standard-fjc'
                                 if (type == 'account') {
@@ -401,7 +414,7 @@ function getUserMediaPublic(req, res, next) {
                     res.status(200).json({
                         status: 'Success',
                         message: 'Succesfully retrieved media from db and file',
-                        data: {files: data, mediasInfo: medias}
+                        data: { files: data, mediasInfo: medias }
                     })
                 })
             } catch (err) {
@@ -444,7 +457,7 @@ function getUserMediaAuthenticated(req, res, next) {
                             res.status(200).json({
                                 status: 'Success',
                                 message: 'Succesfully retrieved media from db and file',
-                                data: {file: data, mediaInfo: media[0]}
+                                data: { file: data, mediaInfo: media[0] }
                             })
                         })
                     } catch (err) {
@@ -476,7 +489,7 @@ function getPoiMedia(req, res, next) {
                     res.status(200).json({
                         status: 'Success',
                         message: 'Succesfully retrieved media from db and file',
-                        data: {file: data, mediaInfo: media[0]}
+                        data: { file: data, mediaInfo: media[0] }
                     })
                 })
             } catch (err) {
