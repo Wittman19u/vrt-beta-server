@@ -26,7 +26,7 @@ const passport = require('passport');
 
 function getPoisByQuery(req, res, next) {
 	passport.authenticate('jwt', { session: false },function (error, user, info) {
-		if (user === false || user.role_id != 1 || error || info !== undefined) {
+		if (user === false || error || info !== undefined) {
 			let message = {
 				status: 'error',
 				error: error,
@@ -73,7 +73,7 @@ function getPoisByQuery(req, res, next) {
 
 function getPoiDetails(req, res, next) {
 	passport.authenticate('jwt', { session: false },function (error, user, info) {
-		if (user === false || user.role_id != 1 || error || info !== undefined) {
+		if (user === false || error || info !== undefined) {
 			let message = {
 				status: 'error',
 				error: error,
@@ -157,7 +157,7 @@ function getPois(req, res, next) {
 
 function getPoisByRadius(req, res, next) {
 	passport.authenticate('jwt', { session: false },function (error, user, info) {
-		if (user === false || user.role_id != 1 || error || info !== undefined) {
+		if (user === false || error || info !== undefined) {
 			let message = {
 				status: 'error',
 				error: error,
