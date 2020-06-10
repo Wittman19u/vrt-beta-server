@@ -47,7 +47,7 @@ function createRoadtrip(req, res, next) {
 			roadtrip.status_id = 3
 			db.any('INSERT INTO roadtrip ($1:name) VALUES($1:csv) RETURNING id;', [roadtrip]).then(function (rows) {
 				let roadtrip_id = rows[0].id;
-				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${req.body.account_id}, ${roadtrip_id}) RETURNING id;`;
+				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id, status) VALUES(true, ${req.body.account_id}, ${roadtrip_id}, 1) RETURNING id;`;
 				db.any(sql).then(function (rows) {
 					if(waypoints){ // insert waypoints in relative table
 						waypoints.forEach(waypoint => {
@@ -115,7 +115,7 @@ function duplicateRoadtrip(req, res, next) {
 			db.any('INSERT INTO roadtrip (title, departure, arrival, "start", "end", distance, duration, hashtag, "public", status_id, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom) SELECT title, departure, arrival, "start", "end", distance, duration, hashtag, $1, $2, comment_id, departurelongitude, departurelatitude, departuregeom, arrivallongitude, arrivallatitude, arrivalgeom FROM roadtrip WHERE id = $3 RETURNING id', [2, 3, roadtripID])
 				.then(function (rows) {
 				let duplicatedRoadtripID = rows[0].id;
-				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id) VALUES(true, ${user.id}, ${duplicatedRoadtripID}) RETURNING id;`;
+				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id, status) VALUES(true, ${user.id}, ${duplicatedRoadtripID}, 1) RETURNING id;`;
 				db.any(sql).then(function () {
 					// rajouter promise all pour les waypoints par rapport à un select des ids
 					db.any('SELECT id FROM waypoint WHERE roadtrip_id = $1', [roadtripID]).then(function(waypointsToDuplicateIds) {
@@ -217,7 +217,7 @@ function getRoadtripDetails(req, res, next) {
 					}
 				})
 				// recuperer toutes les infos de account et ne les renvoeyr que si on participe au roadtrip
-				db.any('select roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id where roadtrip.id = $1', roadtripID).then(function (roadtripResult) {
+				db.any('select roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, participate.status AS participate_status, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id where roadtrip.id = $1', roadtripID).then(function (roadtripResult) {
 					var participatesId = []
 					var accountsId = []
 					var roadtripFormatted = {"id": roadtripResult[0].id, "title": roadtripResult[0].title, "departure": roadtripResult[0].departure, "arrival": roadtripResult[0].arrival, "start": roadtripResult[0].start, "end": roadtripResult[0].end, "distance": roadtripResult[0].distance, "duration": roadtripResult[0].duration, "hashtag": roadtripResult[0].hashtag, "public": roadtripResult[0].public, "created_at": roadtripResult[0].created_at, "updated_at": roadtripResult[0].updated_at, "status_id": roadtripResult[0].status_id, "comment_id": roadtripResult[0].comment_id, "departurelongitude": roadtripResult[0].departurelongitude, "departurelatitude": roadtripResult[0].departurelatitude, "departuregeom": roadtripResult[0].departuregeom, "arrivallongitude": roadtripResult[0].arrivallongitude, "arrivallatitude": roadtripResult[0].arrivallatitude, "arrivalgeom": roadtripResult[0].arrivalgeom, "participates": [], "accounts": [], "waypoints": [], "visits": [], "pois": []}
@@ -226,7 +226,7 @@ function getRoadtripDetails(req, res, next) {
 					roadtripResult.forEach(roadtrip => {
 						if (roadtrip.participatecolumn_id !== null) {
 							if (!participatesId.includes(roadtrip.participatecolumn_id)) {
-								roadtripFormatted.participates.push({"id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id})
+								roadtripFormatted.participates.push({"id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id, "status": roadtrip.participate_status})
 								participatesId.push(roadtrip.participatecolumn_id)
 							}
 						}
@@ -265,6 +265,7 @@ function getUserRoadtrips(req, res, next) {
 	var limit = parseParam(req.query.limit, 10)
 	var offset = parseParam(req.query.offset, 0)
 	var status = parseParam(req.query.status, null)
+	var invited = (req.query.invited == 'true') ? true : false
 	passport.authenticate('jwt', { session: false },function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
@@ -280,8 +281,13 @@ function getUserRoadtrips(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			var userId = parseInt(req.params.id);
-			let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, poi.linkimg `
-			sql += `FROM (SELECT * FROM roadtrip WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${userId})`
+			let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, participate.status AS participate_status, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, poi.linkimg `
+			sql += `FROM (SELECT * FROM roadtrip WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${userId}`
+			if (invited) {
+				sql += `AND status = 3)`
+			} else {
+				sql += `AND (status = 1 OR status = 2))`
+			}
 			if (status !== null) {
 				sql += ` AND roadtrip.status_id = ${status}`;
 				var todayString = new Date().toISOString().substr(0, 10)
@@ -306,7 +312,7 @@ function getUserRoadtrips(req, res, next) {
 					if (roadtrip.participatecolumn_id !== null) {
 						if (!participatesId.includes(roadtrip.participatecolumn_id)) {
 							// add to the latest roadtrip we added
-							uniqueRoadtrips[uniqueRoadtrips.length-1].participates.push({"id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id})
+							uniqueRoadtrips[uniqueRoadtrips.length-1].participates.push({"id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id, "status": roadtrip.participate_status})
 							participatesId.push(roadtrip.participatecolumn_id)
 						}
 					}
@@ -340,7 +346,7 @@ function getUserRoadtrips(req, res, next) {
 function getPublicRoadtrips(req, res, next) {
 	var limit = parseParam(req.query.limit, 10)
 	var offset = parseParam(req.query.offset, 0)
-	let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, account.firstname, account.id AS account_id, account.media_id, poi.linkimg `
+	let sql= `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, participate.status AS participate_status, account.firstname, account.id AS account_id, account.media_id, poi.linkimg `
 	sql += `FROM (SELECT * FROM roadtrip WHERE roadtrip.public = 1 ORDER BY updated_at DESC LIMIT ${limit} OFFSET ${offset}) roadtrip `
 	sql += `LEFT JOIN participate ON participate.roadtrip_id = roadtrip.id LEFT JOIN account ON account.id = participate.account_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id`
 	sql += ` ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id`;
@@ -359,7 +365,7 @@ function getPublicRoadtrips(req, res, next) {
 			}
 			if (roadtrip.participatecolumn_id !== null) {
 				if (!participatesId.includes(roadtrip.participatecolumn_id)) {
-					uniqueRoadtrips[uniqueRoadtrips.length-1].participates.push({"id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id})
+					uniqueRoadtrips[uniqueRoadtrips.length-1].participates.push({"id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id, "status": roadtrip.participate_status})
 					participatesId.push(roadtrip.participatecolumn_id)
 				}
 			}
@@ -404,7 +410,7 @@ function updateRoadtrip(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			var roadtrip_id = parseInt(req.params.id);
-			let sql = `select * from participate WHERE account_id = ${user.id} AND roadtrip_id = ${roadtrip_id}`
+			let sql = `select * from participate WHERE account_id = ${user.id} AND roadtrip_id = ${roadtrip_id} AND (status = 1 OR status = 2)`
 			db.any(sql).then(function (rows) {
 				if (rows[0].id !== null) {
 					const pgp = db.$config.pgp;

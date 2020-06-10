@@ -75,7 +75,7 @@ function updateVisit(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			var visit_id = parseInt(req.params.id);
-			let sql = `SELECT * FROM participate WHERE roadtrip_id IN (SELECT roadtrip_id FROM waypoint WHERE id IN (SELECT waypoint_id FROM visit WHERE id = ${visit_id})) AND account_id = ${user.id}`
+			let sql = `SELECT * FROM participate WHERE roadtrip_id IN (SELECT roadtrip_id FROM waypoint WHERE id IN (SELECT waypoint_id FROM visit WHERE id = ${visit_id})) AND account_id = ${user.id} AND (status = 1 OR status = 2)`
 			db.any(sql).then(function (rows) {
 				if (rows[0].id !== null) {
 					const pgp = db.$config.pgp;
@@ -126,7 +126,7 @@ function removeVisit(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			var visit_id = parseInt(req.params.id);
-			let sql = `SELECT * FROM participate WHERE roadtrip_id IN (SELECT roadtrip_id FROM waypoint WHERE id IN (SELECT waypoint_id FROM visit WHERE id = ${visit_id})) AND account_id = ${user.id}`
+			let sql = `SELECT * FROM participate WHERE roadtrip_id IN (SELECT roadtrip_id FROM waypoint WHERE id IN (SELECT waypoint_id FROM visit WHERE id = ${visit_id})) AND account_id = ${user.id} AND (status = 1 OR status = 2)`
 			db.any(sql).then(function (rows) {
 				if (rows[0].id !== null) {
 					db.result('delete from visit where id = $1', visit_id).then(function () {

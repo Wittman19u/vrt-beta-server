@@ -8,8 +8,8 @@ const moment = require('moment');
 const BCRYPT_SALT_ROUNDS = 12;
 var mediaController = require('../controllers/medias');
 
-// TODO Comment this function
-function getAllUsers(req, res, next) {
+// TODO add query par email, return si trouvé ou pas + id utilisateur
+function getUsersByQuery(req, res, next) {
 	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
@@ -24,12 +24,8 @@ function getAllUsers(req, res, next) {
 			console.error(message);
 			res.status(403).json(message);
 		} else {
-			let limit = 16;
-			if (typeof req.query.limit !== 'undefined') {
-				limit = req.query.limit;
-			}
-			db.any('select account.*, media.id AS id_media, media.title, media.descript, media.link, media.filename, media.filepath, media.filesize, media.type, media.created_at AS media_created_at, media.updated_at AS media_updated_at, media.status_id AS media_status_id, media.account_id from (SELECT * from account ORDER BY account.id LIMIT $1) account LEFT JOIN media ON media.account_id = account.id ORDER BY account.id', limit
-			).then(function (data) {
+			const emailQuery = req.query.email
+			db.any('select account.*, media.id AS id_media, media.title, media.descript, media.link, media.filename, media.filepath, media.filesize, media.type, media.created_at AS media_created_at, media.updated_at AS media_updated_at, media.status_id AS media_status_id, media.account_id from account LEFT JOIN media ON media.account_id = account.id WHERE account.email = $1', [emailQuery]).then(function (data) {
 				var accounts = []
 				var accountsId = []
 				data.forEach(data => {
@@ -621,7 +617,7 @@ function updateUser(req, res, next) {
 }
 
 module.exports = {
-	getAllUsers: getAllUsers,
+	getUsersByQuery: getUsersByQuery,
 	getUserDetails: getUserDetails,
 	forgotPassword: forgotPassword,
 	forgotPasswordInApp: forgotPasswordInApp,

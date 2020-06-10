@@ -305,20 +305,21 @@ function createMedia(req, res, next) {
                                 message: `Error creating the temporary file! : ${err}`
                             })
                         } else {
+                            var widthPicture = 1280
+                            // we always resize the image, but if profile picture we go with 256
                             if (type == 'account' && idCategory == 1) {
-                                // resize if account profile picture
-                                im.resize({
-                                    srcData: fs.readFileSync(fileName, 'binary'),
-                                    width: 256
-                                }, function (err, stdout, stderr) {
-                                    if (err) throw err
-                                    // remove the old file
-                                    fs.unlinkSync(fileName)
-                                    // write the resized one with the same name
-                                    fs.writeFileSync(fileName, stdout, 'binary');
-                                    console.log('resized to fit within 256px width')
-                                });
+                                widthPicture = 256
                             }
+                            im.resize({
+                                srcData: fs.readFileSync(fileName, 'binary'),
+                                width: widthPicture
+                            }, function (err, stdout, stderr) {
+                                if (err) throw err
+                                // remove the old file
+                                fs.unlinkSync(fileName)
+                                // write the resized one with the same name
+                                fs.writeFileSync(fileName, stdout, 'binary');
+                            });
                             try {
                                 var bucketName = 'cloud-object-storage-6f-cos-standard-fjc'
                                 if (type == 'account') {

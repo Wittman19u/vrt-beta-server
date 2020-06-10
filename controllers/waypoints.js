@@ -1,4 +1,5 @@
 const db = require('./db');
+const passport = require('passport');
 
 
 // function getAllWaypoints(req, res, next) {
@@ -77,7 +78,7 @@ function createWaypoint(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			var waypoint = req.params.waypoint;
-			let sql = `SELECT * FROM participate WHERE roadtrip_id = ${waypoint.roadtrip_id}) AND account_id = ${user.id}`
+			let sql = `SELECT * FROM participate WHERE roadtrip_id = ${waypoint.roadtrip_id}) AND account_id = ${user.id} AND (status = 1 OR status = 2)`
 			db.any(sql).then(function (rows) {
 				if (rows[0].id !== null) {
 					const pgp = db.$config.pgp;
@@ -138,7 +139,7 @@ function updateWaypoint(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			var waypoint_id = parseInt(req.params.id);
-			let sql = `SELECT * FROM participate WHERE roadtrip_id IN (select roadtrip_id from waypoint WHERE id = ${waypoint_id}) AND account_id = ${user.id}`
+			let sql = `SELECT * FROM participate WHERE roadtrip_id IN (select roadtrip_id from waypoint WHERE id = ${waypoint_id}) AND account_id = ${user.id} AND (status = 1 OR status = 2)`
 			db.any(sql).then(function (rows) {
 				if (rows[0].id !== null) {
 					const pgp = db.$config.pgp;
@@ -200,12 +201,12 @@ function removeWaypoint(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			var waypoint_id = parseInt(req.params.id);
-			let sql = `SELECT * FROM participate WHERE roadtrip_id IN (select roadtrip_id from waypoint WHERE id = ${waypoint_id}) AND account_id = ${user.id}`
+			let sql = `SELECT * FROM participate WHERE roadtrip_id IN (select roadtrip_id from waypoint WHERE id = ${waypoint_id}) AND account_id = ${user.id} AND (status = 1 OR status = 2)`
 			db.any(sql).then(function (rows) {
-				if (rows[0].id !== null) {
-					db.result('delete from waypoint where id = $1', waypoint_id)
+				if (rows[0] !== undefined) {
+					db.result('delete from visit where waypoint_id = $1', waypoint_id)
 					.then(function (result) {
-						db.result('delete from visit where waypoint_id = $1', waypoint_id)
+						db.result('delete from waypoint where id = $1', waypoint_id)
 							.then(function (result) {
 								db.result('delete from comment where waypoint_id = $1', waypoint_id)
 									.then(function (result) {
@@ -223,7 +224,7 @@ function removeWaypoint(req, res, next) {
 				} else {
 					res.status(403).json({
 						status: 'error',
-						message: 'The user does not participate in the roadtrip'
+						message: 'The user does not participate in the roadtrip or the waypoint is not a part of the roadtrip'
 					})
 				}
 			}).catch(function (err) {

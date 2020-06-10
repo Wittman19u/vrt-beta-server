@@ -20,6 +20,8 @@ var router = express.Router();
  *         type: integer
  *       roadtrip_id:
  *         type: integer
+ *       category_id:
+ *         type: integer
  *       isread:
  *         type: boolean
  */

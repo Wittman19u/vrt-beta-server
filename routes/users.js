@@ -172,11 +172,16 @@ var router = express.Router();
  *       - Users
  *     security:
  *       - authorisationJWT: []
- *     description: Returns all users
- *     summary: Returns a users list (max 16)
+ *     description: Returns a user based on email query
+ *     summary: Returns a user
  *     produces:
  *       - application/json
  *     parameters:
+ *       - name: email
+ *         description: Email we're looking for
+ *         in: query
+ *         type: string
+ *         required: true
  *       - name: limit
  *         description: User's limit number
  *         in: query
@@ -186,24 +191,13 @@ var router = express.Router();
  *         maximum: 16
  *     responses:
  *       200:
- *         description: An array of users and their media
- *         schema:
- *           type: object
- *           properties:
- *             accounts:
- *               type: array
- *               items:
- *                 $ref: '#/definitions/User'
- *             medias:
- *               type: array
- *               items:
- *                 $ref: '#/definitions/Media'
+ *         description: id of the user if found, false if not
  *       403:
  *         description: Authenticated error
  *       500:
  *         description: Error during Select in DB
  */
-router.get('/', userController.getAllUsers);
+router.get('/', userController.getUsersByQuery);
 
 
 /**

@@ -229,6 +229,11 @@ router.post('/duplicate/:id', roadtripController.duplicateRoadtrip);
  *         in: query
  *         required: false
  *         type: integer
+ *       - name: invited
+ *         description: Restrain the results to roadtrips the user is invited to
+ *         in: query
+ *         required: false
+ *         type: boolean
  *     responses:
  *       200:
  *         description: A list of roadtrips. There is also an account and participate columns containing the informations of the participants
