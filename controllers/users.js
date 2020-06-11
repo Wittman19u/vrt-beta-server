@@ -7,6 +7,7 @@ const transporter = require('./email'); // pass nodemailer for configuration
 const moment = require('moment');
 const BCRYPT_SALT_ROUNDS = 12;
 var mediaController = require('../controllers/medias');
+var roadtripController = require('../controllers/roadtrips');
 
 // TODO add query par email, return si trouvé ou pas + id utilisateur
 function getUsersByQuery(req, res, next) {
@@ -285,7 +286,7 @@ function forgotPassword(req, res, next) {
 				});
 			} else {
 				const token = cryptoRandomString({ length: 20 });
-				db.none('update account set localtoken=$1, expireslocaltoken=$2 where id=$3', [token, moment().add(20, 'minutes').format('YYYY-MM-DDTHH:mm'), parseInt(user.id)]
+				db.none('update account set localtoken=$1, expireslocaltoken=$2, updated_at = NOW() where id=$3', [token, moment().add(20, 'minutes').format('YYYY-MM-DDTHH:mm'), parseInt(user.id)]
 				).then(() => {
 					res.setLocale(user.language)
 					const mailOptions = {
@@ -343,7 +344,7 @@ function forgotPasswordInApp(req, res, next) {
 			} else {
 				// random 6 digit number
 				const codeReset = Math.floor(Math.random() * 899999 + 100000)
-				db.none('update account set codetemp=$1, expirescodetemp=$2 where id=$3', [codeReset, moment().add(20, 'minutes').format('YYYY-MM-DDTHH:mm'), parseInt(user.id)]
+				db.none('update account set codetemp=$1, expirescodetemp=$2, updated_at = NOW() where id=$3', [codeReset, moment().add(20, 'minutes').format('YYYY-MM-DDTHH:mm'), parseInt(user.id)]
 				).then(() => {
 					res.setLocale(user.language)
 					const mailOptions = {
@@ -433,7 +434,7 @@ function updatePasswordViaEmail(req, res, next) {
 			console.log('User exists in db');
 			bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS
 			).then(hashedPassword => {
-				db.none('update account set password = $1, localtoken = NULL, expireslocaltoken = NULL where id=$2', [hashedPassword, parseInt(user.id)]
+				db.none('update account set password = $1, localtoken = NULL, expireslocaltoken = NULL, updated_at = NOW() where id=$2', [hashedPassword, parseInt(user.id)]
 				).then(() => {
 					console.log('Password updated!');
 					res.status(200).json({
@@ -484,7 +485,7 @@ function updatePasswordViaApp(req, res, next) {
 			console.log('User exists in db');
 			bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS
 			).then(hashedPassword => {
-				db.none('update account set password = $1, codetemp = NULL where id=$2', [hashedPassword, parseInt(user.id)]
+				db.none('update account set password = $1, codetemp = NULL, updated_at = NOW() where id=$2', [hashedPassword, parseInt(user.id)]
 				).then(() => {
 					console.log('Password updated!');
 					res.status(200).json({
@@ -591,8 +592,9 @@ function updateUser(req, res, next) {
 			if (user.id === parseInt(req.params.id)) {
 				const pgp = db.$config.pgp;
 				let userUpdate = req.body.user
+				userUpdate.updated_at = roadtripController.getStringDateFormatted()
 				const condition = pgp.as.format(' WHERE id = $1', user.id);
-				let sql = pgp.helpers.update(userUpdate, ['firstname', 'lastname', 'dateborn', 'gender', 'biography', 'email', 'phone', 'language', 'media_id', 'firebasetoken'], 'account') + condition;
+				let sql = pgp.helpers.update(userUpdate, ['firstname', 'lastname', 'dateborn', 'gender', 'biography', 'email', 'phone', 'language', 'media_id', 'firebasetoken', 'updated_at'], 'account') + condition;
 				db.none(sql).then(function () {
 					res.status(200)
 						.json({
