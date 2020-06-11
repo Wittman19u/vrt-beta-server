@@ -262,7 +262,8 @@ function checkUser(req, res, next) {
 			} else {
 				res.status(200).json({
 					status: 'success',
-					message: 'Email in DB!'
+					message: 'Email in DB!',
+					data: user.id
 				});
 			}
 		});

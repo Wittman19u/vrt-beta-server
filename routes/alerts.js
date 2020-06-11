@@ -28,7 +28,7 @@ var router = express.Router();
 
 /**
  * @swagger
- * /api/alerts/user:
+ * /api/alerts/:
  *   get:
  *     tags:
  *       - Alerts
@@ -58,7 +58,35 @@ var router = express.Router();
  *           items:
  *             $ref: '#/definitions/Alert'
  */
-router.get('/user', alertController.getUserAlerts);
+router.get('/', alertController.getUserAlerts);
+
+/**
+ * @swagger
+ * /api/alerts/invite:
+ *   post:
+ *     tags:
+ *       - Alerts
+ *     description: Creates an alert, a notification and insert into participate to invite the user to a roadtrip
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - authorisationJWT: []
+ *     parameters:
+ *       - name: userId
+ *         description: id of user to invite
+ *         in: query
+ *         required: true
+ *         type: integer
+ *       - name: roadtripId
+ *         description: id of the roadtrip we're inviting the user to
+ *         in: query
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: Succesfully inserted in db.
+ */
+router.post('/invite', alertController.sendInviteToRoadtrip);
 
 /**
  * @swagger
