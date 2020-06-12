@@ -140,6 +140,40 @@ function deleteAlert(req, res, next) {
 	})(req, res, next);
 }
 
+function updateAlert(req, res, next) {
+	passport.authenticate('jwt', { session: false }, function (error, user, info) {
+		if (user === false || error || info !== undefined) {
+			let message = {
+				status: 'error',
+				error: error,
+				user: user
+			};
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
+			}
+			console.error(message);
+			res.status(403).json(message);
+		} else {
+			let sql = `UPDATE alert SET isread = true WHERE recipient_id = ${user.id}`
+			if (req.body.alertIds !== undefined) {
+				sql += ` AND id IN (${req.body.alertIds})`
+			}
+			db.any(sql).then(function () {
+				res.status(200).json({
+					status: 'Success',
+					message: `Succesfully updated all alerts to isread = true from user ${user.id}`
+				})
+			}).catch(function (err) {
+				res.status(500).json({
+					status: 'error',
+					message: `Problem during update db (alerts): ${err}`
+				})
+			});
+		}
+	})(req, res, next);
+}
+
 // to parse limit/offset/etc... (any optional int parameters)
 function parseParam(param, defaultValue) {
 	const parsed = parseInt(param);
@@ -150,5 +184,6 @@ function parseParam(param, defaultValue) {
 module.exports = {
 	getUserAlerts: getUserAlerts,
 	deleteAlert: deleteAlert,
-	sendInviteToRoadtrip: sendInviteToRoadtrip
+	sendInviteToRoadtrip: sendInviteToRoadtrip,
+	updateAlert: updateAlert
 };

@@ -90,6 +90,34 @@ router.post('/invite', alertController.sendInviteToRoadtrip);
 
 /**
  * @swagger
+ * /api/alerts/:
+ *   post:
+ *     tags:
+ *       - Alerts
+ *     description: Updates the specified alerts to isread = true
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - authorisationJWT: []
+ *     parameters:
+ *       - name: body
+ *         description: array of ids, if not specified we update all alerts from user
+ *         in: body
+ *         required: false
+ *         type: object
+ *         properties:
+ *           alertIds:
+ *             type: array
+ *             items:
+ *               type: integer
+ *     responses:
+ *       200:
+ *         description: Succesfully updated in db.
+ */
+router.post('/', alertController.updateAlert);
+
+/**
+ * @swagger
  * /api/alerts/{id}:
  *   delete:
  *     tags:
