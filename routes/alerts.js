@@ -90,6 +90,34 @@ router.post('/invite', alertController.sendInviteToRoadtrip);
 
 /**
  * @swagger
+ * /api/alerts/invite/newUser:
+ *   post:
+ *     tags:
+ *       - Alerts
+ *     description: Creates a new row for invited table and sends an email to the user to invited to register to the app
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - authorisationJWT: []
+ *     parameters:
+ *       - name: email
+ *         description: email of user to invite
+ *         in: query
+ *         required: true
+ *         type: string
+ *       - name: roadtripId
+ *         description: id of the roadtrip we're inviting the user to
+ *         in: query
+ *         required: false
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: Succesfully inserted in db.
+ */
+router.post('/invite/newUser', alertController.sendInviteNewUser);
+
+/**
+ * @swagger
  * /api/alerts/:
  *   post:
  *     tags:

@@ -3,5 +3,7 @@
     "mail.signup.subject": "Welcome to Very Road Trip!",
     "mail.forgotPassword.content": "You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\nPlease click on the following link, or paste this into your browser to complete the process within one hour of receiving it:\n\n{{link}}\n\n If you did not request this, please ignore this email and your password will remain unchanged.\n",
     "mail.forgotPasswordInApp.content": "You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\nPlease enter the following code in the Very Road Trip app : {{code}}\n\n If you did not request this, please ignore this email and your password will remain unchanged.\n",
-    "mail.forgotPassword.subject": "Link To Reset Password"
+    "mail.forgotPassword.subject": "Link To Reset Password",
+    "mail.invite.content": "Hello! Someone invited you to join them on Very Road Trip. Follow this link to download the app : https://veryroadtrip.eu/ \nEnjoy your travel with our features.\nHave a nice trip!\nThe Very Road Trip team.",
+    "mail.invite.subject": "Someone invited you to join Very Road Trip!"
 }

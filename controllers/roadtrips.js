@@ -280,9 +280,8 @@ function getUserRoadtrips(req, res, next) {
 			console.error(message);
 			res.status(403).json(message);
 		} else {
-			var userId = parseInt(req.params.id);
 			let sql = `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, participate.status AS participate_status, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, poi.linkimg `
-			sql += `FROM (SELECT * FROM roadtrip WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${userId}`
+			sql += `FROM (SELECT * FROM roadtrip WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${user.id}`
 			if (invited) {
 				sql += `AND status = 3)`
 			} else {
@@ -466,6 +465,37 @@ function updateRoadtrip(req, res, next) {
 	})(req, res, next);
 }
 
+function joinRoadtrip(req, res, next) {
+	passport.authenticate('jwt', { session: false }, function (error, user, info) {
+		if (user === false || error || info !== undefined) {
+			let message = {
+				status: 'error',
+				error: error,
+				user: user
+			};
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
+			}
+			console.error(message);
+			res.status(403).json(message);
+		} else {
+			var roadtrip_id = req.params.id
+			db.none(`UPDATE participate SET status = 2 WHERE roadtrip_id = ${roadtrip_id} AND account_id = ${user.id} AND status != 1`).then(function () {
+				res.status(200).json({
+					status: 'success',
+					message: `Successfully updated participate`
+				})
+			}).catch(function (err) {
+				res.status(500).json({
+					status: 'error',
+					message: `Problem during update DB (participate): ${err}`
+				})
+			});
+		}
+	})(req, res, next);
+}
+
 // to parse limit/offset/etc... (any optional int parameters)
 function parseParam(param, defaultValue) {
 	const parsed = parseInt(param);
@@ -480,8 +510,8 @@ function getStringDateFormatted() {
 	}
 	var d = new Date
 	dformat = [d.getFullYear(),
-		(d.getMonth() + 1).padLeft(),
-		d.getDate().padLeft()
+	(d.getMonth() + 1).padLeft(),
+	d.getDate().padLeft()
 	].join('-') + ' ' + [
 		d.getHours().padLeft(),
 		d.getMinutes().padLeft(),
@@ -497,5 +527,6 @@ module.exports = {
 	getUserRoadtrips: getUserRoadtrips,
 	getPublicRoadtrips: getPublicRoadtrips,
 	updateRoadtrip: updateRoadtrip,
-	getStringDateFormatted: getStringDateFormatted
+	getStringDateFormatted: getStringDateFormatted,
+	joinRoadtrip: joinRoadtrip
 };

@@ -110,14 +110,6 @@ function createUser(req, res, next) {
 			// TODO reduce expiresIn delay
 			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '12h' });
 			//req.user = user;
-			res.status(200).json({
-				status: 'success',
-				auth: true,
-				token,
-				id: user.id,
-				user: user,
-				message: 'User created in db & logged in',
-			});
 			res.setLocale(user.language);
 			const mailOptions = {
 				from: process.env.SERVER_EMAIL,
@@ -133,9 +125,49 @@ function createUser(req, res, next) {
 						message: `There was an error sending email: ${error}`
 					});
 				}
-				res.status(200).json({
-					status: 'success',
-					message: 'Confirmation email sent!'
+				// ccheck 'invited' table : if user was invited to a roadtrip, create an alert + insert dans participate avec status 3
+				db.any(`SELECT email, sender_id, roadtrip_id, title FROM invited LEFT JOIN roadtrip ON roadtrip.id = invited.roadtrip_id WHERE email = '${user.email}'`).then(function (rows) {
+					if (rows[0] !== undefined) {
+						// he was invited
+						// vérifier les invitations, si roadtrip spécifique -> créer une alerte et ajouter à participate
+						// TODO sinon, système parrainage ?
+						let requests = []
+						var alertTitle = 'You received an invitation to a roadtrip !'
+						rows.forEach(row => {
+							if (row.roatrip_id !== null) {
+								var alertBody = `You were invited to join the roadtrip "${row.title}" !`
+								requests.push(db.any(`INSERT INTO alert (title, message, recipient_id, sender_id, roadtrip_id, category_id) VALUES ('${alertTitle}', '${alertBody}', ${user.id}, ${row.sender_id}, ${row.roadtrip_id}, ${6})`))
+								requests.push(db.any(`INSERT INTO participate (promoter, account_id, roadtrip_id, status) VALUES(false, ${user.id}, ${row.roadtrip_id}, 3)`))
+							}
+						})
+						Promise.all(requests).then(() => {
+							res.status(200).json({
+								status: 'Success',
+								message: `Inserted into alert and participate. Sent notif : ${response}`
+							})
+						}).catch(function (err) {
+							res.status(500).json({
+								status: 'error',
+								message: `Problem during insert DB (participate / alert): ${err}`
+							})
+						});
+					} else {
+						// he was not so we proceed like before
+						res.status(200).json({
+							status: 'success',
+							auth: true,
+							token,
+							id: user.id,
+							user: user,
+							message: 'User created in db & logged in',
+						});
+					}
+				}).catch(function (error) {
+					console.error(`Error searching invited table: ${error}`);
+					res.status(500).json({
+						status: 'error',
+						message: `Error searching invited table: ${error}`
+					});
 				});
 			});
 		}

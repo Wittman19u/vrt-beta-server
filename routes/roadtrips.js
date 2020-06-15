@@ -119,6 +119,9 @@ var router = express.Router();
  *         type: integer
  *       account_id:
  *         type: integer
+ *       status:
+ *         type: integer
+ *         description: 1 if owner, 2 if is participating, 3 if invited
  *     required:
  *       - id
  *       - promoter
@@ -197,7 +200,7 @@ router.post('/duplicate/:id', roadtripController.duplicateRoadtrip);
 
 /**
  * @swagger
- * /api/roadtrips/user/{id}:
+ * /api/roadtrips/user:
  *   get:
  *     tags:
  *       - Roadtrips
@@ -207,11 +210,6 @@ router.post('/duplicate/:id', roadtripController.duplicateRoadtrip);
  *     security:
  *       - authorisationJWT: []
  *     parameters:
- *       - name: id
- *         description: User's id
- *         in: path
- *         required: true
- *         type: integer
  *       - name: limit
  *         description: Limit of results returned
  *         in: query
@@ -253,7 +251,7 @@ router.post('/duplicate/:id', roadtripController.duplicateRoadtrip);
  *               items:
  *                 $ref: '#/definitions/User'
  */
-router.get('/user/:id', roadtripController.getUserRoadtrips);
+router.get('/user', roadtripController.getUserRoadtrips);
 
 /**
  * @swagger
@@ -322,6 +320,31 @@ router.get('/public', roadtripController.getPublicRoadtrips);
  *           $ref: '#/definitions/Roadtrip'
  */
 router.get('/:id', roadtripController.getRoadtripDetails);
+
+/**
+ * @swagger
+ * /api/roadtrips/join/{id}:
+ *   put:
+ *     tags:
+ *       - Roadtrips
+ *     description: Joins a roadtrip.
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - authorisationJWT: []
+ *     parameters:
+ *       - name: id
+ *         description: Roadtrip's id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: The user succesfully joined the roadtrip
+ *         schema:
+ *           $ref: '#/definitions/Roadtrip'
+ */
+router.put('/join/:id', roadtripController.joinRoadtrip);
 
 /**
  * @swagger

@@ -1,5 +1,6 @@
 const db = require('./db');
 const passport = require('passport');
+const transporter = require('./email');
 const admin = require("firebase-admin");
 const serviceAccount = require("../very-road-trip-firebase-adminsdk-llx1r-46a4c6cab3.json");
 
@@ -106,7 +107,61 @@ function sendInviteToRoadtrip(req, res, next) {
 			})
 		}
 	})(req, res, next);
+}
 
+// insert dans invite
+function sendInviteNewUser(req, res, next) {
+	passport.authenticate('jwt', { session: false }, function (error, user, info) {
+		if (user === false || error || info !== undefined) {
+			let message = {
+				status: 'error',
+				error: error,
+				user: user
+			};
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
+			}
+			console.error(message);
+			res.status(403).json(message);
+		} else {
+			var senderId = user.id
+			var email = req.query.email
+			var roadtripId = req.query.roadtripId
+			var sql = `INSERT INTO invited (email, sender_id) VALUES('${email}', ${senderId})`
+			if (roadtripId !== undefined) {
+				console.log(roadtripId)
+				sql = `INSERT INTO invited (email, sender_id, roadtrip_id) VALUES('${email}', ${senderId}, ${roadtripId})`
+			}
+			db.any(sql).then(function () {
+				const mailOptions = {
+					from: process.env.SERVER_EMAIL,
+					to: email,
+					subject: res.__('mail.invite.subject'),
+					// TODO add link to download app (same in en.json)
+					text: res.__('mail.invite.content'),
+				};
+				transporter.sendMail(mailOptions, (error, response) => {
+					if (error) {
+						console.error(`There was an error sending email: ${error}`);
+						res.status(500).json({
+							status: 'error',
+							message: `There was an error sending email: ${error}`
+						});
+					}
+					res.status(200).json({
+						status: 'success',
+						message: 'Confirmation email sent and inserted in invited!'
+					});
+				});
+			}).catch(function (err) {
+				res.status(500).json({
+					status: 'error',
+					message: `Problem during insert DB (invited): ${err}`
+				})
+			});
+		}
+	})(req, res, next);
 }
 
 function deleteAlert(req, res, next) {
@@ -185,5 +240,6 @@ module.exports = {
 	getUserAlerts: getUserAlerts,
 	deleteAlert: deleteAlert,
 	sendInviteToRoadtrip: sendInviteToRoadtrip,
-	updateAlert: updateAlert
+	updateAlert: updateAlert,
+	sendInviteNewUser: sendInviteNewUser
 };
