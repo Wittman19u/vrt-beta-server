@@ -81,9 +81,8 @@ function updateVisit(req, res, next) {
 				if (rows[0].id !== null) {
 					const pgp = db.$config.pgp;
 					let visit = req.body;
-					visit.updated_at = roadtripController.getStringDateFormatted()
 					const condition =` WHERE id = ${visit_id}`;
-					let sql = pgp.helpers.update(visit, ['sequence', 'waypoint_id', 'poi_id', 'updated_at'], 'visit') + condition;
+					let sql = pgp.helpers.update(visit, ['sequence', 'waypoint_id', 'poi_id'], 'visit') + condition;
 					
 					db.none(sql).then(function () {
 						res.status(200).json({
