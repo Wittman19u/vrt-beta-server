@@ -1,6 +1,8 @@
 const db = require('./db');
 const moment = require('moment');
 const passport = require('passport');
+const axios = require('axios');
+const qs = require('qs')
 
 // function getAllPois(req, res, next) {
 // 	let limit = 16;
@@ -24,17 +26,117 @@ const passport = require('passport');
 // 		});
 // }
 
+function getPoisCirkwi(req, res, next) {
+	// TODO recuperer les 30, insert db (par encore le si geom unique), puis ensuite filtrer en fonction de la query pour renvoyer ceux qui correspondent
+	// recuperer 10 points de notre db, 10 de cirkwi
+	// rajouter filtre pour avoir uniquement ceux de circkwi? (rajouter WHERE source = 'cirkwi')
+	axios({
+		method: 'post',
+		url: `${process.env.CIRKWI_URL}/oauth/v2/token`,
+		data: qs.stringify({
+			client_id: process.env.CIRKWI_CLIENT_ID,
+			client_secret: process.env.CIRKWI_CLIENT_SECRET,
+			grant_type: 'https://api.wim.cirkwi.com/grants/client_credentials',
+			scope: 'CLIENT'
+		}),
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'accept': 'application/json'
+		}
+	}).then(token => {
+		var auth = token.data.access_token
+		// get pois
+		axios({
+			method: 'get',
+			url: `${process.env.CIRKWI_URL}/v1/objects`,
+			params: {
+				lat: req.query.latitude,
+				lng: req.query.longitude,
+				radius: req.query.radius || 5
+			},
+			headers: { 'Authorization': `Bearer ${auth}` }
+		}).then(pois => {
+			console.log(pois)
+			console.log(pois.data)
+			let requestsPois = []
+			let poisTest = []
+			pois.data.data.forEach(poi => {
+				// TODO description -> JSON to get allow multiple translations
+				let poiDB = {
+					// voir avec claudio
+					sourceid: poi.id,
+					// mettre leurs categories (juste les numeros)
+					sourcetype: '',
+					// mettre id themes
+					sourcetheme: '',
+					street: `${poi.location.address.route}`,
+					zipcode: poi.location.address.postalCode,
+					city: poi.location.address.locality,
+					country: poi.location.address.country,
+					latitude: poi.location.coordinates.latitude,
+					longitude: poi.location.coordinates.longitude,
+					// TODO create geom
+					geom: '',
+					// get uri from translations
+					web: '',
+					// TODO fix this, maybe use themes or categories to determine type ?
+					type: 2,
+					priority: 0,
+					visnumber: 0,
+					// horaires d'ouvertures
+					opening: '',
+					// prendre updated_at ou created_at sinon
+					sourcelastupdate: '',
+					source: 'cirkwi',
+					active: true,
+					duration: 0,
+					// facebook/etc...
+					social: '',
+					manuallyupdate: false
+				}
+				if (poi.location.address.streetNumber.length > 0) poiDB.street = `${poi.location.address.streetNumber} ${poi.location.address.route}`
+				if (poi.defaultPicture != 'cirkwi') poiDB.linkimg = poi.defaultPicture
+				if (poi.locales.indexOf('fr_FR') != -1) {
+					poiDB.label = poi.translations.fr_FR.title
+					poiDB.description = poi.translations.fr_FR.description
+				} else {
+					poiDB.label = poi.translations[poi.locales[0]].title
+					poiDB.description = poi.translations[poi.locales[0]].description
+				}
+				poisTest.push(poiDB)
+			});
+			res.status(200).json({
+				status: 'Success',
+				data: pois.data,
+				db: poisTest
+			})
+		}).catch(function (err) {
+			console.error(err);
+			res.status(500).json({
+				status: 'Error',
+				error: err
+			})
+		});
+	}).catch(function (err) {
+		console.error(err);
+		res.status(500).json({
+			status: 'Error',
+			error: err
+		})
+	});
+}
+
 function getPoisByQuery(req, res, next) {
-	passport.authenticate('jwt', { session: false },function (error, user, info) {
+	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
 				status: 'error',
 				error: error,
 				user: user
 			};
-			if(info !== undefined){
-				message['message']= info.message;
-				message['info']= info;
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 			}
 			console.error(message);
 			res.status(403).json(message);
@@ -47,7 +149,7 @@ function getPoisByQuery(req, res, next) {
 				activeSearch = `AND active = ${activeSearch}`;
 			}
 			// let sql= ` WITH points AS ( SELECT distinct on(cells.geom) cells.geom, cells.row, cells.col, poi.id,  MAX(poi.priority) AS bestpriority FROM  ST_CreateFishnet(4, 4,  ${boundsobj.north}, ${boundsobj.south}, ${boundsobj.east}, ${boundsobj.west}) AS cells INNER JOIN public.poi ON ST_Within(poi.geom, cells.geom) WHERE poi.source='Datatourisme' AND ${typecond} GROUP BY cells.row, cells.col, cells.geom, poi.id ORDER BY cells.geom, cells.row ASC, cells.col ASC,  bestpriority DESC ) SELECT * FROM poi INNER JOIN points ON poi.id=points.id`;
-			let sql= `SELECT * FROM poi where label like '%${query}%' ${activeSearch} ORDER BY label ASC Limit 20`;
+			let sql = `SELECT * FROM poi where label like '%${query}%' ${activeSearch} ORDER BY label ASC Limit 20`;
 			db.any(sql).then(function (data) {
 				// TODO UPdate priority
 				//update priority when view
@@ -72,39 +174,39 @@ function getPoisByQuery(req, res, next) {
 }
 
 function getPoiDetails(req, res, next) {
-	passport.authenticate('jwt', { session: false },function (error, user, info) {
+	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
 				status: 'error',
 				error: error,
 				user: user
 			};
-			if(info !== undefined){
-				message['message']= info.message;
-				message['info']= info;
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 			}
 			console.error(message);
 			res.status(403).json(message);
 		} else {
 			var poiID = parseInt(req.params.id);
 			db.oneOrNone('select * from poi where id = $1', poiID)
-			.then(function (data) {
-				// TODO Update priority
-				//update priority when clicked
-				// db.any('UPDATE public.poi SET po_priority = po_priority+50 WHERE po_latitude = $1 and po_longitude = $2;', [lat, lng])
-				// .then(function() {
-				//   db.any('UPDATE public.poi SET po_priority = (100*(po_priority - min))/(max-min) FROM (SELECT MAX(po_priority) as max, MIN(po_priority) as min FROM public.poi) as extremum WHERE extremum.min != 0 OR extremum.max != 100; ')
-				//   .catch(function(error){throw error});
-				// })
-				res.status(200).json({
-					status: 'success',
-					data: data,
-					message: 'Retrieved ONE poi'
+				.then(function (data) {
+					// TODO Update priority
+					//update priority when clicked
+					// db.any('UPDATE public.poi SET po_priority = po_priority+50 WHERE po_latitude = $1 and po_longitude = $2;', [lat, lng])
+					// .then(function() {
+					//   db.any('UPDATE public.poi SET po_priority = (100*(po_priority - min))/(max-min) FROM (SELECT MAX(po_priority) as max, MIN(po_priority) as min FROM public.poi) as extremum WHERE extremum.min != 0 OR extremum.max != 100; ')
+					//   .catch(function(error){throw error});
+					// })
+					res.status(200).json({
+						status: 'success',
+						data: data,
+						message: 'Retrieved ONE poi'
+					});
+				})
+				.catch(function (err) {
+					return next(err);
 				});
-			})
-			.catch(function (err) {
-				return next(err);
-			});
 		}
 	})(req, res, next);
 
@@ -115,25 +217,25 @@ function getPois(req, res, next) {
 		south: req.query.south,
 		west: req.query.west,
 		north: req.query.north,
-		east:  req.query.east
+		east: req.query.east
 	};
 	let startDate = moment().format('YYYY-MM-DD');
-	if( typeof req.query.datetime !== 'undefined'){
+	if (typeof req.query.datetime !== 'undefined') {
 		startDate = req.query.datetime;
 	}
 
 	// let typecond = ` (type=3 OR (type=2 AND sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) ) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
 	let typecond = ` (type=3 OR (type=2 AND sourcetype LIKE '%CulturalSite%' ) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
 	switch (req.query.type) {
-	case "act":
-		typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
-		break;
-	case "poi":
-		typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
-		break;
+		case "act":
+			typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
+			break;
+		case "poi":
+			typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
+			break;
 	}
 	// let sql= ` WITH points AS ( SELECT distinct on(cells.geom) cells.geom, cells.row, cells.col, poi.id,  MAX(poi.priority) AS bestpriority FROM  ST_CreateFishnet(4, 4,  ${boundsobj.north}, ${boundsobj.south}, ${boundsobj.east}, ${boundsobj.west}) AS cells INNER JOIN public.poi ON ST_Within(poi.geom, cells.geom) WHERE poi.source='Datatourisme' AND ${typecond} GROUP BY cells.row, cells.col, cells.geom, poi.id ORDER BY cells.geom, cells.row ASC, cells.col ASC,  bestpriority DESC ) SELECT * FROM poi INNER JOIN points ON poi.id=points.id`;
-	let sql= `SELECT * FROM poi where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom) AND poi.source='Datatourisme' AND ${typecond} ORDER BY priority DESC`;
+	let sql = `SELECT * FROM poi where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom) AND poi.source='Datatourisme' AND ${typecond} ORDER BY priority DESC`;
 	db.any(sql).then(function (data) {
 		// TODO UPdate priority
 		//update priority when view
@@ -156,16 +258,16 @@ function getPois(req, res, next) {
 }
 
 function getPoisByRadius(req, res, next) {
-	passport.authenticate('jwt', { session: false },function (error, user, info) {
+	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
 				status: 'error',
 				error: error,
 				user: user
 			};
-			if(info !== undefined){
-				message['message']= info.message;
-				message['info']= info;
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 			}
 			console.error(message);
 			res.status(403).json(message);
@@ -175,20 +277,20 @@ function getPoisByRadius(req, res, next) {
 			let latitude = req.query.latitude;
 			let longitude = req.query.longitude;
 			let startDate = moment().format('YYYY-MM-DD');
-			if( typeof req.query.datetime !== 'undefined'){
+			if (typeof req.query.datetime !== 'undefined') {
 				startDate = req.query.datetime;
 			}
 
 			let typecond = ` (type=3 OR (type=2 AND sourcetype LIKE '%CulturalSite%' ) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
 			switch (req.query.type) {
-			case "act":
-				typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
-				break;
-			case "poi":
-				typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
-				break;
+				case "act":
+					typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
+					break;
+				case "poi":
+					typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
+					break;
 			}
-			
+
 			let sql = `SELECT * FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND poi.source='Datatourisme' AND ${typecond} `
 			if (query !== undefined) {
 				// we use lower to make it case insensitive
@@ -212,16 +314,16 @@ function getPoisByRadius(req, res, next) {
 }
 
 function createPoi(req, res, next) {
-	passport.authenticate('jwt', { session: false },function (error, user, info) {
+	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
 				status: 'error',
 				error: error,
 				user: user
 			};
-			if(info !== undefined){
-				message['message']= info.message;
-				message['info']= info;
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 			}
 			console.error(message);
 			res.status(403).json(message);
@@ -250,16 +352,16 @@ function createPoi(req, res, next) {
 }
 
 function updatePoi(req, res, next) {
-	passport.authenticate('jwt', { session: false },function (error, user, info) {
+	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || user.role_id != 1 || error || info !== undefined) {
 			let message = {
 				status: 'error',
 				error: error,
 				user: user
 			};
-			if(info !== undefined){
-				message['message']= info.message;
-				message['info']= info;
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 			}
 			console.error(message);
 			res.status(403).json(message);
@@ -315,12 +417,12 @@ function updatePoi(req, res, next) {
 // }
 
 module.exports = {
-//	getAllPois: getAllPois,
+	//	getAllPois: getAllPois,
 	getPois: getPois,
 	getPoisByQuery: getPoisByQuery,
 	getPoisByRadius: getPoisByRadius,
 	getPoiDetails: getPoiDetails,
 	createPoi: createPoi,
 	updatePoi: updatePoi,
-//	removePoi: removePoi
+	//	removePoi: removePoi
 };

@@ -75,6 +75,7 @@ var router = express.Router();
  *       - arrivallatitude
  * 
  *   Waypoint:
+ *     type: object
  *     properties:
  *       id:
  *         type: integer

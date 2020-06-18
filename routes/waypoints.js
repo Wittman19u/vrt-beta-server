@@ -62,7 +62,7 @@ var router = express.Router();
  *     security:
  *       - authorisationJWT: []
  *     parameters:
- *       - name: waypoint
+ *       - name: body
  *         description: Fields for new Waypoint resource
  *         in: body
  *         required: true
