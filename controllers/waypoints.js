@@ -155,10 +155,9 @@ function updateWaypoint(req, res, next) {
 						}
 					}
 					var waypoint = req.body.waypoint;
-					waypoint.geom = new STPoint(waypoint.longitude, waypoint.latitude)		
-					waypoint.updated_at = roadtripController.getStringDateFormatted()
+					waypoint.geom = new STPoint(waypoint.longitude, waypoint.latitude)
 					const condition = pgp.as.format(' WHERE id = $1', waypoint_id);
-					let sql = pgp.helpers.update(waypoint, ['label', 'day', 'sequence', 'transport', 'geom', 'latitude', 'longitude', 'updated_at'], 'waypoint') + condition;
+					let sql = pgp.helpers.update(waypoint, ['label', 'day', 'sequence', 'transport', 'geom', 'latitude', 'longitude'], 'waypoint') + condition;
 					// let sql = `UPDATE waypoint SET label = '${waypoint.label}, day = ${waypoint.day}, sequence = ${waypoint.sequence}, transport = ${waypoint.transport}, geom = '${geom}', latitude = ${waypoint.latitude}, longitude = ${waypoint.longitude}, roadtrip_id = ${waypoint.roadtrip_id} WHERE id = ${waypoint_id};`;
 					db.none(sql).then(function () {
 						res.status(200).json({

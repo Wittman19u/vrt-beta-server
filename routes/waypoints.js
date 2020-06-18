@@ -49,7 +49,6 @@ var router = express.Router();
 //  */
 // router.get('/:id', waypointController.getSingleWaypoint);
 
-
 /**
  * @swagger
  * /api/waypoints:
@@ -65,9 +64,12 @@ var router = express.Router();
  *       - name: body
  *         description: Fields for new Waypoint resource
  *         in: body
- *         required: true
- *         schema:
- *           $ref: '#/definitions/Waypoint'
+ *         type: object
+ *         required:
+ *           - waypoint
+ *         properties:
+ *           waypoint:
+ *             $ref: '#/definitions/Waypoint'
  *     responses:
  *       200:
  *         description: Successfully created

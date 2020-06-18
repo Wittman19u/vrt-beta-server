@@ -17,7 +17,7 @@ function createVisit(req, res, next) {
 			console.error(message);
 			res.status(403).json(message);
 		} else {
-			let data = req.body
+			let data = req.body.visit
 			// data.sequence = req.body.sequence
 			// data.waypoint_id = req.body.waypoint_id
 			// data.poi_id = req.body.poi_id
