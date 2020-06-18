@@ -79,7 +79,7 @@ function createWaypoint(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			var waypoint = req.body.waypoint;
-			let sql = `SELECT * FROM participate WHERE roadtrip_id = ${waypoint.roadtrip_id}) AND account_id = ${user.id} AND (status = 1 OR status = 2)`
+			let sql = `SELECT * FROM participate WHERE roadtrip_id = ${waypoint.roadtrip_id} AND account_id = ${user.id} AND (status = 1 OR status = 2)`
 			db.any(sql).then(function (rows) {
 				if (rows[0].id !== null) {
 					const pgp = db.$config.pgp;
