@@ -1,5 +1,6 @@
 const db = require('./db');
 const passport = require('passport');
+var mediaController = require('../controllers/medias');
 
 function createRoadtrip(req, res, next) {
 	passport.authenticate('jwt', { session: false }, function (error, user, info) {
@@ -196,7 +197,6 @@ function getRoadtripDetails(req, res, next) {
 			var roadtripID = parseInt(req.params.id);
 			let sql = `select waypoint.*, visit.id AS visit_id, visit.sequence AS visit_sequence, visit.transport AS visit_transport, poi.id as poi_id, poi.sourceid, poi.sourcetype, poi.label AS poi_label, poi.sourcetheme, poi.start, poi.end, poi.street, poi.zipcode, poi.city, poi.country, poi.latitude AS poi_latitude, poi.longitude AS poi_longitude, poi.geom AS poi_geom, poi.email, poi.web, poi.phone, poi.linkimg, poi.description, poi.type, poi.priority, poi.visnumber, poi.opening, poi.created_at AS poi_created_at, poi.updated_at AS poi_updated_at, poi.source, poi.sourcelastupdate, poi.active, poi.profiles, poi.duration, poi.price, poi.rating, poi.ocean, poi.pricerange, poi.social, poi.handicap, poi.manuallyupdate, poi.hashtag from waypoint LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id WHERE waypoint.roadtrip_id = ${roadtripID} ORDER BY waypoint.day, waypoint.sequence, visit.sequence`;
 			db.any(sql).then(function (waypoints) {
-				console.log(waypoints)
 				var visits = []
 				var pois = []
 				var uniqueWaypoints = []
@@ -217,23 +217,34 @@ function getRoadtripDetails(req, res, next) {
 					}
 				})
 				// recuperer toutes les infos de account et ne les renvoeyr que si on participe au roadtrip
-				db.any('select roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, participate.status AS participate_status, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id where roadtrip.id = $1', roadtripID).then(function (roadtripResult) {
-					var participatesId = []
+				db.any('select roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, participate.status AS participate_status, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, media.filename, media.filepath from roadtrip INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id LEFT JOIN media ON media.id = account.media_id WHERE roadtrip.id = $1', roadtripID).then(function (roadtripResult) {
 					var accountsId = []
-					var roadtripFormatted = { "id": roadtripResult[0].id, "title": roadtripResult[0].title, "departure": roadtripResult[0].departure, "arrival": roadtripResult[0].arrival, "start": roadtripResult[0].start, "end": roadtripResult[0].end, "distance": roadtripResult[0].distance, "duration": roadtripResult[0].duration, "hashtag": roadtripResult[0].hashtag, "public": roadtripResult[0].public, "created_at": roadtripResult[0].created_at, "updated_at": roadtripResult[0].updated_at, "status_id": roadtripResult[0].status_id, "comment_id": roadtripResult[0].comment_id, "departurelongitude": roadtripResult[0].departurelongitude, "departurelatitude": roadtripResult[0].departurelatitude, "departuregeom": roadtripResult[0].departuregeom, "arrivallongitude": roadtripResult[0].arrivallongitude, "arrivallatitude": roadtripResult[0].arrivallatitude, "arrivalgeom": roadtripResult[0].arrivalgeom, "participates": [], "accounts": [], "waypoints": [], "visits": [], "pois": [] }
+					var roadtripFormatted = { "id": roadtripResult[0].id, "title": roadtripResult[0].title, "departure": roadtripResult[0].departure, "arrival": roadtripResult[0].arrival, "start": roadtripResult[0].start, "end": roadtripResult[0].end, "distance": roadtripResult[0].distance, "duration": roadtripResult[0].duration, "hashtag": roadtripResult[0].hashtag, "public": roadtripResult[0].public, "created_at": roadtripResult[0].created_at, "updated_at": roadtripResult[0].updated_at, "status_id": roadtripResult[0].status_id, "comment_id": roadtripResult[0].comment_id, "departurelongitude": roadtripResult[0].departurelongitude, "departurelatitude": roadtripResult[0].departurelatitude, "departuregeom": roadtripResult[0].departuregeom, "arrivallongitude": roadtripResult[0].arrivallongitude, "arrivallatitude": roadtripResult[0].arrivallatitude, "arrivalgeom": roadtripResult[0].arrivalgeom, "accounts": [], "waypoints": [], "visits": [], "pois": [] }
 					var accountsDetailed = []
 					var accountsSimple = []
+					var accountPicturePromises = []
 					roadtripResult.forEach(roadtrip => {
-						if (roadtrip.participatecolumn_id !== null) {
-							if (!participatesId.includes(roadtrip.participatecolumn_id)) {
-								roadtripFormatted.participates.push({ "id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id, "status": roadtrip.participate_status })
-								participatesId.push(roadtrip.participatecolumn_id)
-							}
-						}
 						if (roadtrip.account_id !== null) {
 							if (!accountsId.includes(roadtrip.account_id)) {
-								accountsDetailed.push({ "id": roadtrip.account_id, "firstname": roadtrip.firstname, "lastname": roadtrip.lastname, "dateborn": roadtrip.dateborn, "gender": roadtrip.gender, "biography": roadtrip.biography, "email": roadtrip.email, "phone": roadtrip.phone, "created_at": roadtrip.account_created_at, "updated_at": roadtrip.account_updated_at, "media_id": roadtrip.media_id, "status_id": roadtrip.account_status_id, "role_id": roadtrip.role_id })
-								accountsSimple.push({ "id": roadtrip.account_id, "firstname": roadtrip.firstname, "media_id": roadtrip.media_id })
+								accountsDetailed.push({ "id": roadtrip.account_id, "firstname": roadtrip.firstname, "lastname": roadtrip.lastname, "dateborn": roadtrip.dateborn, "gender": roadtrip.gender, "biography": roadtrip.biography, "email": roadtrip.email, "phone": roadtrip.phone, "created_at": roadtrip.account_created_at, "updated_at": roadtrip.account_updated_at, "media_id": roadtrip.media_id, "status_id": roadtrip.account_status_id, "role_id": roadtrip.role_id, "participate_status": roadtrip.participate_status })
+								accountsSimple.push({ "id": roadtrip.account_id, "firstname": roadtrip.firstname, "media_id": roadtrip.media_id, "participate_status": roadtrip.participate_status })
+								if (roadtrip.filepath !== null && roadtrip.filename !== null) {
+									accountPicturePromises.push(
+										mediaController.getUrl(roadtrip.filepath, 'small_' + roadtrip.filename).then(function (url) {
+											if (url == undefined) {
+												return null
+											}
+											return url
+										})
+									)
+								} else {
+									// if he has no profile pictures, we return null in a promise so that they are in order in the promise all
+									accountPicturePromises.push(
+										new Promise((resolve, reject) => {
+											resolve(null)
+										})
+									)
+								}
 								accountsId.push(roadtrip.account_id)
 							}
 						}
@@ -246,14 +257,28 @@ function getRoadtripDetails(req, res, next) {
 					roadtripFormatted.waypoints = uniqueWaypoints;
 					roadtripFormatted.visits = visits;
 					roadtripFormatted.pois = pois;
-					res.status(200).json({
-						status: 'success',
-						data: roadtripFormatted,
-						message: 'Retrieved ONE roadtrip'
-					});
+					Promise.all(accountPicturePromises).then(function (urlsData) {
+						// urls are in order so we can just parse and add to roadtripFormatted.accounts
+						urlsData.forEach(function (url, index) {
+							roadtripFormatted.accounts[index].profileUrl = url
+						})
+						res.status(200).json({
+							status: 'success',
+							data: roadtripFormatted,
+							message: 'Retrieved ONE roadtrip'
+						});
+					}).catch(function (err) {
+						res.status(500).json({
+							status: 'Error',
+							message: `error in promise get urls : ${err}`
+						});
+					})
 				}).catch(function (err) {
-					return next(err);
-				});
+					res.status(500).json({
+						status: 'Error',
+						message: `error in select db : ${err}`
+					});
+				})
 			}).catch(function (err) {
 				return next(err);
 			});
@@ -280,7 +305,7 @@ function getUserRoadtrips(req, res, next) {
 			console.error(message);
 			res.status(403).json(message);
 		} else {
-			let sql = `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, participate.status AS participate_status, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, poi.linkimg `
+			let sql = `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, participate.status AS participate_status, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, media.filepath, media.filename, poi.linkimg `
 			sql += `FROM (SELECT * FROM roadtrip WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${user.id}`
 			if (invited) {
 				sql += `AND status = 3)`
@@ -293,31 +318,41 @@ function getUserRoadtrips(req, res, next) {
 				if (status == 1) sql += ` AND roadtrip.start >= '${todayString}'`
 			}
 			sql += `ORDER BY updated_at DESC LIMIT ${limit} OFFSET ${offset}) roadtrip `
-			sql += `INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id`
+			sql += `INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id LEFT JOIN media ON media.id = account.media_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id`
 			sql += ` ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id`;
 			db.any(sql).then(function (roadtrips) {
 				var uniqueRoadtrips = []
 				var roadtripsId = []
-				var participatesId = []
 				var accountsId = []
+				var accountPicturePromises = []
 				roadtrips.forEach(roadtrip => {
 					if (!roadtripsId.includes(roadtrip.id)) {
-						uniqueRoadtrips.push({ "id": roadtrip.id, "title": roadtrip.title, "departure": roadtrip.departure, "arrival": roadtrip.arrival, "start": roadtrip.start, "end": roadtrip.end, "distance": roadtrip.distance, "duration": roadtrip.duration, "hashtag": roadtrip.hashtag, "public": roadtrip.public, "created_at": roadtrip.created_at, "updated_at": roadtrip.updated_at, "status_id": roadtrip.status_id, "comment_id": roadtrip.comment_id, "departurelongitude": roadtrip.departurelongitude, "departurelatitude": roadtrip.departurelatitude, "departuregeom": roadtrip.departuregeom, "arrivallongitude": roadtrip.arrivallongitude, "arrivallatitude": roadtrip.arrivallatitude, "arrivalgeom": roadtrip.arrivalgeom, "participates": [], "accounts": [], "linkimgs": [] })
+						uniqueRoadtrips.push({ "id": roadtrip.id, "title": roadtrip.title, "departure": roadtrip.departure, "arrival": roadtrip.arrival, "start": roadtrip.start, "end": roadtrip.end, "distance": roadtrip.distance, "duration": roadtrip.duration, "hashtag": roadtrip.hashtag, "public": roadtrip.public, "created_at": roadtrip.created_at, "updated_at": roadtrip.updated_at, "status_id": roadtrip.status_id, "comment_id": roadtrip.comment_id, "departurelongitude": roadtrip.departurelongitude, "departurelatitude": roadtrip.departurelatitude, "departuregeom": roadtrip.departuregeom, "arrivallongitude": roadtrip.arrivallongitude, "arrivallatitude": roadtrip.arrivallatitude, "arrivalgeom": roadtrip.arrivalgeom, "accounts": [], "linkimgs": [] })
 						roadtripsId.push(roadtrip.id)
-						// we empty participatesid and accountsid because they are used to avoid duplicates within a single roadtrip
-						participatesId = []
+						// we empty accountsid because they are used to avoid duplicates within a single roadtrip
 						accountsId = []
-					}
-					if (roadtrip.participatecolumn_id !== null) {
-						if (!participatesId.includes(roadtrip.participatecolumn_id)) {
-							// add to the latest roadtrip we added
-							uniqueRoadtrips[uniqueRoadtrips.length - 1].participates.push({ "id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id, "status": roadtrip.participate_status })
-							participatesId.push(roadtrip.participatecolumn_id)
-						}
 					}
 					if (roadtrip.account_id !== null) {
 						if (!accountsId.includes(roadtrip.account_id)) {
-							uniqueRoadtrips[uniqueRoadtrips.length - 1].accounts.push({ "id": roadtrip.account_id, "firstname": roadtrip.firstname, "lastname": roadtrip.lastname, "dateborn": roadtrip.dateborn, "gender": roadtrip.gender, "biography": roadtrip.biography, "email": roadtrip.email, "phone": roadtrip.phone, "created_at": roadtrip.account_created_at, "updated_at": roadtrip.account_updated_at, "media_id": roadtrip.media_id, "status_id": roadtrip.account_status_id, "role_id": roadtrip.role_id })
+							uniqueRoadtrips[uniqueRoadtrips.length - 1].accounts.push({ "id": roadtrip.account_id, "firstname": roadtrip.firstname, "lastname": roadtrip.lastname, "dateborn": roadtrip.dateborn, "gender": roadtrip.gender, "biography": roadtrip.biography, "email": roadtrip.email, "phone": roadtrip.phone, "created_at": roadtrip.account_created_at, "updated_at": roadtrip.account_updated_at, "media_id": roadtrip.media_id, "status_id": roadtrip.account_status_id, "role_id": roadtrip.role_id, "participate_status": roadtrip.participate_status })
+							if (roadtrip.filepath !== null && roadtrip.filename !== null) {
+								accountPicturePromises.push(
+									// TODO optimize to avoid doing queries for the same pictures multiple times (check unique media_id ?)
+									mediaController.getUrl(roadtrip.filepath, 'small_' + roadtrip.filename).then(function (url) {
+										if (url == undefined) {
+											return null
+										}
+										return url
+									})
+								)
+							} else {
+								// if he has no profile pictures, we return null in a promise so that they are in order in the promise all
+								accountPicturePromises.push(
+									new Promise((resolve, reject) => {
+										resolve(null)
+									})
+								)
+							}
 							accountsId.push(roadtrip.account_id)
 						}
 					}
@@ -327,10 +362,27 @@ function getUserRoadtrips(req, res, next) {
 						}
 					}
 				})
-				res.status(200).json({
-					status: 'success',
-					data: uniqueRoadtrips,
-					message: 'Retrieved ALL the roadtrips and associated participants from user'
+				Promise.all(accountPicturePromises).then(function (urlsData) {
+					// urls are in order so we can just parse and add to roadtripFormatted.accounts
+					var roadtripIndex = 0
+					var counterProcessed = 0
+					urlsData.forEach(function (url, index) {
+						if ((index - counterProcessed) == uniqueRoadtrips[roadtripIndex].accounts.length) {
+							roadtripIndex++
+							counterProcessed += (index - counterProcessed)
+						}
+						uniqueRoadtrips[roadtripIndex].accounts[index - counterProcessed].profileUrl = url
+					})
+					res.status(200).json({
+						status: 'success',
+						data: uniqueRoadtrips,
+						message: 'Retrieved ALL the roadtrips and associated participants from user'
+					})
+				}).catch(function (err) {
+					res.status(500).json({
+						status: 'Error',
+						message: `error in promise get urls : ${err}`
+					});
 				})
 			}).catch(function (err) {
 				res.status(500).json({
@@ -345,32 +397,43 @@ function getUserRoadtrips(req, res, next) {
 function getPublicRoadtrips(req, res, next) {
 	var limit = parseParam(req.query.limit, 10)
 	var offset = parseParam(req.query.offset, 0)
-	let sql = `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, participate.status AS participate_status, account.firstname, account.id AS account_id, account.media_id, poi.linkimg `
+	let sql = `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, participate.status AS participate_status, account.firstname, account.id AS account_id, account.media_id, media.filepath, media.filename, poi.linkimg `
 	sql += `FROM (SELECT * FROM roadtrip WHERE roadtrip.public = 1 ORDER BY updated_at DESC LIMIT ${limit} OFFSET ${offset}) roadtrip `
-	sql += `LEFT JOIN participate ON participate.roadtrip_id = roadtrip.id LEFT JOIN account ON account.id = participate.account_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id`
+	sql += `LEFT JOIN participate ON participate.roadtrip_id = roadtrip.id LEFT JOIN account ON account.id = participate.account_id LEFT JOIN media ON media.id = account.media_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id`
 	sql += ` ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id`;
 	db.any(sql).then(function (roadtrips) {
 		var uniqueRoadtrips = []
 		var roadtripsId = []
-		var participatesId = []
 		var accountsId = []
+		var accountPicturePromises = []
 		roadtrips.forEach(roadtrip => {
 			if (!roadtripsId.includes(roadtrip.id)) {
-				uniqueRoadtrips.push({ "id": roadtrip.id, "title": roadtrip.title, "departure": roadtrip.departure, "arrival": roadtrip.arrival, "start": roadtrip.start, "end": roadtrip.end, "distance": roadtrip.distance, "duration": roadtrip.duration, "hashtag": roadtrip.hashtag, "public": roadtrip.public, "created_at": roadtrip.created_at, "updated_at": roadtrip.updated_at, "status_id": roadtrip.status_id, "comment_id": roadtrip.comment_id, "departurelongitude": roadtrip.departurelongitude, "departurelatitude": roadtrip.departurelatitude, "departuregeom": roadtrip.departuregeom, "arrivallongitude": roadtrip.arrivallongitude, "arrivallatitude": roadtrip.arrivallatitude, "arrivalgeom": roadtrip.arrivalgeom, "participates": [], "accounts": [], "linkimgs": [] })
+				uniqueRoadtrips.push({ "id": roadtrip.id, "title": roadtrip.title, "departure": roadtrip.departure, "arrival": roadtrip.arrival, "start": roadtrip.start, "end": roadtrip.end, "distance": roadtrip.distance, "duration": roadtrip.duration, "hashtag": roadtrip.hashtag, "public": roadtrip.public, "created_at": roadtrip.created_at, "updated_at": roadtrip.updated_at, "status_id": roadtrip.status_id, "comment_id": roadtrip.comment_id, "departurelongitude": roadtrip.departurelongitude, "departurelatitude": roadtrip.departurelatitude, "departuregeom": roadtrip.departuregeom, "arrivallongitude": roadtrip.arrivallongitude, "arrivallatitude": roadtrip.arrivallatitude, "arrivalgeom": roadtrip.arrivalgeom, "accounts": [], "linkimgs": [] })
 				roadtripsId.push(roadtrip.id)
-				// we empty participatesid and accountsid because they are used to avoid duplicates within a single roadtrip
-				participatesId = []
+				// we empty accountsid because they are used to avoid duplicates within a single roadtrip
 				accountsId = []
-			}
-			if (roadtrip.participatecolumn_id !== null) {
-				if (!participatesId.includes(roadtrip.participatecolumn_id)) {
-					uniqueRoadtrips[uniqueRoadtrips.length - 1].participates.push({ "id": roadtrip.participatecolumn_id, "promoter": roadtrip.promoter, "account_id": roadtrip.participate_account_id, "roadtrip_id": roadtrip.participate_roadtrip_id, "status": roadtrip.participate_status })
-					participatesId.push(roadtrip.participatecolumn_id)
-				}
 			}
 			if (roadtrip.account_id !== null) {
 				if (!accountsId.includes(roadtrip.account_id)) {
-					uniqueRoadtrips[uniqueRoadtrips.length - 1].accounts.push({ "id": roadtrip.account_id, "firstname": roadtrip.firstname, "media_id": roadtrip.media_id })
+					uniqueRoadtrips[uniqueRoadtrips.length - 1].accounts.push({ "id": roadtrip.account_id, "firstname": roadtrip.firstname, "media_id": roadtrip.media_id, "participate_status": roadtrip.participate_status })
+					if (roadtrip.filepath !== null && roadtrip.filename !== null) {
+						accountPicturePromises.push(
+							// TODO optimize to avoid doing queries for the same pictures multiple times (check unique media_id ?)
+							mediaController.getUrl(roadtrip.filepath, 'small_' + roadtrip.filename).then(function (url) {
+								if (url == undefined) {
+									return null
+								}
+								return url
+							})
+						)
+					} else {
+						// if he has no profile pictures, we return null in a promise so that they are in order in the promise all
+						accountPicturePromises.push(
+							new Promise((resolve, reject) => {
+								resolve(null)
+							})
+						)
+					}
 					accountsId.push(roadtrip.account_id)
 				}
 			}
@@ -380,10 +443,27 @@ function getPublicRoadtrips(req, res, next) {
 				}
 			}
 		})
-		res.status(200).json({
-			status: 'success',
-			data: uniqueRoadtrips,
-			message: 'Retrieved ALL the roadtrips and associated promoter'
+		Promise.all(accountPicturePromises).then(function (urlsData) {
+			// urls are in order so we can just parse and add to roadtripFormatted.accounts
+			var roadtripIndex = 0
+			var counterProcessed = 0
+			urlsData.forEach(function (url, index) {
+				if ((index - counterProcessed) == uniqueRoadtrips[roadtripIndex].accounts.length) {
+					roadtripIndex++
+					counterProcessed += (index - counterProcessed)
+				}
+				uniqueRoadtrips[roadtripIndex].accounts[index - counterProcessed].profileUrl = url
+			})
+			res.status(200).json({
+				status: 'success',
+				data: uniqueRoadtrips,
+				message: 'Retrieved ALL the roadtrips and associated promoter'
+			})
+		}).catch(function (err) {
+			res.status(500).json({
+				status: 'Error',
+				message: `error in promise get urls : ${err}`
+			});
 		})
 	}).catch(function (err) {
 		res.status(500).json({

@@ -56,7 +56,6 @@ const poisRouter = require('./routes/pois');
 const restaurantsRouter = require('./routes/restaurants');
 const activitiesRouter = require('./routes/activities');
 const hotelsRouter = require('./routes/hotels');
-// TODO check if waypoints routes are necessary
 const waypointsRouter = require('./routes/waypoints');
 const messagesRouter = require('./routes/messages');
 const directionsRouter = require('./routes/directions');

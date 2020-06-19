@@ -294,6 +294,7 @@ function createMedia(req, res, next) {
                     })
                 } else {
                     var fileName = user.id.toString() + '_' + new Date().toISOString() + '.' + typeFile.slice(6)
+                    var fileNameSmall = 'small_' + fileName // we do a prefix instead of a suffix so we can access it later easily
                     var type = req.query.type
                     var publicStatus = parseInt(req.query.public)
                     var idCategory = parseInt(req.query.idCategory)
@@ -306,9 +307,22 @@ function createMedia(req, res, next) {
                             })
                         } else {
                             var widthPicture = 1280
+                            var bucketName = 'cloud-object-storage-6f-cos-standard-fjc'
                             // we always resize the image, but if profile picture we go with 256
                             if (type == 'account' && idCategory == 1) {
                                 widthPicture = 256
+                                bucketName += '-account'
+                                // make a small version aswell
+                                im.resize({
+                                    srcData: fs.readFileSync(fileName, 'binary'),
+                                    width: 52
+                                }, async function (err, stdout, stderr) {
+                                    if (err) throw err
+                                    fs.writeFileSync(fileNameSmall, stdout, 'binary');
+                                    // upload small onto bucket
+                                    await multiPartUpload(bucketName, fileNameSmall, fileNameSmall)
+                                    fs.unlinkSync(fileNameSmall)
+                                });
                             }
                             im.resize({
                                 srcData: fs.readFileSync(fileName, 'binary'),
@@ -321,10 +335,6 @@ function createMedia(req, res, next) {
                                 fs.writeFileSync(fileName, stdout, 'binary');
                             });
                             try {
-                                var bucketName = 'cloud-object-storage-6f-cos-standard-fjc'
-                                if (type == 'account') {
-                                    bucketName += '-account'
-                                }
                                 multiPartUpload(bucketName, fileName, fileName).then(function () {
                                     fs.unlink(fileName, function (error) {
                                         if (error) {

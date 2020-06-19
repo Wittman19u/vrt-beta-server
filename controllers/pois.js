@@ -26,6 +26,7 @@ const qs = require('qs')
 // 		});
 // }
 
+// TODO delete if we don't use cirkwi
 function getPoisCirkwi(req, res, next) {
 	// TODO recuperer les 30, insert db (par encore le si geom unique), puis ensuite filtrer en fonction de la query pour renvoyer ceux qui correspondent
 	// recuperer 10 points de notre db, 10 de cirkwi
@@ -424,5 +425,6 @@ module.exports = {
 	getPoiDetails: getPoiDetails,
 	createPoi: createPoi,
 	updatePoi: updatePoi,
+	// getPoisCirkwi: getPoisCirkwi
 	//	removePoi: removePoi
 };
