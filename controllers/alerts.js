@@ -76,6 +76,7 @@ function sendInviteToRoadtrip(req, res, next) {
 						token: row[0].firebasetoken
 					}
 					admin.messaging().send(message).then((response) => {
+						// TODO -> mettre promise all pour rejoindre les deux
 						// insert into alert (category 6 is roadtrip invite)
 						// TODO  use promise.all to reduce execution time
 						db.any(`INSERT INTO alert (title, message, recipient_id, sender_id, roadtrip_id, category_id) VALUES ('${alertTitle}', '${alertBody}', ${userId}, ${senderId}, ${roadtripId}, ${6})`).then(function () {

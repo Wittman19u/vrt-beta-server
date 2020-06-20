@@ -49,11 +49,14 @@ var router = express.Router();
  *       - authorisationJWT: []
  *     parameters:
  *       - name: body
+ *         description: Fields for new visit resource
  *         in: body
- *         description: data to send
- *         required: true
- *         schema:
- *           $ref: '#/definitions/Visit'
+ *         type: object
+ *         required:
+ *           - visit
+ *         properties:
+ *           visit:
+ *             $ref: '#/definitions/Visit'
  *     responses:
  *       200:
  *         description: Successfully created

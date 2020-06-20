@@ -78,8 +78,8 @@ function createWaypoint(req, res, next) {
 			console.error(message);
 			res.status(403).json(message);
 		} else {
-			var waypoint = req.params.waypoint;
-			let sql = `SELECT * FROM participate WHERE roadtrip_id = ${waypoint.roadtrip_id}) AND account_id = ${user.id} AND (status = 1 OR status = 2)`
+			var waypoint = req.body.waypoint;
+			let sql = `SELECT * FROM participate WHERE roadtrip_id = ${waypoint.roadtrip_id} AND account_id = ${user.id} AND (status = 1 OR status = 2)`
 			db.any(sql).then(function (rows) {
 				if (rows[0].id !== null) {
 					const pgp = db.$config.pgp;
@@ -155,10 +155,9 @@ function updateWaypoint(req, res, next) {
 						}
 					}
 					var waypoint = req.body.waypoint;
-					waypoint.geom = new STPoint(waypoint.longitude, waypoint.latitude)		
-					waypoint.updated_at = roadtripController.getStringDateFormatted()
+					waypoint.geom = new STPoint(waypoint.longitude, waypoint.latitude)
 					const condition = pgp.as.format(' WHERE id = $1', waypoint_id);
-					let sql = pgp.helpers.update(waypoint, ['label', 'day', 'sequence', 'transport', 'geom', 'latitude', 'longitude', 'roadtrip_id', 'updated_at'], 'waypoint') + condition;
+					let sql = pgp.helpers.update(waypoint, ['label', 'day', 'sequence', 'transport', 'geom', 'latitude', 'longitude'], 'waypoint') + condition;
 					// let sql = `UPDATE waypoint SET label = '${waypoint.label}, day = ${waypoint.day}, sequence = ${waypoint.sequence}, transport = ${waypoint.transport}, geom = '${geom}', latitude = ${waypoint.latitude}, longitude = ${waypoint.longitude}, roadtrip_id = ${waypoint.roadtrip_id} WHERE id = ${waypoint_id};`;
 					db.none(sql).then(function () {
 						res.status(200).json({
