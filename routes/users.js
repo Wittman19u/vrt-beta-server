@@ -164,41 +164,68 @@ var router = express.Router();
  *       - consent_at
  */
 
+// /**
+//  * @swagger
+//  * /api/users:
+//  *   get:
+//  *     tags:
+//  *       - Users
+//  *     security:
+//  *       - authorisationJWT: []
+//  *     description: Returns a user based on email query
+//  *     summary: Returns a user
+//  *     produces:
+//  *       - application/json
+//  *     parameters:
+//  *       - name: email
+//  *         description: Email we're looking for
+//  *         in: query
+//  *         type: string
+//  *         required: true
+//  *       - name: limit
+//  *         description: User's limit number
+//  *         in: query
+//  *         type: integer
+//  *         default: 10
+//  *         minimum: 1
+//  *         maximum: 16
+//  *     responses:
+//  *       200:
+//  *         description: id of the user if found, false if not
+//  *       403:
+//  *         description: Authenticated error
+//  *       500:
+//  *         description: Error during Select in DB
+//  */
+// router.get('/', userController.getUsersByQuery);
+
 /**
  * @swagger
- * /api/users:
+ * /api/users/checkuser:
  *   get:
  *     tags:
  *       - Users
- *     security:
- *       - authorisationJWT: []
- *     description: Returns a user based on email query
- *     summary: Returns a user
- *     produces:
- *       - application/json
+ *     summary: Checks if a user is registered
+ *     consumes:
+ *       - application/x-www-form-urlencoded
  *     parameters:
  *       - name: email
  *         description: Email we're looking for
+ *         format: email
  *         in: query
  *         type: string
  *         required: true
- *       - name: limit
- *         description: User's limit number
- *         in: query
- *         type: integer
- *         default: 10
- *         minimum: 1
- *         maximum: 16
  *     responses:
  *       200:
- *         description: id of the user if found, false if not
+ *         description: User is in the database
  *       403:
- *         description: Authenticated error
+ *         description: User is not in the database
+ *       401:
+ *         description: Bad email
  *       500:
- *         description: Error during Select in DB
+ *         description: Problem communicating with DB
  */
-router.get('/', userController.getUsersByQuery);
-
+router.get('/checkuser', userController.checkUser);
 
 /**
  * @swagger
@@ -331,33 +358,7 @@ router.delete('/:id', userController.removeUser);
  */
 router.post('/loginuser', userController.loginUser);
 
-/**
- * @swagger
- * /api/users/checkuser:
- *   get:
- *     tags:
- *       - Users
- *     summary: Checks if a user is registered
- *     consumes:
- *       - application/x-www-form-urlencoded
- *     parameters:
- *       - name: email
- *         description: Email we're looking for
- *         format: email
- *         in: query
- *         type: string
- *         required: true
- *     responses:
- *       200:
- *         description: User is in the database
- *       403:
- *         description: User is not in the database
- *       401:
- *         description: Bad email
- *       500:
- *         description: Problem communicating with DB
- */
-router.get('/checkuser', userController.checkUser);
+
 
 /**
  * @swagger
