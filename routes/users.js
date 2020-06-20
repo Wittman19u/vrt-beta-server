@@ -334,7 +334,7 @@ router.post('/loginuser', userController.loginUser);
 /**
  * @swagger
  * /api/users/checkuser:
- *   post:
+ *   get:
  *     tags:
  *       - Users
  *     summary: Checks if a user is registered
@@ -356,7 +356,7 @@ router.post('/loginuser', userController.loginUser);
  *       500:
  *         description: Problem communicating with DB
  */
-router.post('/checkuser', userController.checkUser);
+router.get('/checkuser', userController.checkUser);
 
 /**
  * @swagger

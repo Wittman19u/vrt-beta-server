@@ -119,7 +119,7 @@ router.post('/invite/newUser', alertController.sendInviteNewUser);
 /**
  * @swagger
  * /api/alerts/:
- *   post:
+ *   put:
  *     tags:
  *       - Alerts
  *     description: Updates the specified alerts to isread = true
@@ -142,7 +142,7 @@ router.post('/invite/newUser', alertController.sendInviteNewUser);
  *       200:
  *         description: Succesfully updated in db.
  */
-router.post('/', alertController.updateAlert);
+router.put('/', alertController.updateAlert);
 
 /**
  * @swagger
