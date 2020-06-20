@@ -277,13 +277,13 @@ function loginUser(req, res, next) {
 }
 
 function checkUser(req, res, next) {
-	if (req.body.email === '') {
+	if (req.query.email === '') {
 		res.status(400).json({
 			status: 'error',
 			message: 'Email required!'
 		});
 	} else {
-		db.oneOrNone('select * from account where email = $1', [req.body.email.toLowerCase()]
+		db.oneOrNone('select * from account where email = $1', [req.query.email.toLowerCase()]
 		).then((user) => {
 			if (user === null) {
 				console.error('Email not in DB!');

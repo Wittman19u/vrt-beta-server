@@ -342,9 +342,10 @@ router.post('/loginuser', userController.loginUser);
  *       - application/x-www-form-urlencoded
  *     parameters:
  *       - name: email
- *         type: string
+ *         description: Email we're looking for
  *         format: email
- *         in: formData
+ *         in: query
+ *         type: string
  *         required: true
  *     responses:
  *       200:
