@@ -324,7 +324,7 @@ router.get('/:id', roadtripController.getRoadtripDetails);
 
 /**
  * @swagger
- * /api/roadtrips/join/{id}:
+ * /api/roadtrips/participate/{id}:
  *   put:
  *     tags:
  *       - Roadtrips
@@ -345,7 +345,7 @@ router.get('/:id', roadtripController.getRoadtripDetails);
  *         schema:
  *           $ref: '#/definitions/Roadtrip'
  */
-router.put('/join/:id', roadtripController.joinRoadtrip);
+router.put('/participate/:id', roadtripController.participateToRoadtrip);
 
 /**
  * @swagger

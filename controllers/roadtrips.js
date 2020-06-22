@@ -545,7 +545,7 @@ function updateRoadtrip(req, res, next) {
 	})(req, res, next);
 }
 
-function joinRoadtrip(req, res, next) {
+function participateToRoadtrip(req, res, next) {
 	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
@@ -608,5 +608,5 @@ module.exports = {
 	getPublicRoadtrips: getPublicRoadtrips,
 	updateRoadtrip: updateRoadtrip,
 	getStringDateFormatted: getStringDateFormatted,
-	joinRoadtrip: joinRoadtrip
+	participateToRoadtrip: participateToRoadtrip
 };
