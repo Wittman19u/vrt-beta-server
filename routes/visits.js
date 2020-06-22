@@ -16,6 +16,9 @@ var router = express.Router();
  *         type: integer
  *       poi_id:
  *         type: integer
+ *       transport:
+ *         description : JSON object containing all info related to the route
+ *         type: object
  *       created_at:
  *         type: string
  *         format: date-time
@@ -113,12 +116,15 @@ router.get('/:id', visitController.getVisitDetails);
  *         in: path
  *         required: true
  *         type: integer
- *       - name: visit
+ *       - name: body
  *         description: Fields for Visit resource
+ *         type: object
  *         in: body
- *         required: true
- *         schema:
- *           $ref: '#/definitions/Visit'
+ *         required:
+ *           - visit
+ *         properties:
+ *           visit:
+ *             $ref: '#/definitions/Visit'
  *     responses:
  *       200:
  *         description: Successfully updated
