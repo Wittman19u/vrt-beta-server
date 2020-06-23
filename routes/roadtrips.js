@@ -339,6 +339,11 @@ router.get('/:id', roadtripController.getRoadtripDetails);
  *         in: path
  *         required: true
  *         type: integer
+ *       - name: accept
+ *         description: true if he accepts invite, false if he refuses
+ *         in: query
+ *         required: true
+ *         type: boolean
  *     responses:
  *       200:
  *         description: The user succesfully joined the roadtrip

@@ -561,7 +561,9 @@ function participateToRoadtrip(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			var roadtrip_id = req.params.id
-			db.none(`UPDATE participate SET status = 2 WHERE roadtrip_id = ${roadtrip_id} AND account_id = ${user.id} AND status != 1`).then(function () {
+			// 2 if he joins, 4 if he refuses
+			var status = (req.query.accept == 'true') ? 2 : 4
+			db.none(`UPDATE participate SET status = ${status} WHERE roadtrip_id = ${roadtrip_id} AND account_id = ${user.id} AND status != 1`).then(function () {
 				res.status(200).json({
 					status: 'success',
 					message: `Successfully updated participate`
