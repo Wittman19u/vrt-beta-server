@@ -368,44 +368,6 @@ router.get('/', poiController.getPois);
  */
 router.get('/byRadius', poiController.getPoisByRadius);
 
-// TODO delete
-// /**
-//  * @swagger
-//  * /api/pois/cirkwi:
-//  *   get:
-//  *     tags:
-//  *       - Pois
-//  *     description: cirkwi test
-//  *     parameters:
-//  *       - name: latitude
-//  *         description: |
-//  *           Search around a geographical point. The latitude is specified in decimal degrees.
-//  *           Example: 49.117459
-//  *           Should be used together with longitude+radius
-//  *         in: query
-//  *         required: true
-//  *         type: number
-//  *       - name: longitude
-//  *         description: |
-//  *           Search around a geographical point. The longitude is specified in decimal degrees.
-//  *           Example: 6.179013
-//  *           Should be used together with longitude+radius
-//  *         in: query
-//  *         required: true
-//  *         type: number
-//  *       - name: radius
-//  *         description: Search radius (in km)
-//  *         in: query
-//  *         type: integer
-//  *         default: 5
-//  *     produces:
-//  *       - application/json
-//  *     responses:
-//  *       200:
-//  *         description: Success
-//  */
-// router.get('/cirkwi', poiController.getPoisCirkwi);
-
 /**
  * @swagger
  * /api/pois/{id}:

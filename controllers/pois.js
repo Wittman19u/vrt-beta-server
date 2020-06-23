@@ -26,104 +26,105 @@ const qs = require('qs')
 // 		});
 // }
 
-// TODO delete if we don't use cirkwi
-function getPoisCirkwi(req, res, next) {
-	// TODO recuperer les 30, insert db (par encore le si geom unique), puis ensuite filtrer en fonction de la query pour renvoyer ceux qui correspondent
-	// recuperer 10 points de notre db, 10 de cirkwi
-	// rajouter filtre pour avoir uniquement ceux de circkwi? (rajouter WHERE source = 'cirkwi')
-	axios({
-		method: 'post',
-		url: `${process.env.CIRKWI_URL}/oauth/v2/token`,
-		data: qs.stringify({
-			client_id: process.env.CIRKWI_CLIENT_ID,
-			client_secret: process.env.CIRKWI_CLIENT_SECRET,
-			grant_type: 'https://api.wim.cirkwi.com/grants/client_credentials',
-			scope: 'CLIENT'
-		}),
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded',
-			'accept': 'application/json'
-		}
-	}).then(token => {
-		var auth = token.data.access_token
-		// get pois
+function getPoisCirkwi(latitude, longitude, radius) {
+	// TODO recuperer les 30, insert db
+	return new Promise((resolve, reject) => {
 		axios({
-			method: 'get',
-			url: `${process.env.CIRKWI_URL}/v1/objects`,
-			params: {
-				lat: req.query.latitude,
-				lng: req.query.longitude,
-				radius: req.query.radius || 5
-			},
-			headers: { 'Authorization': `Bearer ${auth}` }
-		}).then(pois => {
-			console.log(pois)
-			console.log(pois.data)
-			let requestsPois = []
-			let poisTest = []
-			pois.data.data.forEach(poi => {
-				// TODO description -> JSON to get allow multiple translations
-				let poiDB = {
-					// voir avec claudio
-					sourceid: poi.id,
-					// mettre leurs categories (juste les numeros)
-					sourcetype: '',
-					// mettre id themes
-					sourcetheme: '',
-					street: `${poi.location.address.route}`,
-					zipcode: poi.location.address.postalCode,
-					city: poi.location.address.locality,
-					country: poi.location.address.country,
-					latitude: poi.location.coordinates.latitude,
-					longitude: poi.location.coordinates.longitude,
-					// TODO create geom
-					geom: '',
-					// get uri from translations
-					web: '',
-					// TODO fix this, maybe use themes or categories to determine type ?
-					type: 2,
-					priority: 0,
-					visnumber: 0,
-					// horaires d'ouvertures
-					opening: '',
-					// prendre updated_at ou created_at sinon
-					sourcelastupdate: '',
-					source: 'cirkwi',
-					active: true,
-					duration: 0,
-					// facebook/etc...
-					social: '',
-					manuallyupdate: false
+			method: 'post',
+			url: `${process.env.CIRKWI_URL}/oauth/v2/token`,
+			data: qs.stringify({
+				client_id: process.env.CIRKWI_CLIENT_ID,
+				client_secret: process.env.CIRKWI_CLIENT_SECRET,
+				grant_type: 'https://api.wim.cirkwi.com/grants/client_credentials',
+				scope: 'CLIENT'
+			}),
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'accept': 'application/json'
+			}
+		}).then(token => {
+			var auth = token.data.access_token
+			// get pois
+			axios({
+				method: 'get',
+				url: `${process.env.CIRKWI_URL}/v1/objects`,
+				params: {
+					lat: latitude,
+					lng: longitude,
+					radius: radius || 5
+				},
+				headers: { 'Authorization': `Bearer ${auth}` }
+			}).then(pois => {
+				let requestsPois = []
+				// to create geom item
+				const pgp = db.$config.pgp;
+				class STPoint {
+					constructor(x, y) {
+						this.x = x;
+						this.y = y;
+						this.rawType = true; // no escaping, because we return pre-formatted SQL
+					}
+					toPostgres(self) {
+						return pgp.as.format('ST_SetSRID(ST_MakePoint($1, $2),4326)', [this.x, this.y]);
+					}
 				}
-				if (poi.location.address.streetNumber.length > 0) poiDB.street = `${poi.location.address.streetNumber} ${poi.location.address.route}`
-				if (poi.defaultPicture != 'cirkwi') poiDB.linkimg = poi.defaultPicture
-				if (poi.locales.indexOf('fr_FR') != -1) {
-					poiDB.label = poi.translations.fr_FR.title
-					poiDB.description = poi.translations.fr_FR.description
-				} else {
-					poiDB.label = poi.translations[poi.locales[0]].title
-					poiDB.description = poi.translations[poi.locales[0]].description
-				}
-				poisTest.push(poiDB)
+				pois.data.data.forEach(poi => {
+					// TODO -> check unique GEOM before insert
+					// TODO description -> put in a JSON to allow multiple translations ?
+					let poiDB = {
+						sourceid: poi.id,
+						// categories ids
+						sourcetype: poi.categories.toString(),
+						// themes ids
+						sourcetheme: poi.themes.toString(),
+						street: `${poi.location.address.route}`,
+						zipcode: poi.location.address.postalCode,
+						city: poi.location.address.locality,
+						country: poi.location.address.country,
+						latitude: poi.location.coordinates.latitude,
+						longitude: poi.location.coordinates.longitude,
+						// TODO maybe use themes or categories to determine type ?
+						type: 2,
+						priority: 0,
+						visnumber: 0,
+						source: 'cirkwi',
+						active: true,
+						duration: 0,
+						manuallyupdate: false
+					}
+					poiDB.geom = new STPoint(poiDB.longitude, poiDB.latitude)
+					if (poi.updatedAt !== null) {
+						poiDB.sourcelastupdate = poi.updatedAt
+					} else {
+						poiDB.sourcelastupdate = poi.createdAt
+					}
+					if (poi.location.address.streetNumber.length > 0) poiDB.street = `${poi.location.address.streetNumber} ${poi.location.address.route}`
+					if (poi.defaultPicture != 'cirkwi') poiDB.linkimg = poi.defaultPicture
+					if (poi.locales.indexOf('fr_FR') != -1) {
+						poiDB.label = poi.translations.fr_FR.title
+						poiDB.description = poi.translations.fr_FR.description
+						poiDB.web = poi.translations.fr_FR.uri
+					} else {
+						poiDB.label = poi.translations[poi.locales[0]].title
+						poiDB.description = poi.translations[poi.locales[0]].description
+						poiDB.web = poi.translations[poi.locales[0]].uri
+					}
+					requestsPois.push(db.any('INSERT INTO poi ($1:name) VALUES($1:csv) RETURNING id;', [poiDB]))
+				});
+				Promise.all(requestsPois).then((ids) => {
+					resolve(ids)
+				}).catch(function (err) {
+					console.error(err);
+					reject(`error in insert pois promise : ${err}`)
+				});
+			}).catch(function (err) {
+				console.error(err);
+				reject(err)
 			});
-			res.status(200).json({
-				status: 'Success',
-				data: pois.data,
-				db: poisTest
-			})
 		}).catch(function (err) {
 			console.error(err);
-			res.status(500).json({
-				status: 'Error',
-				error: err
-			})
+			reject(err)
 		});
-	}).catch(function (err) {
-		console.error(err);
-		res.status(500).json({
-			status: 'Error',
-			error: err
-		})
 	});
 }
 
@@ -159,13 +160,13 @@ function getPoisByQuery(req, res, next) {
 				//   db.any('UPDATE public.poi SET po_priority = (100*(po_priority - min))/(max-min) FROM (SELECT MAX(po_priority) as max, MIN(po_priority) as min FROM public.poi) as extremum WHERE extremum.min != 0 OR extremum.max != 100; ')
 				//   .catch(function(error){throw error});
 				// })
-				res.status(200)
-					.json({
-						status: 'success',
-						itemsNumber: data.length,
-						data: data,
-						message: 'Retrieved pois by query'
-					});
+				// then get from cirkwi as well
+				res.status(200).json({
+					status: 'success',
+					itemsNumber: data.length,
+					data: data,
+					message: 'Retrieved pois by query'
+				});
 			}).catch(function (err) {
 				console.error(err);
 				return next(err);
@@ -258,6 +259,7 @@ function getPois(req, res, next) {
 	});
 }
 
+// TODO check limit/offset?
 function getPoisByRadius(req, res, next) {
 	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
@@ -295,17 +297,39 @@ function getPoisByRadius(req, res, next) {
 			let sql = `SELECT * FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND poi.source='Datatourisme' AND ${typecond} `
 			if (query !== undefined) {
 				// we use lower to make it case insensitive
-				sql += ` AND LOWER(label) like LOWER('%${query}%') `
+				sql += `AND LOWER(label) like LOWER('%${query}%') `
 			}
 			sql += `ORDER BY priority DESC`;
 			db.any(sql).then(function (data) {
-				res.status(200)
-					.json({
-						status: 'success',
-						itemsNumber: data.length,
-						data: data,
-						message: 'Retrieved pois in radius'
+				// TODO only check cirkwi if data.length too low
+				getPoisCirkwi(req.query.latitude, req.query.longitude, req.query.radius).then(function (cirkwiData) {
+					// request on cirkwi points specifically
+					let sqlCirkwi = `SELECT * FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND poi.source='Cirkwi' AND ${typecond} `
+					if (query !== undefined) {
+						// we use lower to make it case insensitive
+						sqlCirkwi += ` AND LOWER(label) like LOWER('%${query}%') `
+					}
+					sqlCirkwi += `ORDER BY priority DESC`;
+					db.any(sqlCirkwi).then(function (selectCirkwiData) {
+						res.status(200)
+							.json({
+								status: 'success',
+								itemsNumber: data.length + selectCirkwiData.length,
+								data: data.concat(selectCirkwiData),
+								message: 'Retrieved pois in radius'
+							});
+					}).catch(function (err) {
+						res.status(500).json({
+							status: 'Error',
+							error: `Error in select pois cirkwi : ${err}`
+						});
 					});
+				}).catch(function (err) {
+					res.status(500).json({
+						status: 'Error',
+						error: `Error in getpoiscirkwi : ${err}`
+					});
+				});
 			}).catch(function (err) {
 				console.error(err);
 				return next(err);
@@ -424,7 +448,6 @@ module.exports = {
 	getPoisByRadius: getPoisByRadius,
 	getPoiDetails: getPoiDetails,
 	createPoi: createPoi,
-	updatePoi: updatePoi,
-	// getPoisCirkwi: getPoisCirkwi
+	updatePoi: updatePoi
 	//	removePoi: removePoi
 };

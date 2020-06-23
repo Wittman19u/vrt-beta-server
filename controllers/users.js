@@ -9,52 +9,6 @@ const BCRYPT_SALT_ROUNDS = 12;
 var mediaController = require('../controllers/medias');
 var roadtripController = require('../controllers/roadtrips');
 
-// TODO add query par email, return si trouvé ou pas + id utilisateur
-// function getUsersByQuery(req, res, next) {
-// 	passport.authenticate('jwt', { session: false }, function (error, user, info) {
-// 		if (user === false || error || info !== undefined) {
-// 			let message = {
-// 				status: 'error',
-// 				error: error,
-// 				user: user
-// 			};
-// 			if (info !== undefined) {
-// 				message['message'] = info.message;
-// 				message['info'] = info;
-// 			}
-// 			console.error(message);
-// 			res.status(403).json(message);
-// 		} else {
-// 			const emailQuery = req.query.email
-// 			db.any('select account.*, media.id AS id_media, media.title, media.descript, media.link, media.filename, media.filepath, media.filesize, media.type, media.created_at AS media_created_at, media.updated_at AS media_updated_at, media.status_id AS media_status_id, media.account_id from account LEFT JOIN media ON media.account_id = account.id WHERE account.email = $1', [emailQuery]).then(function (data) {
-// 				var accounts = []
-// 				var accountsId = []
-// 				data.forEach(data => {
-// 					if (!accountsId.includes(data.id)) {
-// 						accounts.push({ "id": data.id, "firstname": data.firstname, "lastname": data.lastname, "dateborn": data.dateborn, "gender": data.gender, "biography": data.biography, "email": data.email, "phone": data.phone, "codetemp": data.codetemp, "expirescodetemp": data.expirescodetemp, "created_at": data.created_at, "updated_at": data.updated_at, "status_id": data.status_id, "localtoken": data.localtoken, "facebookid": data.facebookid, "facebooktoken": data.facebooktoken, "googleid": data.googleid, "googletoken": data.googletoken, "consent": data.consent, "consentthird": data.consentthird, "consent_at": data.consent_at, "language": data.language, "media_id": data.media_id, "expireslocaltoken": data.expireslocaltoken, "medias": [] })
-// 						accountsId.push(data.id)
-// 					}
-// 					if (data.id_media !== null) {
-// 						accounts[accounts.length - 1].medias.push({ "id": data.id_media, "title": data.title, "descript": data.descript, "link": data.link, "filename": data.filename, "filepath": data.filepath, "filesize": data.filesize, "type": data.type, "created_at": data.media_created_at, "updated_at": data.media_updated_at, "status_id": data.media_status_id, "account_id": data.account_id })
-// 					}
-// 				})
-// 				res.status(200)
-// 					.json({
-// 						status: 'success',
-// 						data: accounts,
-// 						message: 'Retrieved users'
-// 					});
-// 			}).catch(function (error) {
-// 				console.error(`Error during Select in DB: ${error}`);
-// 				res.status(500).json({
-// 					message: 'Error during Select!',
-// 					error: error
-// 				});
-// 			});
-// 		}
-// 	})(req, res, next);
-// }
-
 function getUserDetails(req, res, next) {
 	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
