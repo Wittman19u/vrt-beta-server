@@ -42,7 +42,8 @@
     "qs": "^6.9.4",
     "serve-favicon": "^2.2.0",
     "swagger-jsdoc": "^3.7.0",
-    "swagger-ui-express": "^4.1.4"
+    "swagger-ui-express": "^4.1.4",
+    "worker-threads": "^1.0.0"
   },
   "devDependencies": {
     "nodemon": "^1.19.4"
