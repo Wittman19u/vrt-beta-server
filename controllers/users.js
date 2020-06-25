@@ -202,6 +202,7 @@ function loginUser(req, res, next) {
 						token,
 						id: user.id,
 						user: user,
+						media: null,
 						message: 'User found & logged in, no media'
 					});
 				} else {
