@@ -403,44 +403,44 @@ function createMedia(req, res, next) {
     })(req, res, next);
 }
 
+// Method to retrieve all media from the authenticated user
 // TODO complete method, just a draft
-function getUserMediaPublic(req, res, next) {
-    var accountId = req.params.id
-    // CHANGER POUR RECUPERER EN FONCTION DE LA RELATION AUSSI
-    // RAJOUTER PARAMETRE media.public = 1
-    db.any('SELECT media.id, media.filename, media.filepath, media.filesize, media.type, media.status_id, account.id FROM media INNER JOIN account ON media.account_id = account.id WHERE account.id = $1', [accountId]).then(function (medias) {
-        if (medias[0] == null) {
-            res.status(401).json({
-                status: 'Error',
-                message: 'No file exists for this account!'
-            })
-        } else {
-            try {
-                let requestsItems = []
-                medias.forEach(media => {
-                    requestsItems.push(getItem(media.filepath, media.filename))
-                })
-                Promise.all(requestsItems).then((data) => {
-                    console.log(data)
-                    res.status(200).json({
-                        status: 'Success',
-                        message: 'Succesfully retrieved media from db and file',
-                        data: { files: data, mediasInfo: medias }
-                    })
-                })
-            } catch (err) {
-                res.status(500).json({
-                    status: 'Error',
-                    message: 'Error retrieving item from bucket!'
-                })
-            }
-        }
-    })
-}
+// function getUserMediaPublic(req, res, next) {
+//     // AJOUTER PASSPORT
+//     // CHANGER POUR RECUPERER EN FONCTION DE LA RELATION AUSSI
+//     // RAJOUTER PARAMETRE media.public = 1
+//     db.any('SELECT media.id, media.filename, media.filepath, media.filesize, media.type, media.status_id, account.id FROM media INNER JOIN account ON media.account_id = account.id WHERE account.id = $1', [user.id]).then(function (medias) {
+//         if (medias[0] == null) {
+//             res.status(401).json({
+//                 status: 'Error',
+//                 message: 'No file exists for this account!'
+//             })
+//         } else {
+//             try {
+//                 let requestsItems = []
+//                 medias.forEach(media => {
+//                     requestsItems.push(getItem(media.filepath, media.filename))
+//                 })
+//                 Promise.all(requestsItems).then((data) => {
+//                     console.log(data)
+//                     res.status(200).json({
+//                         status: 'Success',
+//                         message: 'Succesfully retrieved media from db and file',
+//                         data: { files: data, mediasInfo: medias }
+//                     })
+//                 })
+//             } catch (err) {
+//                 res.status(500).json({
+//                     status: 'Error',
+//                     message: 'Error retrieving item from bucket!'
+//                 })
+//             }
+//         }
+//     })
+// }
 
-// TODO complete method, just a draft
-function getUserMediaAuthenticated(req, res, next) {
-    // CHANGER POUR RECUPERER EN FONCTION DE LA RELATION AUSSI
+// Get profile picture of a specific user
+function getUserProfilePicture(req, res, next) {
     passport.authenticate('jwt', { session: false }, function (error, user, info) {
         if (user === false || error || info !== undefined) {
             let message = {
@@ -455,20 +455,22 @@ function getUserMediaAuthenticated(req, res, next) {
             console.error(message);
             res.status(403).json(message);
         } else {
-            db.any('SELECT media.id, media.filename, media.filepath, media.filesize, media.type, media.status_id, account.id FROM media INNER JOIN account ON account.media_id = media.id WHERE account.id = $1', [user.id]).then(function (media) {
+            var accountId = req.params.id
+            db.any('SELECT media.filename, media.filepath FROM media INNER JOIN account ON media.id = account.media_id WHERE account.id = $1', [accountId]).then(function (media) {
                 if (media[0] == null) {
-                    res.status(401).json({
-                        status: 'Error',
-                        message: 'No file exists for this account!'
+                    res.status(201).json({
+                        status: 'Success',
+                        message: 'The user does not have a profile picture',
+                        profilePicture: null
                     })
                 } else {
                     try {
-                        getItem(media[0].filepath, media[0].filename).then(function (data) {
+                        getUrl(media[0].filepath, media[0].filename).then((data) => {
                             console.log(data)
                             res.status(200).json({
                                 status: 'Success',
-                                message: 'Succesfully retrieved media from db and file',
-                                data: { file: data, mediaInfo: media[0] }
+                                message: 'Succesfully retrieved file url',
+                                profilePicture: data
                             })
                         })
                     } catch (err) {
@@ -478,47 +480,20 @@ function getUserMediaAuthenticated(req, res, next) {
                         })
                     }
                 }
+            }).catch(function (err) {
+                res.status(500).json({
+                    status: 'Error',
+                    message: `Error fetching profile picture : ${err}`
+                })
             })
         }
     })(req, res, next);
 }
 
-// TODO complete method, just a draft
-function getPoiMedia(req, res, next) {
-    var poiId = req.params.id
-    // CHANGER POUR RECUPERER EN FONCTION DE LA RELATION
-    db.any('SELECT media.id, media.filename, media.filepath, media.filesize, media.type, media.status_id, account.id FROM media INNER JOIN account ON poi.media_id = media.id WHERE poi.id = $1', [poiId]).then(function (media) {
-        if (media[0] == null) {
-            res.status(401).json({
-                status: 'Error',
-                message: 'No file exists for this account!'
-            })
-        } else {
-            try {
-                getItem(media[0].filepath, media[0].filename).then(function (data) {
-                    console.log(data)
-                    res.status(200).json({
-                        status: 'Success',
-                        message: 'Succesfully retrieved media from db and file',
-                        data: { file: data, mediaInfo: media[0] }
-                    })
-                })
-            } catch (err) {
-                res.status(500).json({
-                    status: 'Error',
-                    message: 'Error retrieving item from bucket!'
-                })
-            }
-        }
-    })
-}
-
-//get id, type, category (optionnel)
+// TODO create a method to get all media from one user/ one roadtrip / etc... ?
 
 module.exports = {
     createMedia: createMedia,
-    getUserMediaPublic: getUserMediaPublic,
-    getUserMediaAuthenticated: getUserMediaAuthenticated,
-    getPoiMedia: getPoiMedia,
+    getUserProfilePicture: getUserProfilePicture,
     getUrl: getUrl
 }

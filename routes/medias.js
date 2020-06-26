@@ -64,6 +64,31 @@ var router = express.Router();
  */
 router.post('/', mediaController.createMedia);
 
+/**
+ * @swagger
+ * /api/medias/user/profile/{id}:
+ *   get:
+ *     tags:
+ *       - Medias
+ *     description: Retrieves the profile picture associated with account
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: id of the account
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved image
+ *       201:
+ *         description: The user does not have a profile picture
+ *       500:
+ *         description: Missing/incorrect parameters or database failure
+ */
+router.get('/user/profile/:id', mediaController.getUserProfilePicture);
+
 // /**
 //  * @swagger
 //  * /api/medias/user/public/{id}:
