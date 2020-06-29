@@ -73,6 +73,8 @@ router.post('/', mediaController.createMedia);
  *     description: Retrieves the profile picture associated with account
  *     produces:
  *       - application/json
+ *     security:
+ *       - authorisationJWT: []
  *     parameters:
  *       - name: id
  *         in: path

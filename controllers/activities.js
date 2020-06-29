@@ -40,9 +40,19 @@ function getActivities(req, res, next) {
 			// TODO question about geobuffer -> does not exist ???
 			let sql = `SELECT * FROM geobuffer where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom)`;
 			db.any(sql).then(function (cities) {
+				let startDate = req.query.startdate || moment().format('YYYY-MM-DD');
+				let params = {
+					'startDate': startDate,
+					'endDate': req.query.enddate || moment(startDate).add(1, 'days').format('YYYY-MM-DD'),
+					'topX': '1-15',
+					'currencyCode': req.query.currency || 'EUR',
+					'catId': 0,
+					'subCatId': 0,
+					'dealsOnly': false
+				};
 				// http://viatorapi.viator.com/service/search/products  {'startDate':'2019-12-02','endDate':'2020-12-02', 'topX':'1-15','destId':684,'currencyCode':'EUR', 'catId':0, 'subCatId':0, 'dealsOnly':false}
 				const worker = new Worker('./controllers/workerViator.js')
-				worker.on('online', () => { worker.postMessage([cities, dataFromDB]) })
+				worker.on('online', () => { worker.postMessage([params, cities, dataFromDB]) })
 				res.status(200).json({
 					status: 'success',
 					itemsNumber: dataFromDB.length,

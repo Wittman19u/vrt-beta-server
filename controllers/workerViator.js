@@ -3,24 +3,14 @@ const axios = require('axios');
 const { parentPort } = require('worker_threads')
 
 parentPort.onmessage = function (e) {
-	getPoisViator(e.data[0], e.data[1]).then(function (response) {
+	getPoisViator(e.data[0], e.data[1], e.data[2]).then(function (response) {
 		console.log(response)
 	})
 };
 
 // updates the pois table in the provided 'cities' argument by requesting the viator api
-function getPoisViator(cities, dataFromDB) {
+function getPoisViator(params, cities, dataFromDB) {
 	return new Promise((resolve, reject) => {
-		let startDate = req.query.startdate || moment().format('YYYY-MM-DD');
-		let params = {
-			'startDate': startDate,
-			'endDate': req.query.enddate || moment(startDate).add(1, 'days').format('YYYY-MM-DD'),
-			'topX': '1-15',
-			'currencyCode': req.query.currency || 'EUR',
-			'catId': 0,
-			'subCatId': 0,
-			'dealsOnly': false
-		};
 		let url = `https://viatorapi.viator.com/service/search/products?apiKey=${process.env.VIATOR_API_KEY}`;
 		let ops = [];
 		for (let i = 0; (i < cities.length) && (i < 24); i++) {
