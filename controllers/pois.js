@@ -202,9 +202,9 @@ function getPoisByRadius(req, res, next) {
 			sql += `ORDER BY priority DESC`;
 			db.any(sql).then(function (data) {
 				// TODO only check cirkwi if data.length too low
-				// launch worker on separated threads to do inserts from cirkwi
+				// launching worker on separated threads to do inserts from cirkwi
 				const worker = new Worker('./controllers/workerCirkwi.js')
-				worker.on('online', () => { worker.postMessage([req.query.latitude, req.query.longitude, req.query.radius]) })
+				worker.on('online', () => { worker.postMessage([req.query.latitude, req.query.longitude, req.query.radius, data]) })
 				// get data from db
 				let sqlCirkwi = `SELECT * FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND poi.source='Cirkwi' AND ${typecond} `
 				if (query !== undefined) {

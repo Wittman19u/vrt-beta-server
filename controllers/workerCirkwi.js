@@ -5,11 +5,12 @@ const { parentPort } = require('worker_threads')
 
 parentPort.onmessage = function (e) {
 	// the passed-in data is available via e.data
-	getPoisCirkwi(e.data[0], e.data[1], e.data[2])
+	getPoisCirkwi(e.data[0], e.data[1], e.data[2], e.data[3]).then(function (response) {
+		console.log(response)
+	})
 };
 
-function getPoisCirkwi(latitude, longitude, radius) {
-	// TODO recuperer les 30, insert db
+function getPoisCirkwi(latitude, longitude, radius, dataFromDB) {
 	return new Promise((resolve, reject) => {
 		axios({
 			method: 'post',
@@ -95,7 +96,19 @@ function getPoisCirkwi(latitude, longitude, radius) {
 								poiDB.description = poi.translations[poi.locales[0]].description
 								poiDB.web = poi.translations[poi.locales[0]].uri
 							}
-							requestsPois.push(db.any('INSERT INTO poi ($1:name) VALUES($1:csv) RETURNING id;', [poiDB]))
+
+							let index = dataFromDB.find(item => {
+								if (item.source === 'cirkwi' && item.sourceid === poi.id) {
+									return true;
+								}
+								return false;
+							});
+							// if the poi was not returned from the request then we insert it, else we update it
+							if (index === undefined) {
+								requestsPois.push(db.any('INSERT INTO poi ($1:name) VALUES($1:csv) RETURNING id;', [poiDB]))
+							} else {
+								requestsPois.push(db.any('update poi set sourcetype=$1, label=$2, city=$3, latitude=$4, longitude=$5, web=$6, linkimg=$7, description=$8, type=$9, duration=$10,rating=$11, price=$12, geom=ST_GeomFromText($13,4326) WHERE source=$14 AND sourceid = $15 RETURNING id', [poiDB.sourcetype, poiDB.label, poiDB.city, poiDB.latitude, poiDB.longitude, poiDB.web, poiDB.linkimg, poiDB.description, poiDB.type, poiDB.duration, poiDB.rating, poiDB.price, poiDB.geom, poiDB.source, poiDB.sourceid]));
+							}
 						}
 					})
 				});
@@ -113,5 +126,7 @@ function getPoisCirkwi(latitude, longitude, radius) {
 			console.error(err);
 			reject(err)
 		});
+	}).catch(function (err) {
+		console.error(err);
 	});
 }

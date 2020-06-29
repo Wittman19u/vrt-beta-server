@@ -7,29 +7,30 @@ const amadeus = new Amadeus({
 	clientSecret: process.env.AMADEUS_CLIENT_SECRET,
 	hostaneme: process.env.AMADEUS_HOSTNAME
 });
+const { Worker } = require('worker_threads')
 
 function getPricesHotels(req, res, next) {
 	let startDate = req.query.startdate || moment().format('YYYY-MM-DD');
 	let params = {
 		latitude: req.query.latitude,
-		longitude: req.query.longitude ,
+		longitude: req.query.longitude,
 		radius: req.query.radius || 5,
-		radiusUnit: req.query.radiusunit || 'KM' ,
-		paymentPolicy:'NONE', // filter the response based on a specific payment type. NONE means all types (default)
+		radiusUnit: req.query.radiusunit || 'KM',
+		paymentPolicy: 'NONE', // filter the response based on a specific payment type. NONE means all types (default)
 		includeClosed: 'false', // show All properties (include Sold Out) or Available only. For Sold Out properties, please check availability on other dates. To be used with sort DISTANCE or NONE
-		bestRateOnly:'true', // use to return only the cheapest offer per hotel or all available offers
+		bestRateOnly: 'true', // use to return only the cheapest offer per hotel or all available offers
 		checkInDate: startDate,
-		checkOutDate: req.query.checkoutdate || moment(startDate).add(1,'days').format('YYYY-MM-DD'),
-		view:'LIGHT', // NONE: geocoordinates, hotel distance; LIGHT: NONE view + city name, phone number, fax, address, postal code, country code, state code, ratings, 1 image; 		FULL: LIGHT view + hotel description, amenities and facilities
-		sort:'DISTANCE', // DISTANCE: from city center (or reference point); LOWEST: price first (warning: all hotels may not be returned)
+		checkOutDate: req.query.checkoutdate || moment(startDate).add(1, 'days').format('YYYY-MM-DD'),
+		view: 'LIGHT', // NONE: geocoordinates, hotel distance; LIGHT: NONE view + city name, phone number, fax, address, postal code, country code, state code, ratings, 1 image; 		FULL: LIGHT view + hotel description, amenities and facilities
+		sort: 'DISTANCE', // DISTANCE: from city center (or reference point); LOWEST: price first (warning: all hotels may not be returned)
 		lang: req.query.lang || 'fr-FR',
 		currency: req.query.currency || 'EUR',
-		adults:  req.query.adults || 1,
-		childAges:  req.query.childages || [],
-		roomQuantity:  req.query.roomquantity || 1,
+		adults: req.query.adults || 1,
+		childAges: req.query.childages || [],
+		roomQuantity: req.query.roomquantity || 1,
 		priceRange: req.query.pricerange || ''
 	};
-	amadeus.shopping.hotelOffers.get(params).then(function(response){
+	amadeus.shopping.hotelOffers.get(params).then(function (response) {
 		let min = 0;
 		let max = 1500;
 		if (response.data.length > 0) {
@@ -53,7 +54,7 @@ function getPricesHotels(req, res, next) {
 			message: 'Retrieved hotels prices for this destination.'
 		});
 
-	}).catch( error => {
+	}).catch(error => {
 		let message = 'Error amadeus!';
 		console.error(message);
 		res.status(400).json({
@@ -85,118 +86,31 @@ function getHotels(req, res, next) {
 				latitude: latitude,
 				longitude: longitude,
 				radius: radius,
-				radiusUnit: req.query.radiusunit || 'KM' ,
-				paymentPolicy:'NONE', // filter the response based on a specific payment type. NONE means all types (default)
+				radiusUnit: req.query.radiusunit || 'KM',
+				paymentPolicy: 'NONE', // filter the response based on a specific payment type. NONE means all types (default)
 				includeClosed: 'false', // show All properties (include Sold Out) or Available only. For Sold Out properties, please check availability on other dates. To be used with sort DISTANCE or NONE
-				bestRateOnly:'true', // use to return only the cheapest offer per hotel or all available offers
+				bestRateOnly: 'true', // use to return only the cheapest offer per hotel or all available offers
 				checkInDate: startDate,
-				checkOutDate: req.query.checkoutdate || moment(startDate).add(1,'days').format('YYYY-MM-DD'),
-				view:'LIGHT', // NONE: geocoordinates, hotel distance; LIGHT: NONE view + city name, phone number, fax, address, postal code, country code, state code, ratings, 1 image; 		FULL: LIGHT view + hotel description, amenities and facilities
-				sort:'DISTANCE', // DISTANCE: from city center (or reference point); LOWEST: price first (warning: all hotels may not be returned)
+				checkOutDate: req.query.checkoutdate || moment(startDate).add(1, 'days').format('YYYY-MM-DD'),
+				view: 'LIGHT', // NONE: geocoordinates, hotel distance; LIGHT: NONE view + city name, phone number, fax, address, postal code, country code, state code, ratings, 1 image; 		FULL: LIGHT view + hotel description, amenities and facilities
+				sort: 'DISTANCE', // DISTANCE: from city center (or reference point); LOWEST: price first (warning: all hotels may not be returned)
 				lang: req.query.lang || 'fr-FR',
 				currency: req.query.currency || 'EUR',
-				adults:  req.query.adults || 1,
-				childAges:  req.query.childages || [],
-				roomQuantity:  req.query.roomquantity || 1,
+				adults: req.query.adults || 1,
+				childAges: req.query.childages || [],
+				roomQuantity: req.query.roomquantity || 1,
 				priceRange: req.query.pricerange || ''
 			};
-			amadeus.shopping.hotelOffers.get(params).then(function(response){
-				let hotels = [];
-				let calls = [];
-				for (let ets of response.data){
-					let hotel = ets.hotel;
-					let offer = ets.offers[0];
-					let description = '';
-					let address = hotel.address.lines[0] || '';
-					let currency = 'EUR';
-					if (offer.price.currency !== undefined && offer.price.currency !== '' ) {
-						currency = offer.price.currency;
-					}
-					if (typeof hotel.description !== 'undefined') {
-						description = hotel.description.text;
-					}
-					if (address.indexOf('{') !== -1) {
-						address = address.replace('{', '').replace('}', '').replace('"', '').replace('","', ', ').replace('"', '');
-					}
-					let hot = {
-						fieldId: hotel.hotelId,
-						name: hotel.name,
-						longitude: hotel.longitude,
-						latitude: hotel.latitude,
-						street: address,
-						zipcode: hotel.address.postalCode || '',
-						city: hotel.address.cityName || '',
-						description: description || '',
-						image: hotel.media[0].uri.replace('http://', 'https://') || '',
-						link: hotel.web || '',
-						phone: hotel.contact.phone || '',
-						email: hotel.contact.email || '',
-						price: `${offer.price.total} ${currency}` || '',
-						duration: '',
-						distance: `${hotel.hotelDistance.distance} ${hotel.hotelDistance.distanceUnit}` || '',
-						rating: hotel.rating
-					};
-					hotels.push(hot);
-					// CREATE ACTIVITIES in OUR DB
-					let point = `POINT(${hot.longitude} ${hot.latitude})`;
-					let index = dataFromDB.find(item => {
-						if (item.source === 'Amadeus' && item.sourceid ===  hotel.hotelId){
-							return true;
-						}
-						return false;
-					});
-					let opt;
-					if (index === undefined) {
-						let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, street, zipcode, city, latitude, longitude, web, linkimg, description, type, rating, price, geom) VALUES( $1, $2, $3 , $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, ST_GeomFromText($17,4326)) RETURNING id;';
-						let values= ['Amadeus', hotel.hotelId, 'Hotel', hot.name, 'Hotel',  hot.address,  hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 5, hot.rating, parseFloat(offer.price.total), point];
-						opt = db.any(sql, values);
-
-					} else {
-						opt = db.any('update poi set label=$1, street=$2, zipcode=$3, city=$4, latitude=$5, longitude=$6, web=$7, linkimg=$8, description=$9, type=$10, rating=$11, price=$12, geom=ST_GeomFromText($13,4326) WHERE source=$14 AND sourceid = $15 RETURNING id;', [hot.name, hot.address, hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 5, hot.rating, parseFloat(offer.price.total), point, 'Amadeus', hotel.hotelId]);
-					}
-					calls.push(opt);
-				}
-				Promise.all(calls).then( (ids) => {
-					for (let i = 0; i < ids.length; i++) {
-						hotels[i].id = ids[i][0].id;
-					}
-					res.status(200).json({
-						status: 'success',
-						itemsNumber: hotels.length,
-						data: hotels,
-						message: 'Retrieved hotel for this destination.'
-					});
-				}).catch( error => {
-					let message = 'Error insert/update in DB!';
-					console.error(message);
-					res.status(400).json({
-						code: error.code,
-						status: 'error',
-						error: error,
-						message: message
-					});
-				});
-			}).catch( error => {
-				if( (error.description[0].code === 11126 && error.description[0].status === 400) || (error.description[0].code === 38194 && error.description[0].status === 429)  ) {
-					res.status(200).json({
-						status: 'success',
-						itemsNumber: 0,
-						data: [],
-						message: 'Retrieved 0 hotels for this destination.'
-					});
-				} else {
-					let message = 'Error amadeus!';
-					console.error(message);
-					res.status(400).json({
-						code: error.code,
-						status: 'error',
-						error: error,
-						message: message
-					});
-				}
+			const worker = new Worker('./controllers/workerAmadeus.js')
+			worker.on('online', () => { worker.postMessage([params, dataFromDB]) })
+			res.status(200).json({
+				status: 'success',
+				itemsNumber: dataFromDB.length,
+				data: dataFromDB,
+				message: 'Retrieved hotels in radius from cache and called worker.'
 			});
 		}
-	}).catch( error => {
+	}).catch(error => {
 		let message = 'Error retrieved Hotels from db!';
 		console.error(message);
 		res.status(400).json({
@@ -208,18 +122,18 @@ function getHotels(req, res, next) {
 	});
 }
 
-function getHotelOffer(req, res, next){
+function getHotelOffer(req, res, next) {
 	//https://test.api.amadeus.com/v2/shopping/hotel-offers/by-hotel?hotelId=BGMILBGB&adults=2&roomQuantity=1&paymentPolicy=NONE&view=FULL_ALL_IMAGES
 	amadeus.shopping.hotelOffersByHotel.get({
 		hotelId: req.body.hotelId
-	}).then(function(hotelOffers){
+	}).then(function (hotelOffers) {
 		res.status(200).json({
 			status: 'success',
 			itemsNumber: hotelOffers.data.length,
 			data: hotelOffers.data,
 			message: 'Retrieved Offers fot this hotel.'
 		});
-	}).catch( error => {
+	}).catch(error => {
 		let message = 'Error getHotelOffer amadeus!';
 		console.error(message);
 		res.status(400).json({
@@ -233,9 +147,9 @@ function getHotelOffer(req, res, next){
 
 
 // Confirm the availability of a specific offer id view room details
-function getOffer(req, res, next){
+function getOffer(req, res, next) {
 	//https://test.api.amadeus.com/v2/shopping/hotel-offers/{offerId}
-	amadeus.shopping.hotelOffer(req.body.offerId).get().then(function(offer){
+	amadeus.shopping.hotelOffer(req.body.offerId).get().then(function (offer) {
 		res.status(200).json({
 			status: 'success',
 			itemsNumber: offer.data.length,
@@ -254,7 +168,7 @@ function getOffer(req, res, next){
 	});
 }
 
-module.exports={
+module.exports = {
 	getHotels: getHotels,
 	getHotelOffer: getHotelOffer,
 	getOffer: getOffer,
