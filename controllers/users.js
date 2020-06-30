@@ -76,7 +76,7 @@ function createUser(req, res, next) {
 					console.error(`There was an error sending email: ${error}`);
 					res.status(500).json({
 						status: 'error',
-						message: `There was an error sending email: ${error}`
+						message: `Your account was created, but there was an error sending email: ${error}`
 					});
 				}
 				// ccheck 'invited' table : if user was invited to a roadtrip, create an alert + insert dans participate avec status 3
@@ -202,7 +202,6 @@ function loginUser(req, res, next) {
 						token,
 						id: user.id,
 						user: user,
-						media: null,
 						message: 'User found & logged in, no media'
 					});
 				} else {
