@@ -98,6 +98,7 @@ function getPoisCirkwi(latitude, longitude, radius, dataFromDB) {
 							}
 
 							let index = dataFromDB.find(item => {
+								console.log(item)
 								if (item.source === 'cirkwi' && item.sourceid === poi.id) {
 									return true;
 								}

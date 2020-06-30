@@ -28,6 +28,7 @@ const { Worker } = require('worker_threads')
 // 		});
 // }
 
+// TODO return only cities (see the category or the source ?)
 function getPoisByQuery(req, res, next) {
 	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
@@ -194,7 +195,7 @@ function getPoisByRadius(req, res, next) {
 					break;
 			}
 
-			let sql = `SELECT * FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND poi.source='Datatourisme' AND ${typecond} `
+			let sql = `SELECT * FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND (poi.source='Datatourisme' OR poi.source='cirkwi') AND ${typecond} `
 			if (query !== undefined) {
 				// we use lower to make it case insensitive
 				sql += `AND LOWER(label) like LOWER('%${query}%') `
