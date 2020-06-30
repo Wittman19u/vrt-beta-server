@@ -29,7 +29,7 @@ const { Worker } = require('worker_threads')
 // }
 
 // TODO return only cities (see the category or the source ?)
-function getPoisByQuery(req, res, next) {
+function getCitiesByQuery(req, res, next) {
 	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
 			let message = {
@@ -45,28 +45,13 @@ function getPoisByQuery(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			let query = req.query.query;
-			let activeSearch = req.query.active;
-			if (activeSearch === 'all') {
-				activeSearch = '';
-			} else {
-				activeSearch = `AND active = ${activeSearch}`;
-			}
-			// let sql= ` WITH points AS ( SELECT distinct on(cells.geom) cells.geom, cells.row, cells.col, poi.id,  MAX(poi.priority) AS bestpriority FROM  ST_CreateFishnet(4, 4,  ${boundsobj.north}, ${boundsobj.south}, ${boundsobj.east}, ${boundsobj.west}) AS cells INNER JOIN public.poi ON ST_Within(poi.geom, cells.geom) WHERE poi.source='Datatourisme' AND ${typecond} GROUP BY cells.row, cells.col, cells.geom, poi.id ORDER BY cells.geom, cells.row ASC, cells.col ASC,  bestpriority DESC ) SELECT * FROM poi INNER JOIN points ON poi.id=points.id`;
-			let sql = `SELECT * FROM poi where label like '%${query}%' ${activeSearch} ORDER BY label ASC Limit 20`;
+			let sql = `SELECT * FROM poi where LOWER(label) like LOWER('%${query}%') and source='sql.sh' ORDER BY label ASC Limit 20`;
 			db.any(sql).then(function (data) {
-				// TODO UPdate priority
-				//update priority when view
-				// db.any('UPDATE public.poi SET po_priority = po_priority+10 WHERE St_Within(po_geom,ST_GeomFromText(\'' + polygon+ '\',4326));')
-				// .then(function() {
-				//   db.any('UPDATE public.poi SET po_priority = (100*(po_priority - min))/(max-min) FROM (SELECT MAX(po_priority) as max, MIN(po_priority) as min FROM public.poi) as extremum WHERE extremum.min != 0 OR extremum.max != 100; ')
-				//   .catch(function(error){throw error});
-				// })
-				// then get from cirkwi as well
 				res.status(200).json({
 					status: 'success',
 					itemsNumber: data.length,
 					data: data,
-					message: 'Retrieved pois by query'
+					message: 'Retrieved cities by query'
 				});
 			}).catch(function (err) {
 				console.error(err);
@@ -341,7 +326,7 @@ function updatePoi(req, res, next) {
 module.exports = {
 	//	getAllPois: getAllPois,
 	getPois: getPois,
-	getPoisByQuery: getPoisByQuery,
+	getCitiesByQuery: getCitiesByQuery,
 	getPoisByRadius: getPoisByRadius,
 	getPoiDetails: getPoiDetails,
 	createPoi: createPoi,

@@ -1,6 +1,4 @@
 const db = require('./db');
-const axios = require('axios');
-const qs = require('qs')
 const { parentPort } = require('worker_threads')
 const Amadeus = require('amadeus');
 const amadeus = new Amadeus({

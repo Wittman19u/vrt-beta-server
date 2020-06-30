@@ -192,12 +192,12 @@ var router = express.Router();
 
 /**
  * @swagger
- * /api/pois/findByLabel:
+ * /api/pois/findCitiesByLabel:
  *   get:
  *     tags:
  *       - Pois
- *     description: Returns POIs with query in label field
- *     summary: Returns POIs with query in label field
+ *     description: Returns cities with query in label field
+ *     summary: Returns cities with query in label field
  *     security:
  *       - authorisationJWT: []
  *     produces:
@@ -208,10 +208,6 @@ var router = express.Router();
  *         in: query
  *         type: string
  *         description: text to find in label
- *       - name: active
- *         in: query
- *         type: string
- *         description: select  {all/true/false} active pois
  *     responses:
  *       200:
  *         description: An array of pois
@@ -231,7 +227,7 @@ var router = express.Router();
  *               items:
  *                 $ref: '#/definitions/Poi'
  */
-router.get('/findByLabel', poiController.getPoisByQuery);
+router.get('/findCitiesByLabel', poiController.getCitiesByQuery);
 
 
 /**
