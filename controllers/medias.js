@@ -460,8 +460,7 @@ function getUserProfilePicture(req, res, next) {
                 if (media[0] == null) {
                     res.status(201).json({
                         status: 'Success',
-                        message: 'The user does not have a profile picture',
-                        profilePicture: null
+                        message: 'The user does not have a profile picture'
                     })
                 } else {
                     try {

@@ -28,7 +28,6 @@ const { Worker } = require('worker_threads')
 // 		});
 // }
 
-// TODO return only cities (see the category or the source ?)
 function getCitiesByQuery(req, res, next) {
 	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
@@ -45,7 +44,7 @@ function getCitiesByQuery(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			let query = req.query.query;
-			let sql = `SELECT * FROM poi where LOWER(label) like LOWER('%${query}%') and source='sql.sh' ORDER BY label ASC Limit 20`;
+			let sql = `SELECT * FROM poi where LOWER(label) like LOWER('${query}%') and source='sql.sh' ORDER BY label ASC Limit 5`;
 			db.any(sql).then(function (data) {
 				res.status(200).json({
 					status: 'success',
