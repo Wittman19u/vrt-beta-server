@@ -62,9 +62,9 @@ function sendInviteToRoadtrip(req, res, next) {
 			var senderId = user.id
 			var userId = req.query.userId
 			var roadtripId = req.query.roadtripId
-			// we do an inner join on participate to make the sender does participate in the roadtrip
+			// we do an inner join on participate to make sure the sender does participate in the roadtrip
 			db.any('SELECT firebasetoken, title FROM account FULL JOIN roadtrip ON roadtrip.id = $1 INNER JOIN participate ON participate.account_id = $2 AND participate.roadtrip_id = roadtrip.id WHERE account.id = $3', [roadtripId, senderId, userId]).then(function (row) {
-				if (row[0] != null) {
+				if (row[0] != null && row[0].firebasetoken != null) { 
 					// send notif
 					var alertTitle = 'You received an invitation to a roadtrip !'
 					var alertBody = `You were invited to join the roadtrip "${row[0].title}" !`
@@ -98,11 +98,21 @@ function sendInviteToRoadtrip(req, res, next) {
 								message: `Problem during insert DB (alerts): ${err}`
 							})
 						});
-					})
+					},(err) => {
+						res.status(500).json({
+							status: 'error',
+							message: `Problem sending firebase notification: ${err}`
+						})
+					}).catch(function (err) {
+						res.status(500).json({
+							status: 'error',
+							message: `Problem during insert DB (alerts): ${err}`
+						})
+					});
 				} else {
 					res.status(403).json({
 						status: 'Error',
-						message: `You are not allowed to invite people to this roadtrip`
+						message: `You are not allowed to invite people to this roadtrip or the account does not have a firebasetoken set`
 					})
 				}
 
@@ -214,7 +224,7 @@ function updateAlert(req, res, next) {
 		} else {
 			let sql = `UPDATE alert SET isread = true WHERE recipient_id = ${user.id}`
 			if (req.body.alertIds !== undefined) {
-				sql += ` AND id IN (${req.body.alertIds})`
+				sql += ` AND id IN (${req.body.alertIds.join(', ')})`
 			}
 			db.any(sql).then(function () {
 				res.status(200).json({
