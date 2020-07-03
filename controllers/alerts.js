@@ -223,6 +223,7 @@ function updateAlert(req, res, next) {
 		} else {
 			let sql = `UPDATE alert SET isread = true WHERE recipient_id = ${user.id}`
 			if (req.body.alertIds !== undefined) {
+				console.log(req.body.alertIds)
 				sql += ` AND id IN (${req.body.alertIds.join(', ')})`
 			}
 			db.any(sql).then(function () {
