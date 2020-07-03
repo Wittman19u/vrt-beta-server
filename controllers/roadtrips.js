@@ -357,11 +357,13 @@ function getUserRoadtrips(req, res, next) {
 				})
 				Promise.all(accountPicturePromises).then(function (urlsData) {
 					uniqueRoadtrips.forEach(function (roadtrip) {
-						if (urlsData.find(urlData => urlData.accountid == account.id) !== undefined) {
-							account.profileData = urlsData.find(urlData => urlData.accountid == account.id).url
-						} else {
-							account.profileData = null
-						}
+						roadtrip.accounts.forEach(function (account) {
+							if (urlsData.find(urlData => urlData.accountid == account.id) !== undefined) {
+								account.profileData = urlsData.find(urlData => urlData.accountid == account.id).url
+							} else {
+								account.profileData = null
+							}
+						})
 					})
 					res.status(200).json({
 						status: 'success',
