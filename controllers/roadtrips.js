@@ -129,9 +129,6 @@ function duplicateRoadtrip(req, res, next) {
 								// do foreach sur les ids, créer chaque requete avec waypoint_id fixe et les lancer toutes d'un coup dans une promise.all 
 								let requestsVisits = []
 								waypointsDuplicatedIds.forEach(function (waypointInfo, index) {
-									console.log(waypointInfo[0].id)
-									console.log(waypointsToDuplicateIds[index].id)
-									// TODO maybe find a better way to differentiate the correct waypoint than using label, could have duplicates ?
 									requestsVisits.push(db.any(`INSERT INTO visit (sequence, waypoint_id, poi_id, transport) SELECT sequence, ${waypointInfo[0].id}, poi_id, transport FROM visit WHERE visit.waypoint_id IN (SELECT id from waypoint WHERE waypoint.id = ${waypointsToDuplicateIds[index].id})`))
 								});
 								Promise.all(requestsVisits).then(() => {
@@ -238,6 +235,7 @@ function getRoadtripDetails(req, res, next) {
 										})
 									)
 								} else {
+									// TODO check if useful/if we can optimize
 									// if he has no profile pictures, we return null in a promise so that they are in order in the promise all
 									accountPicturePromises.push(
 										new Promise((resolve, reject) => {
@@ -324,6 +322,8 @@ function getUserRoadtrips(req, res, next) {
 				var uniqueRoadtrips = []
 				var roadtripsId = []
 				var accountsId = []
+				// the unique array is not emptied between roadtrips (used to get medias)
+				var accountsIdUnique = []
 				var accountPicturePromises = []
 				roadtrips.forEach(roadtrip => {
 					if (!roadtripsId.includes(roadtrip.id)) {
@@ -335,23 +335,16 @@ function getUserRoadtrips(req, res, next) {
 					if (roadtrip.account_id !== null) {
 						if (!accountsId.includes(roadtrip.account_id)) {
 							uniqueRoadtrips[uniqueRoadtrips.length - 1].accounts.push({ "id": roadtrip.account_id, "firstname": roadtrip.firstname, "lastname": roadtrip.lastname, "dateborn": roadtrip.dateborn, "gender": roadtrip.gender, "biography": roadtrip.biography, "email": roadtrip.email, "phone": roadtrip.phone, "created_at": roadtrip.account_created_at, "updated_at": roadtrip.account_updated_at, "media_id": roadtrip.media_id, "status_id": roadtrip.account_status_id, "role_id": roadtrip.role_id, "participate_status": roadtrip.participate_status })
-							if (roadtrip.filepath !== null && roadtrip.filename !== null) {
+							if (!accountsIdUnique.includes(roadtrip.account_id) && roadtrip.filepath !== null && roadtrip.filename !== null) {
 								accountPicturePromises.push(
-									// TODO optimize to avoid doing queries for the same pictures multiple times (check unique media_id ?)
 									mediaController.getUrl(roadtrip.filepath, 'small_' + roadtrip.filename).then(function (url) {
 										if (url == undefined) {
-											return null
+											return { "url": null, "accountid": roadtrip.account_id }
 										}
-										return url
+										return { "url": url, "accountid": roadtrip.account_id }
 									})
 								)
-							} else {
-								// if he has no profile pictures, we return null in a promise so that they are in order in the promise all
-								accountPicturePromises.push(
-									new Promise((resolve, reject) => {
-										resolve(null)
-									})
-								)
+								accountsIdUnique.push(roadtrip.account_id)
 							}
 							accountsId.push(roadtrip.account_id)
 						}
@@ -363,15 +356,12 @@ function getUserRoadtrips(req, res, next) {
 					}
 				})
 				Promise.all(accountPicturePromises).then(function (urlsData) {
-					// urls are in order so we can just parse and add to roadtripFormatted.accounts
-					var roadtripIndex = 0
-					var counterProcessed = 0
-					urlsData.forEach(function (url, index) {
-						if ((index - counterProcessed) == uniqueRoadtrips[roadtripIndex].accounts.length) {
-							roadtripIndex++
-							counterProcessed += (index - counterProcessed)
+					uniqueRoadtrips.forEach(function (roadtrip) {
+						if (urlsData.find(urlData => urlData.accountid == account.id) !== undefined) {
+							account.profileData = urlsData.find(urlData => urlData.accountid == account.id).url
+						} else {
+							account.profileData = null
 						}
-						uniqueRoadtrips[roadtripIndex].accounts[index - counterProcessed].profileUrl = url
 					})
 					res.status(200).json({
 						status: 'success',
@@ -405,6 +395,8 @@ function getPublicRoadtrips(req, res, next) {
 		var uniqueRoadtrips = []
 		var roadtripsId = []
 		var accountsId = []
+		// the unique array is not emptied between roadtrips (used to get medias)
+		var accountsIdUnique = []
 		var accountPicturePromises = []
 		roadtrips.forEach(roadtrip => {
 			if (!roadtripsId.includes(roadtrip.id)) {
@@ -416,23 +408,17 @@ function getPublicRoadtrips(req, res, next) {
 			if (roadtrip.account_id !== null) {
 				if (!accountsId.includes(roadtrip.account_id)) {
 					uniqueRoadtrips[uniqueRoadtrips.length - 1].accounts.push({ "id": roadtrip.account_id, "firstname": roadtrip.firstname, "media_id": roadtrip.media_id, "participate_status": roadtrip.participate_status })
-					if (roadtrip.filepath !== null && roadtrip.filename !== null) {
+					if (!accountsIdUnique.includes(roadtrip.account_id) && roadtrip.filepath !== null && roadtrip.filename !== null) {
 						accountPicturePromises.push(
 							// TODO optimize to avoid doing queries for the same pictures multiple times (check unique media_id ?)
 							mediaController.getUrl(roadtrip.filepath, 'small_' + roadtrip.filename).then(function (url) {
 								if (url == undefined) {
-									return null
+									return { "url": null, "accountid": roadtrip.account_id }
 								}
-								return url
+								return { "url": url, "accountid": roadtrip.account_id }
 							})
 						)
-					} else {
-						// if he has no profile pictures, we return null in a promise so that they are in order in the promise all
-						accountPicturePromises.push(
-							new Promise((resolve, reject) => {
-								resolve(null)
-							})
-						)
+						accountsIdUnique.push(roadtrip.account_id)
 					}
 					accountsId.push(roadtrip.account_id)
 				}
@@ -444,15 +430,14 @@ function getPublicRoadtrips(req, res, next) {
 			}
 		})
 		Promise.all(accountPicturePromises).then(function (urlsData) {
-			// urls are in order so we can just parse and add to roadtripFormatted.accounts
-			var roadtripIndex = 0
-			var counterProcessed = 0
-			urlsData.forEach(function (url, index) {
-				if ((index - counterProcessed) == uniqueRoadtrips[roadtripIndex].accounts.length) {
-					roadtripIndex++
-					counterProcessed += (index - counterProcessed)
-				}
-				uniqueRoadtrips[roadtripIndex].accounts[index - counterProcessed].profileUrl = url
+			uniqueRoadtrips.forEach(function (roadtrip) {
+				roadtrip.accounts.forEach(function (account) {
+					if (urlsData.find(urlData => urlData.accountid == account.id) !== undefined) {
+						account.profileData = urlsData.find(urlData => urlData.accountid == account.id).url
+					} else {
+						account.profileData = null
+					}
+				})
 			})
 			res.status(200).json({
 				status: 'success',

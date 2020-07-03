@@ -23,7 +23,7 @@ function createVisit(req, res, next) {
 			db.task('update-priority-new-visit', async t => {
 				// first update the poi priority and visnumber
 				// to update priority -> ratio visnumber/visnumbermax in pourcentage
-				await t.none(`UPDATE poi SET visnumber = visnumber+1, priority = CAST((visnumber+1)*1. / (SELECT MAX(visnumber) FROM poi) * 100 AS smallint) WHERE id = ${data.poi_id}`)
+				await t.none(`UPDATE poi SET visnumber = visnumber+1, priority = CAST((visnumber+1)*1. / ((SELECT MAX(visnumber) FROM poi) +1) * 100 AS smallint) WHERE id = ${data.poi_id}`)
 				// then do the insert
 				return t.any(sql);
 			}).then(function (rows) {
@@ -137,7 +137,7 @@ function removeVisit(req, res, next) {
 						// get the poi's id
 						const poi_id = await t.one(`SELECT poi.id FROM poi INNER JOIN visit ON poi.id = visit.poi_id WHERE visit.id = ${visit_id}`)
 						// update visnumber and priority
-						await t.none(`UPDATE poi SET visnumber = visnumber-1, priority = CAST((visnumber-1)*1. / (SELECT MAX(visnumber) FROM poi) * 100 AS smallint) WHERE id = ${poi_id.id}`)
+						await t.none(`UPDATE poi SET visnumber = visnumber-1, priority = CAST((visnumber-1)*1. / ((SELECT MAX(visnumber) FROM poi) + 1) * 100 AS smallint) WHERE id = ${poi_id.id}`)
 						// then do the delete
 						return t.result('delete from visit where id = $1', visit_id);
 					}).then(function () {

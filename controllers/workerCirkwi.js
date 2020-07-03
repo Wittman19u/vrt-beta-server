@@ -52,7 +52,6 @@ function getPoisCirkwi(latitude, longitude, radius, dataFromDB) {
 					}
 				}
 				pois.data.data.forEach(poi => {
-					// TODO -> check unique GEOM before insert
 					// TODO description -> put in a JSON to allow multiple translations ?
 					// making sure we don't add a point twice
 					let sqlCheck = `SELECT 1 FROM poi WHERE sourceid = '${poi.id}' LIMIT 1`

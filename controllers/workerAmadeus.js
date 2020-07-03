@@ -15,10 +15,8 @@ parentPort.onmessage = function (e) {
 	})
 };
 
-// TODO rajouter en param la liste des sources ids et comparer dessus au lieu de faire requete sql ?
 // ne pas mettre de limite dans le premier appel (juste le radius)
 function getPoisAmadeus(params, dataFromDB) {
-	// TODO recuperer les 30, insert db
 	return new Promise((resolve, reject) => {
 		amadeus.shopping.hotelOffers.get(params).then(function (response) {
 			let hotels = [];

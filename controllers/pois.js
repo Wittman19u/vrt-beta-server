@@ -78,8 +78,8 @@ function getPoiDetails(req, res, next) {
 			var poiID = parseInt(req.params.id);
 			db.oneOrNone('select * from poi where id = $1', poiID)
 				.then(function (data) {
-					// TODO Update priority
 					//update priority when clicked
+					// commented because we do it on createVisit/removeVisit
 					// db.any('UPDATE public.poi SET po_priority = po_priority+50 WHERE po_latitude = $1 and po_longitude = $2;', [lat, lng])
 					// .then(function() {
 					//   db.any('UPDATE public.poi SET po_priority = (100*(po_priority - min))/(max-min) FROM (SELECT MAX(po_priority) as max, MIN(po_priority) as min FROM public.poi) as extremum WHERE extremum.min != 0 OR extremum.max != 100; ')
@@ -144,7 +144,6 @@ function getPois(req, res, next) {
 	});
 }
 
-// TODO check limit/offset?
 function getPoisByRadius(req, res, next) {
 	passport.authenticate('jwt', { session: false }, function (error, user, info) {
 		if (user === false || error || info !== undefined) {
@@ -186,30 +185,21 @@ function getPoisByRadius(req, res, next) {
 			}
 			sql += `ORDER BY priority DESC`;
 			db.any(sql).then(function (data) {
-				// TODO only check cirkwi if data.length too low
 				// launching worker on separated threads to do inserts from cirkwi
 				const worker = new Worker('./controllers/workerCirkwi.js')
 				worker.on('online', () => { worker.postMessage([req.query.latitude, req.query.longitude, req.query.radius, data]) })
 				// get data from db
-				let sqlCirkwi = `SELECT * FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND poi.source='Cirkwi' AND ${typecond} `
-				if (query !== undefined) {
-					// we use lower to make it case insensitive
-					sqlCirkwi += ` AND LOWER(label) like LOWER('%${query}%') `
-				}
-				sqlCirkwi += `ORDER BY priority DESC`;
-				db.any(sqlCirkwi).then(function (selectCirkwiData) {
-					res.status(200)
-						.json({
-							status: 'success',
-							itemsNumber: data.length + selectCirkwiData.length,
-							data: data.concat(selectCirkwiData),
-							message: 'Retrieved pois in radius'
-						});
-				}).catch(function (err) {
-					res.status(500).json({
-						status: 'Error',
-						error: `Error in select pois cirkwi : ${err}`
+				res.status(200)
+					.json({
+						status: 'success',
+						itemsNumber: data.length,
+						data: data,
+						message: 'Retrieved pois in radius'
 					});
+			}).catch(function (err) {
+				res.status(500).json({
+					status: 'Error',
+					error: `Error in select pois cirkwi : ${err}`
 				});
 			}).catch(function (err) {
 				console.error(err);

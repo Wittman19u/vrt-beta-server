@@ -37,7 +37,6 @@ function getActivities(req, res, next) {
 				message: 'Retrieved activities in bound from cache.'
 			});
 		} else {
-			// TODO question about geobuffer -> does not exist ???
 			let sql = `SELECT * FROM geobuffer where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom)`;
 			db.any(sql).then(function (cities) {
 				let startDate = req.query.startdate || moment().format('YYYY-MM-DD');
