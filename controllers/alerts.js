@@ -78,7 +78,6 @@ function sendInviteToRoadtrip(req, res, next) {
 					admin.messaging().send(message).then((response) => {
 						// TODO -> mettre promise all pour rejoindre les deux
 						// insert into alert (category 6 is roadtrip invite)
-						// TODO  use promise.all to reduce execution time
 						db.any(`INSERT INTO alert (title, message, recipient_id, sender_id, roadtrip_id, category_id) VALUES ('${alertTitle}', '${alertBody}', ${userId}, ${senderId}, ${roadtripId}, ${6})`).then(function () {
 							// insert into participate
 							db.any(`INSERT INTO participate (promoter, account_id, roadtrip_id, status) VALUES(false, ${userId}, ${roadtripId}, 3)`).then(function () {

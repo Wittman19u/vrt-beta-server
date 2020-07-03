@@ -404,7 +404,6 @@ function createMedia(req, res, next) {
 }
 
 // Method to retrieve all media from the authenticated user
-// TODO complete method, just a draft
 // function getUserMediaPublic(req, res, next) {
 //     // AJOUTER PASSPORT
 //     // CHANGER POUR RECUPERER EN FONCTION DE LA RELATION AUSSI

@@ -306,17 +306,17 @@ function getUserRoadtrips(req, res, next) {
 			let sql = `SELECT roadtrip.*, participate.promoter, participate.id as participatecolumn_id, participate.account_id AS participate_account_id, participate.roadtrip_id AS participate_roadtrip_id, participate.status AS participate_status, account.firstname, account.lastname, account.dateborn, account.gender, account.biography, account.email, account.phone, account.id AS account_id, account.created_at AS account_created_at, account.updated_at AS account_updated_at, account.media_id, account.status_id AS account_status_id, account.role_id, media.filepath, media.filename, poi.linkimg `
 			sql += `FROM (SELECT * FROM roadtrip WHERE roadtrip.id IN (select roadtrip_id from participate WHERE account_id = ${user.id}`
 			if (invited) {
-				sql += `AND status = 3)`
+				sql += ` AND status = 3)`
 			} else {
-				sql += `AND (status = 1 OR status = 2))`
+				sql += ` AND (status = 1 OR status = 2))`
 			}
 			if (status !== null) {
 				sql += ` AND roadtrip.status_id = ${status}`;
 				var todayString = new Date().toISOString().substr(0, 10)
 				if (status == 1) sql += ` AND roadtrip.start >= '${todayString}'`
 			}
-			sql += `ORDER BY updated_at DESC LIMIT ${limit} OFFSET ${offset}) roadtrip `
-			sql += `INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id LEFT JOIN media ON media.id = account.media_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id`
+			sql += ` ORDER BY updated_at DESC LIMIT ${limit} OFFSET ${offset}) roadtrip `
+			sql += ` INNER JOIN participate ON participate.roadtrip_id = roadtrip.id INNER JOIN account ON account.id = participate.account_id LEFT JOIN media ON media.id = account.media_id LEFT JOIN waypoint ON waypoint.roadtrip_id = roadtrip.id LEFT JOIN visit ON visit.waypoint_id = waypoint.id LEFT JOIN poi ON poi.id = visit.poi_id`
 			sql += ` ORDER BY roadtrip.updated_at DESC, participate.roadtrip_id`;
 			db.any(sql).then(function (roadtrips) {
 				var uniqueRoadtrips = []
@@ -410,7 +410,6 @@ function getPublicRoadtrips(req, res, next) {
 					uniqueRoadtrips[uniqueRoadtrips.length - 1].accounts.push({ "id": roadtrip.account_id, "firstname": roadtrip.firstname, "media_id": roadtrip.media_id, "participate_status": roadtrip.participate_status })
 					if (!accountsIdUnique.includes(roadtrip.account_id) && roadtrip.filepath !== null && roadtrip.filename !== null) {
 						accountPicturePromises.push(
-							// TODO optimize to avoid doing queries for the same pictures multiple times (check unique media_id ?)
 							mediaController.getUrl(roadtrip.filepath, 'small_' + roadtrip.filename).then(function (url) {
 								if (url == undefined) {
 									return { "url": null, "accountid": roadtrip.account_id }
