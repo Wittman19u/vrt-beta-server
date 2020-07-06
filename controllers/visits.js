@@ -132,7 +132,7 @@ function removeVisit(req, res, next) {
 			var visit_id = parseInt(req.params.id);
 			let sql = `SELECT * FROM participate WHERE roadtrip_id IN (SELECT roadtrip_id FROM waypoint WHERE id IN (SELECT waypoint_id FROM visit WHERE id = ${visit_id})) AND account_id = ${user.id} AND (status = 1 OR status = 2)`
 			db.any(sql).then(function (rows) {
-				if (rows[0].id !== null) {
+				if (rows[0] !== undefined) {
 					db.task('update-priority-remove-visit', async t => {
 						// get the poi's id
 						const poi_id = await t.one(`SELECT poi.id FROM poi INNER JOIN visit ON poi.id = visit.poi_id WHERE visit.id = ${visit_id}`)
