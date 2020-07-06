@@ -80,6 +80,7 @@ function getPoisViator(params, cities, dataFromDB) {
 						opt = db.any(sql, values);
 
 					} else {
+						// TODO check geom problem ?
 						opt = db.any('update poi set sourcetype=$1, label=$2, city=$3, latitude=$4, longitude=$5, web=$6, linkimg=$7, description=$8, type=$9, duration=$10,rating=$11, price=$12, geom=ST_GeomFromText($13,4326) WHERE source=$14 AND sourceid = $15 RETURNING id', [sourceType, act.name, act.city, act.latitude, act.longitude, act.link, act.image, act.description, 4, duration, act.rating, act.price, point, 'Viator', activity.code]);
 					}
 					calls.push(opt);
