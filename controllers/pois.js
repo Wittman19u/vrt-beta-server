@@ -44,7 +44,7 @@ function getCitiesByQuery(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			let query = req.query.query;
-			let sql = `SELECT * FROM poi where LOWER(label) like LOWER('${query}%') and source='sql.sh' ORDER BY label ASC Limit 5`;
+			let sql = `SELECT * FROM poi where LOWER(label) like LOWER('${query}%') and source='sql.sh' ORDER BY label ASC`;
 			db.any(sql).then(function (data) {
 				res.status(200).json({
 					status: 'success',
