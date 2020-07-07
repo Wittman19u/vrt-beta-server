@@ -52,7 +52,8 @@ function getPoisAmadeus(params, dataFromDB) {
 					price: `${offer.price.total} ${currency}` || '',
 					duration: '',
 					distance: `${hotel.hotelDistance.distance} ${hotel.hotelDistance.distanceUnit}` || '',
-					rating: hotel.rating
+					rating: hotel.rating,
+					category_id : 16
 				};
 				hotels.push(hot);
 				// CREATE ACTIVITIES in OUR DB
@@ -65,10 +66,14 @@ function getPoisAmadeus(params, dataFromDB) {
 				});
 				let opt;
 				if (index === undefined) {
-					let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, street, zipcode, city, latitude, longitude, web, linkimg, description, type, rating, price, geom) VALUES( $1, $2, $3 , $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, ST_GeomFromText($17,4326)) RETURNING id;';
-					let values = ['Amadeus', hotel.hotelId, 'Hotel', hot.name, 'Hotel', hot.address, hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 5, hot.rating, parseFloat(offer.price.total), point];
-					opt = db.any(sql, values);
-
+					let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, street, zipcode, city, latitude, longitude, web, linkimg, description, type, rating, price, geom, category_id) VALUES( $1, $2, $3 , $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, ST_GeomFromText($17,4326), $18) RETURNING id;';
+					let values = ['Amadeus', hotel.hotelId, 'Hotel', hot.name, 'Hotel', hot.address, hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 5, hot.rating, parseFloat(offer.price.total), point, hot.category_id];
+					opt = db.task('insert-poi-and-category', async t => {
+						// insert the poi and get its id
+						const poi_id = await t.any(sql, values)
+						// insert categories in relational table
+						await t.none(`INSERT INTO poi_category(poi_id, category_id) VALUES (${poi_id[0].id, 16})`)
+					})
 				} else {
 					opt = db.any('update poi set label=$1, street=$2, zipcode=$3, city=$4, latitude=$5, longitude=$6, web=$7, linkimg=$8, description=$9, type=$10, rating=$11, price=$12, geom=ST_GeomFromText($13,4326) WHERE source=$14 AND sourceid = $15 RETURNING id;', [hot.name, hot.address, hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 5, hot.rating, parseFloat(offer.price.total), point, 'Amadeus', hotel.hotelId]);
 				}

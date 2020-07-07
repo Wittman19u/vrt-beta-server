@@ -100,6 +100,7 @@ function getPoiDetails(req, res, next) {
 }
 
 function getPois(req, res, next) {
+	console.log('Calling getPois !')
 	let boundsobj = {
 		south: req.query.south,
 		west: req.query.west,
@@ -159,6 +160,7 @@ function getPoisByRadius(req, res, next) {
 			console.error(message);
 			res.status(403).json(message);
 		} else {
+			console.log('Calling getPoisByRadius !')
 			let query = req.query.query
 			let radius = parseInt(req.query.radius) || 5;
 			let latitude = req.query.latitude;

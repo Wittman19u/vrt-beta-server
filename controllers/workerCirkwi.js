@@ -12,6 +12,7 @@ parentPort.onmessage = function (e) {
 
 function getPoisCirkwi(latitude, longitude, radius, dataFromDB) {
 	return new Promise((resolve, reject) => {
+		console.log('Calling workerCirkwi !')
 		axios({
 			method: 'post',
 			url: `${process.env.CIRKWI_URL}/oauth/v2/token`,
@@ -76,10 +77,10 @@ function getPoisCirkwi(latitude, longitude, radius, dataFromDB) {
 							duration: 0,
 							manuallyupdate: false
 						}
+						// TODO remove the category_id part because we now use a relational table
 						if (category.length == 0) {
 							poiDB.category_id = null
 						} else {
-							// TODO remanier la bdd pour avoir une autre table relationnel pour pouvoir avoir plusieurs categories
 							// si il contient la categorie 38, c'est un parking
 							let categoryParking = category.find(item => item.id_cirkwi == 38)
 							poiDB.category_id = categoryParking == undefined ? category[0].id_category : categoryParking.id_category
@@ -101,10 +102,25 @@ function getPoisCirkwi(latitude, longitude, radius, dataFromDB) {
 							poiDB.description = poi.translations[poi.locales[0]].description
 							poiDB.web = poi.translations[poi.locales[0]].uri
 						}
+						// remove xml from description with regex parsing (removing everything between < >)
+						poiDB.description = poiDB.description.replace(/\s*\<.*?\>\s*/g, '')
 						let index = dataFromDB.find(item => item.sourceid == poi.id);
 						// if the poi was not returned from the request then we insert it, else we update it
 						if (index === undefined) {
-							requestsPois.push(db.any('INSERT INTO poi ($1:name) VALUES($1:csv) RETURNING id;', [poiDB]))
+							requestsPois.push(
+								db.task('insert-poi-and-category', async t => {
+									// insert the poi and get its id
+									const poi_id = await t.any('INSERT INTO poi ($1:name) VALUES($1:csv) RETURNING id;', [poiDB])
+									// insert categories in relational table
+									const category_values = getCategoryValuesSql(category, poi_id[0].id)
+									if (category_values !== null) {
+										await t.none(`INSERT INTO poi_category(poi_id, category_id) VALUES ${category_values}`)
+									}
+								}).catch(function (err) {
+									console.error(err);
+									reject(`error in insert pois task : ${err}`)
+								})
+							)
 						} else {
 							requestsPois.push(db.any('update poi set sourcetype=$1, label=$2, city=$3, latitude=$4, longitude=$5, web=$6, linkimg=$7, description=$8, type=$9, duration=$10,rating=$11, price=$12, category_id=$13, geom=$14 WHERE source=$15 AND sourceid = $16 RETURNING id', [poiDB.sourcetype, poiDB.label, poiDB.city, poiDB.latitude, poiDB.longitude, poiDB.web, poiDB.linkimg, poiDB.description, poiDB.type, poiDB.duration, poiDB.rating, poiDB.price, poiDB.category_id, poiDB.geom, poiDB.source, poiDB.sourceid]));
 						}
@@ -127,4 +143,17 @@ function getPoisCirkwi(latitude, longitude, radius, dataFromDB) {
 	}).catch(function (err) {
 		console.error(err);
 	});
+}
+
+function getCategoryValuesSql(category, poi_id) {
+	if (category.length == 0) {
+		return null
+	} else {
+		let sql = ''
+		category.forEach(cat => {
+			sql += ',( '+poi_id+', '+cat.id_category+')'
+		})
+		// substring to remove the first comma
+		return sql.substring(1)
+	}
 }
