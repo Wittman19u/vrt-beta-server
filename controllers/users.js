@@ -62,7 +62,7 @@ function createUser(req, res, next) {
 			res.status(status).json(message);
 		} else {
 			// TODO reduce expiresIn delay
-			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '12h' });
+			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '168h' });
 			//req.user = user;
 			res.setLocale(user.language);
 			const mailOptions = {
@@ -79,7 +79,7 @@ function createUser(req, res, next) {
 						message: `Your account was created, but there was an error sending email: ${error}`
 					});
 				}
-				// ccheck 'invited' table : if user was invited to a roadtrip, create an alert + insert dans participate avec status 3
+				// check 'invited' table : if user was invited to a roadtrip, create an alert + insert dans participate avec status 3
 				db.any(`SELECT email, sender_id, roadtrip_id, title FROM invited LEFT JOIN roadtrip ON roadtrip.id = invited.roadtrip_id WHERE email = '${user.email}'`).then(function (rows) {
 					if (rows[0] !== undefined) {
 						// he was invited

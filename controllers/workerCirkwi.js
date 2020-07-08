@@ -122,7 +122,10 @@ function getPoisCirkwi(latitude, longitude, radius, dataFromDB) {
 								})
 							)
 						} else {
-							requestsPois.push(db.any('update poi set sourcetype=$1, label=$2, city=$3, latitude=$4, longitude=$5, web=$6, linkimg=$7, description=$8, type=$9, duration=$10,rating=$11, price=$12, category_id=$13, geom=$14 WHERE source=$15 AND sourceid = $16 RETURNING id', [poiDB.sourcetype, poiDB.label, poiDB.city, poiDB.latitude, poiDB.longitude, poiDB.web, poiDB.linkimg, poiDB.description, poiDB.type, poiDB.duration, poiDB.rating, poiDB.price, poiDB.category_id, poiDB.geom, poiDB.source, poiDB.sourceid]));
+							// we check if the poi has been updated by cirkwi
+							if (index.sourcelastupdate !== poiDB.sourcelastupdate) {
+								requestsPois.push(db.any('update poi set sourcetype=$1, label=$2, city=$3, latitude=$4, longitude=$5, web=$6, linkimg=$7, description=$8, type=$9, duration=$10,rating=$11, price=$12, category_id=$13, geom=$14 WHERE source=$15 AND sourceid = $16 RETURNING id', [poiDB.sourcetype, poiDB.label, poiDB.city, poiDB.latitude, poiDB.longitude, poiDB.web, poiDB.linkimg, poiDB.description, poiDB.type, poiDB.duration, poiDB.rating, poiDB.price, poiDB.category_id, poiDB.geom, poiDB.source, poiDB.sourceid]));
+							}
 						}
 					})
 				});
@@ -145,13 +148,13 @@ function getPoisCirkwi(latitude, longitude, radius, dataFromDB) {
 	});
 }
 
-function getCategoryValuesSql(category, poi_id) {
-	if (category.length == 0) {
+function getCategoryValuesSql(categories, poi_id) {
+	if (categories.length == 0) {
 		return null
 	} else {
 		let sql = ''
-		category.forEach(cat => {
-			sql += ',( '+poi_id+', '+cat.id_category+')'
+		categories.forEach(cat => {
+			sql += ',( ' + poi_id + ', ' + cat.id_category + ')'
 		})
 		// substring to remove the first comma
 		return sql.substring(1)

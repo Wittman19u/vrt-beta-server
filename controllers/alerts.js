@@ -64,7 +64,7 @@ function sendInviteToRoadtrip(req, res, next) {
 			var roadtripId = req.query.roadtripId
 			// we do an inner join on participate to make sure the sender does participate in the roadtrip
 			db.any('SELECT firebasetoken, title FROM account FULL JOIN roadtrip ON roadtrip.id = $1 INNER JOIN participate ON participate.account_id = $2 AND participate.roadtrip_id = roadtrip.id WHERE account.id = $3', [roadtripId, senderId, userId]).then(function (row) {
-				if (row[0] != null && row[0].firebasetoken != null) { 
+				if (row[0] != null && row[0].firebasetoken != null) {
 					// send notif
 					var alertTitle = 'You received an invitation to a roadtrip !'
 					var alertBody = `You were invited to join the roadtrip "${row[0].title}" !`
@@ -76,38 +76,29 @@ function sendInviteToRoadtrip(req, res, next) {
 						token: row[0].firebasetoken
 					}
 					admin.messaging().send(message).then((response) => {
-						// TODO -> mettre promise all pour rejoindre les deux
-						// insert into alert (category 6 is roadtrip invite)
-						db.any(`INSERT INTO alert (title, message, recipient_id, sender_id, roadtrip_id, category_id) VALUES ('${alertTitle}', '${alertBody}', ${userId}, ${senderId}, ${roadtripId}, ${6})`).then(function () {
-							// insert into participate
-							db.any(`INSERT INTO participate (promoter, account_id, roadtrip_id, status) VALUES(false, ${userId}, ${roadtripId}, 3)`).then(function () {
-								res.status(200).json({
-									status: 'Success',
-									message: `Inserted into alert and participate. Sent notif : ${response}`
-								})
-							}).catch(function (err) {
-								res.status(500).json({
-									status: 'error',
-									message: `Problem during insert DB (participate): ${err}`
-								})
-							});
+						db.task('insert-alert-participate', async t => {
+							// insert into alert (category 6 is roadtrip invite)
+							return t.none(`INSERT INTO alert (title, message, recipient_id, sender_id, roadtrip_id, category_id) VALUES ('${alertTitle}', '${alertBody}', ${userId}, ${senderId}, ${roadtripId}, ${6})`).then(function () {
+								// insert into participate
+								return t.none(`INSERT INTO participate (promoter, account_id, roadtrip_id, status) VALUES(false, ${userId}, ${roadtripId}, 3)`)
+							})
+						}).then(function () {
+							res.status(200).json({
+								status: 'Success',
+								message: `Inserted into alert and participate. Sent notif : ${response}`
+							})
 						}).catch(function (err) {
 							res.status(500).json({
 								status: 'error',
-								message: `Problem during insert DB (alerts): ${err}`
+								message: `Problem during insert DB (task): ${err}`
 							})
 						});
-					},(err) => {
+					}, (err) => {
 						res.status(500).json({
 							status: 'error',
 							message: `Problem sending firebase notification: ${err}`
 						})
-					}).catch(function (err) {
-						res.status(500).json({
-							status: 'error',
-							message: `Problem during insert DB (alerts): ${err}`
-						})
-					});
+					})
 				} else {
 					res.status(403).json({
 						status: 'Error',
@@ -222,7 +213,7 @@ function updateAlert(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			let sql = `UPDATE alert SET isread = true WHERE recipient_id = ${user.id}`
-			if (req.body.alertIds !== undefined) {
+			if (req.body.alertIds !== undefined && req.body.alertIds !== null) {
 				sql += ` AND id IN (${req.body.alertIds.join(', ')})`
 			}
 			db.any(sql).then(function () {
