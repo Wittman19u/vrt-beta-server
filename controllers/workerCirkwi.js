@@ -5,12 +5,10 @@ const { parentPort } = require('worker_threads')
 
 parentPort.onmessage = function (e) {
 	// the passed-in data is available via e.data
-	getPoisCirkwi(e.data[0], e.data[1], e.data[2], e.data[3]).then(function (response) {
-		console.log(response)
-	})
+	getPoisCirkwi(e.data[0], e.data[1])
 };
 
-function getPoisCirkwi(latitude, longitude, radius, dataFromDB) {
+function getPoisCirkwi(params, dataFromDB) {
 	return new Promise((resolve, reject) => {
 		console.log('Calling workerCirkwi !')
 		axios({
@@ -32,11 +30,7 @@ function getPoisCirkwi(latitude, longitude, radius, dataFromDB) {
 			axios({
 				method: 'get',
 				url: `${process.env.CIRKWI_URL}/v1/objects`,
-				params: {
-					lat: latitude,
-					lng: longitude,
-					radius: radius || 5
-				},
+				params: params,
 				headers: { 'Authorization': `Bearer ${auth}` }
 			}).then(pois => {
 				let requestsPois = []
@@ -107,25 +101,28 @@ function getPoisCirkwi(latitude, longitude, radius, dataFromDB) {
 						let index = dataFromDB.find(item => item.sourceid == poi.id);
 						// if the poi was not returned from the request then we insert it, else we update it
 						if (index === undefined) {
-							requestsPois.push(
-								db.task('insert-poi-and-category', async t => {
-									// insert the poi and get its id
-									const poi_id = await t.any('INSERT INTO poi ($1:name) VALUES($1:csv) RETURNING id;', [poiDB])
-									// insert categories in relational table
-									const category_values = getCategoryValuesSql(category, poi_id[0].id)
-									if (category_values !== null) {
-										await t.none(`INSERT INTO poi_category(poi_id, category_id) VALUES ${category_values}`)
-									}
-								}).catch(function (err) {
-									console.error(err);
-									reject(`error in insert pois task : ${err}`)
-								})
-							)
+							// make sure there is no point with the same geometry and label
+							if (dataFromDB.find(item => item.geom == poiDB.geom && item.label == poiDB.label) !== undefined) {
+								requestsPois.push(
+									db.task('insert-poi-and-category', async t => {
+										// insert the poi and get its id
+										const poi_id = await t.any('INSERT INTO poi ($1:name) VALUES($1:csv) RETURNING id;', [poiDB])
+										// insert categories in relational table
+										const category_values = getCategoryValuesSql(category, poi_id[0].id)
+										if (category_values !== null) {
+											await t.none(`INSERT INTO poi_category(poi_id, category_id) VALUES ${category_values}`)
+										}
+									}).catch(function (err) {
+										console.error(err);
+										reject(`error in insert pois task : ${err}`)
+									})
+								)
+							}
 						} else {
 							// we check if the poi has been updated by cirkwi
-							if (index.sourcelastupdate !== poiDB.sourcelastupdate) {
-								requestsPois.push(db.any('update poi set sourcetype=$1, label=$2, city=$3, latitude=$4, longitude=$5, web=$6, linkimg=$7, description=$8, type=$9, duration=$10,rating=$11, price=$12, category_id=$13, geom=$14 WHERE source=$15 AND sourceid = $16 RETURNING id', [poiDB.sourcetype, poiDB.label, poiDB.city, poiDB.latitude, poiDB.longitude, poiDB.web, poiDB.linkimg, poiDB.description, poiDB.type, poiDB.duration, poiDB.rating, poiDB.price, poiDB.category_id, poiDB.geom, poiDB.source, poiDB.sourceid]));
-							}
+							// if (index.sourcelastupdate !== poiDB.sourcelastupdate) {
+								requestsPois.push(db.any('update poi set sourcetype=$1, label=$2, city=$3, latitude=$4, longitude=$5, web=$6, linkimg=$7, description=$8, type=$9, duration=$10,rating=$11, price=$12, category_id=$13, geom=$14, sourcelastupdate=$17 WHERE source=$15 AND sourceid = $16 RETURNING id', [poiDB.sourcetype, poiDB.label, poiDB.city, poiDB.latitude, poiDB.longitude, poiDB.web, poiDB.linkimg, poiDB.description, poiDB.type, poiDB.duration, poiDB.rating, poiDB.price, poiDB.category_id, poiDB.geom, poiDB.source, poiDB.sourceid, poiDB.sourcelastupdate]));
+							// }
 						}
 					})
 				});

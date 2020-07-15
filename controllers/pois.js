@@ -100,6 +100,7 @@ function getPoiDetails(req, res, next) {
 }
 
 function getPois(req, res, next) {
+	// TODO add jwt
 	console.log('Calling getPois !')
 	let boundsobj = {
 		south: req.query.south,
@@ -111,8 +112,6 @@ function getPois(req, res, next) {
 	if (typeof req.query.datetime !== 'undefined') {
 		startDate = req.query.datetime;
 	}
-
-	// let typecond = ` (type=3 OR (type=2 AND sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) ) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
 	// TODO adapt this (remove LIKE '%' ...)
 	let typecond = ` (type=3 OR (type=2) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
 	switch (req.query.type) {
@@ -123,16 +122,14 @@ function getPois(req, res, next) {
 			typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
 			break;
 	}
-	// let sql= ` WITH points AS ( SELECT distinct on(cells.geom) cells.geom, cells.row, cells.col, poi.id,  MAX(poi.priority) AS bestpriority FROM  ST_CreateFishnet(4, 4,  ${boundsobj.north}, ${boundsobj.south}, ${boundsobj.east}, ${boundsobj.west}) AS cells INNER JOIN public.poi ON ST_Within(poi.geom, cells.geom) WHERE poi.source='Datatourisme' AND ${typecond} GROUP BY cells.row, cells.col, cells.geom, poi.id ORDER BY cells.geom, cells.row ASC, cells.col ASC,  bestpriority DESC ) SELECT * FROM poi INNER JOIN points ON poi.id=points.id`;
 	// TODO check limit (for example 200)
 	let sql = `SELECT * FROM poi where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom) AND ${typecond} ORDER BY priority DESC LIMIT 200`;
 	db.any(sql).then(function (data) {
-		//update priority when view
-		// db.any('UPDATE public.poi SET po_priority = po_priority+10 WHERE St_Within(po_geom,ST_GeomFromText(\'' + polygon+ '\',4326));')
-		// .then(function() {
-		//   db.any('UPDATE public.poi SET po_priority = (100*(po_priority - min))/(max-min) FROM (SELECT MAX(po_priority) as max, MIN(po_priority) as min FROM public.poi) as extremum WHERE extremum.min != 0 OR extremum.max != 100; ')
-		//   .catch(function(error){throw error});
-		// })
+		const worker = new Worker('./controllers/workerCirkwi.js')
+		let params = {
+			bounds: `[${boundsobj.south},${boundsobj.west},${boundsobj.north},${boundsobj.east}]`
+		}
+		worker.on('online', () => { worker.postMessage([params, data]) })
 		res.status(200)
 			.json({
 				status: 'success',
@@ -190,7 +187,12 @@ function getPoisByRadius(req, res, next) {
 			db.any(sql).then(function (data) {
 				// launching worker on separated threads to do inserts from cirkwi
 				const worker = new Worker('./controllers/workerCirkwi.js')
-				worker.on('online', () => { worker.postMessage([req.query.latitude, req.query.longitude, req.query.radius, data]) })
+				let params = {
+					lat: latitude,
+					lng: longitude,
+					radius: radius
+				}
+				worker.on('online', () => { worker.postMessage([params, data]) })
 				// get data from db
 				res.status(200)
 					.json({
