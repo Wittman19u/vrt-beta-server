@@ -28,12 +28,6 @@ function createRoadtrip(req, res, next) {
 					return pgp.as.format('ST_SetSRID(ST_MakePoint($1, $2),4326)', [this.x, this.y]);
 				}
 			}
-			if (req.body.account_id === null) {
-				res.status(500).json({
-					status: 'error',
-					message: 'account id missing'
-				})
-			}
 			// essential : title/departure/arrival/start/end						
 			let roadtrip = req.body.roadtrip
 			let waypoints = req.body.waypoints
@@ -48,14 +42,14 @@ function createRoadtrip(req, res, next) {
 			roadtrip.status_id = 3
 			db.any('INSERT INTO roadtrip ($1:name) VALUES($1:csv) RETURNING id;', [roadtrip]).then(function (rows) {
 				let roadtrip_id = rows[0].id;
-				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id, status) VALUES(true, ${req.body.account_id}, ${roadtrip_id}, 1) RETURNING id;`;
+				let sql = `INSERT INTO participate (promoter, account_id, roadtrip_id, status) VALUES(true, ${user.id}, ${roadtrip_id}, 1) RETURNING id;`;
 				db.any(sql).then(function (rows) {
 					if (waypoints) { // insert waypoints in relative table
 						waypoints.forEach(waypoint => {
 							delete waypoint["visits"]
 							waypoint.geom = `POINT(${waypoint.longitude} ${waypoint.latitude})`;
 							waypoint.roadtrip_id = roadtrip_id
-							waypoint.account_id = req.body.account_id
+							waypoint.account_id = user.id
 							// let sql = `INSERT INTO waypoint (label, day, sequence, transport, geom, latitude, longitude, roadtrip_id, account_id) VALUES('${waypoint.label}', ${waypoint.day}, ${waypoint.sequence}, ${waypoint.transport}, ST_GeomFromText('${geom}',4326), ${waypoint.latitude}, ${waypoint.longitude}, ${roadtrip_id}, ${req.body.account_id});`;
 							db.any('INSERT INTO waypoint ($1:name) VALUES ($1:csv);', [waypoint])
 								.catch(function (error) {
