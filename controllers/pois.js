@@ -44,7 +44,7 @@ function getCitiesByQuery(req, res, next) {
 			res.status(403).json(message);
 		} else {
 			let query = req.query.query;
-			let sql = `SELECT * FROM poi where LOWER(label) like LOWER('${query}%') and source='sql.sh' ORDER BY label ASC`;
+			let sql = `SELECT * FROM poi where LOWER(label) like LOWER('${query}%') and source='sql.sh' ORDER BY label ASC LIMIT 20`;
 			db.any(sql).then(function (data) {
 				res.status(200).json({
 					status: 'success',
@@ -123,20 +123,31 @@ function getPois(req, res, next) {
 			break;
 	}
 	// TODO check limit (for example 200)
-	let sql = `SELECT * FROM poi where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom) AND ${typecond} ORDER BY priority DESC LIMIT 200`;
+	let sql = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi LEFT JOIN poi_category ON poi.id = poi_category.poi_id where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom) AND ${typecond} ORDER BY priority DESC LIMIT 200`;
 	db.any(sql).then(function (data) {
+		// call cirkwi worker
 		const worker = new Worker('./controllers/workerCirkwi.js')
 		let params = {
 			bounds: `[${boundsobj.south},${boundsobj.west},${boundsobj.north},${boundsobj.east}]`
 		}
 		worker.on('online', () => { worker.postMessage([params, data]) })
-		res.status(200)
-			.json({
-				status: 'success',
-				itemsNumber: data.length,
-				data: data,
-				message: 'Retrieved pois in bound'
-			});
+		// get the categories of each poi
+		var poisId = []
+		var poisToReturn = []
+		data.forEach(poi => {
+			if (!poisId.includes(poi.id)) {
+				poi.categories = []
+				poisToReturn.push(poi)
+				poisId.push(poi.id)
+			}
+			poisToReturn[poisToReturn.length - 1].categories.push(poi.poi_category_category_id)
+		})
+		res.status(200).json({
+			status: 'success',
+			itemsNumber: poisToReturn.length,
+			data: poisToReturn,
+			message: 'Retrieved pois in bound'
+		});
 	}).catch(function (err) {
 		console.error(err);
 		return next(err);
@@ -178,7 +189,7 @@ function getPoisByRadius(req, res, next) {
 					break;
 			}
 
-			let sql = `SELECT * FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND ${typecond} `
+			let sql = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND ${typecond} `
 			if (query !== undefined) {
 				// we use lower to make it case insensitive
 				sql += `AND LOWER(label) like LOWER('%${query}%') `
@@ -194,13 +205,23 @@ function getPoisByRadius(req, res, next) {
 				}
 				worker.on('online', () => { worker.postMessage([params, data]) })
 				// get data from db
-				res.status(200)
-					.json({
-						status: 'success',
-						itemsNumber: data.length,
-						data: data,
-						message: 'Retrieved pois in radius'
-					});
+				// get the categories of each poi
+				var poisId = []
+				var poisToReturn = []
+				data.forEach(poi => {
+					if (!poisId.includes(poi.id)) {
+						poi.categories = []
+						poisToReturn.push(poi)
+						poisId.push(poi.id)
+					}
+					poisToReturn[poisToReturn.length - 1].categories.push(poi.poi_category_category_id)
+				})
+				res.status(200).json({
+					status: 'success',
+					itemsNumber: poisToReturn.length,
+					data: poisToReturn,
+					message: 'Retrieved pois in radius'
+				});
 			}).catch(function (err) {
 				res.status(500).json({
 					status: 'Error',
