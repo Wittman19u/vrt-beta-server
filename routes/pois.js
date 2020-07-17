@@ -240,6 +240,8 @@ router.get('/findCitiesByLabel', poiController.getCitiesByQuery);
  *     summary: Returns POIs in this Area (16 max)
  *     produces:
  *       - application/json
+ *     security:
+ *       - authorisationJWT: []
  *     parameters:
  *       - name: north
  *         required: true

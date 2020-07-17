@@ -100,58 +100,73 @@ function getPoiDetails(req, res, next) {
 }
 
 function getPois(req, res, next) {
-	// TODO add jwt
-	console.log('Calling getPois !')
-	let boundsobj = {
-		south: req.query.south,
-		west: req.query.west,
-		north: req.query.north,
-		east: req.query.east
-	};
-	let startDate = moment().format('YYYY-MM-DD');
-	if (typeof req.query.datetime !== 'undefined') {
-		startDate = req.query.datetime;
-	}
-	// TODO adapt this (remove LIKE '%' ...)
-	let typecond = ` (type=3 OR (type=2) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
-	switch (req.query.type) {
-		case "act":
-			typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
-			break;
-		case "poi":
-			typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
-			break;
-	}
-	// TODO check limit (for example 200)
-	let sql = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi LEFT JOIN poi_category ON poi.id = poi_category.poi_id where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom) AND ${typecond} ORDER BY priority DESC LIMIT 200`;
-	db.any(sql).then(function (data) {
-		// call cirkwi worker
-		const worker = new Worker('./controllers/workerCirkwi.js')
-		let params = {
-			bounds: `[${boundsobj.south},${boundsobj.west},${boundsobj.north},${boundsobj.east}]`
-		}
-		worker.on('online', () => { worker.postMessage([params, data]) })
-		// get the categories of each poi
-		var poisId = []
-		var poisToReturn = []
-		data.forEach(poi => {
-			if (!poisId.includes(poi.id)) {
-				poi.categories = []
-				poisToReturn.push(poi)
-				poisId.push(poi.id)
+	passport.authenticate('jwt', { session: false }, function (error, user, info) {
+		if (user === false || error || info !== undefined) {
+			let message = {
+				status: 'error',
+				error: error,
+				user: user
+			};
+			if (info !== undefined) {
+				message['message'] = info.message;
+				message['info'] = info;
 			}
-			poisToReturn[poisToReturn.length - 1].categories.push(poi.poi_category_category_id)
-		})
-		res.status(200).json({
-			status: 'success',
-			itemsNumber: poisToReturn.length,
-			data: poisToReturn,
-			message: 'Retrieved pois in bound'
-		});
-	}).catch(function (err) {
-		console.error(err);
-		return next(err);
-	});
+			console.error(message);
+			res.status(403).json(message);
+		} else {
+			console.log('Calling getPois !')
+			let boundsobj = {
+				south: req.query.south,
+				west: req.query.west,
+				north: req.query.north,
+				east: req.query.east
+			};
+			let startDate = moment().format('YYYY-MM-DD');
+			if (typeof req.query.datetime !== 'undefined') {
+				startDate = req.query.datetime;
+			}
+			// TODO adapt this (remove LIKE '%' ...)
+			let typecond = ` (type=3 OR (type=2) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
+			switch (req.query.type) {
+				case "act":
+					typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
+					break;
+				case "poi":
+					typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
+					break;
+			}
+			// TODO check limit (for example 200)
+			let sql = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi LEFT JOIN poi_category ON poi.id = poi_category.poi_id where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom) AND ${typecond} ORDER BY priority DESC LIMIT 200`;
+			db.any(sql).then(function (data) {
+				// call cirkwi worker
+				const worker = new Worker('./controllers/workerCirkwi.js')
+				let params = {
+					bounds: `[${boundsobj.south},${boundsobj.west},${boundsobj.north},${boundsobj.east}]`
+				}
+				worker.on('online', () => { worker.postMessage([params, data]) })
+				// get the categories of each poi
+				var poisId = []
+				var poisToReturn = []
+				data.forEach(poi => {
+					if (!poisId.includes(poi.id)) {
+						poi.categories = []
+						poisToReturn.push(poi)
+						poisId.push(poi.id)
+					}
+					poisToReturn[poisToReturn.length - 1].categories.push(poi.poi_category_category_id)
+				})
+				res.status(200).json({
+					status: 'success',
+					itemsNumber: poisToReturn.length,
+					data: poisToReturn,
+					message: 'Retrieved pois in bound'
+				});
+			}).catch(function (err) {
+				console.error(err);
+				return next(err);
+			});
+		}
+	})(req, res, next);
 }
 
 function getPoisByRadius(req, res, next) {
@@ -189,7 +204,7 @@ function getPoisByRadius(req, res, next) {
 					break;
 			}
 
-			let sql = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND ${typecond} `
+			let sql = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi LEFT JOIN poi_category ON poi.id = poi_category.poi_id where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND ${typecond} `
 			if (query !== undefined) {
 				// we use lower to make it case insensitive
 				sql += `AND LOWER(label) like LOWER('%${query}%') `
