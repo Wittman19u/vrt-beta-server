@@ -45,7 +45,6 @@ function getPoisAmadeus(params, dataFromDB) {
 					zipcode: hotel.address.postalCode || '',
 					city: hotel.address.cityName || '',
 					description: description || '',
-					image: hotel.media[0].uri.replace('http://', 'https://') || '',
 					link: hotel.web || '',
 					phone: hotel.contact.phone || '',
 					email: hotel.contact.email || '',
@@ -55,6 +54,9 @@ function getPoisAmadeus(params, dataFromDB) {
 					rating: hotel.rating,
 					category_id : 16
 				};
+				if (hotel.media !== undefined) {
+					hot.image = hotel.media[0].uri.replace('http://', 'https://') || ''
+				}
 				hotels.push(hot);
 				// CREATE ACTIVITIES in OUR DB
 				let point = `POINT(${hot.longitude} ${hot.latitude})`;

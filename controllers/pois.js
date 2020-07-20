@@ -126,7 +126,7 @@ function getPois(req, res, next) {
 				startDate = req.query.datetime;
 			}
 			// TODO adapt this (remove LIKE '%' ...)
-			let typecond = ` (type=3 OR (type=2) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
+			let typecond = ` (type=5 OR type=3 OR (type=2) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
 			switch (req.query.type) {
 				case "act":
 					typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
@@ -139,11 +139,11 @@ function getPois(req, res, next) {
 			let sql = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi LEFT JOIN poi_category ON poi.id = poi_category.poi_id where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom) AND ${typecond} ORDER BY priority DESC LIMIT 200`;
 			db.any(sql).then(function (data) {
 				// call cirkwi worker
-				const worker = new Worker('./controllers/workerCirkwi.js')
+				const workerCirkwi = new Worker('./controllers/workerCirkwi.js')
 				let params = {
 					bounds: `[${boundsobj.south},${boundsobj.west},${boundsobj.north},${boundsobj.east}]`
 				}
-				worker.on('online', () => { worker.postMessage([params, data]) })
+				workerCirkwi.on('online', () => { workerCirkwi.postMessage([params, data]) })
 				// get the categories of each poi
 				var poisId = []
 				var poisToReturn = []
@@ -194,7 +194,7 @@ function getPoisByRadius(req, res, next) {
 				startDate = req.query.datetime;
 			}
 			// TODO adapt this
-			let typecond = ` (type=3 OR type=2 OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
+			let typecond = ` (type=5 OR type=3 OR type=2 OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
 			switch (req.query.type) {
 				case "act":
 					typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
@@ -218,7 +218,15 @@ function getPoisByRadius(req, res, next) {
 					lng: longitude,
 					radius: radius
 				}
+				const workerAmadeus = new Worker('./controllers/workerAmadeus.js')
+				let paramsAmadeus = {
+					latitude: latitude,
+					longitude: longitude,
+					radius: radius,
+					radiusUnit: 'KM'
+				}
 				worker.on('online', () => { worker.postMessage([params, data]) })
+				workerAmadeus.on('online', () => { workerAmadeus.postMessage([paramsAmadeus, data]) })
 				// get data from db
 				// get the categories of each poi
 				var poisId = []
