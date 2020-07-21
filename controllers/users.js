@@ -190,7 +190,7 @@ function loginUser(req, res, next) {
 			console.error(message);
 			res.status(status).json(message);
 		} else {
-			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '12h' });
+			const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '168h' });
 			//req.user = user;
 			db.any('SELECT (SELECT COUNT(alert.id) FROM alert WHERE recipient_id = $1 AND isread = false), media.id AS media_id, media.filename, media.filepath, media.filesize, media.type, media.status_id, account.id AS account_id FROM media RIGHT JOIN account ON account.media_id = media.id WHERE account.id = $1', [user.id]).then(function (media) {
 				user.alerts = media[0].count

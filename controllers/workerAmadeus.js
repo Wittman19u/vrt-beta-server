@@ -7,17 +7,27 @@ const amadeus = new Amadeus({
 	clientSecret: process.env.AMADEUS_CLIENT_SECRET,
 	hostaneme: process.env.AMADEUS_HOSTNAME
 });
+const turf = require('@turf/turf')
 
 parentPort.onmessage = function (e) {
 	// the passed-in data is available via e.data
-	getPoisAmadeus(e.data[0], e.data[1]).then(function (response) {
-		console.log(response)
-	})
+	getPoisAmadeus(e.data[0], e.data[1])
 };
 
 // ne pas mettre de limite dans le premier appel (juste le radius)
 function getPoisAmadeus(params, dataFromDB) {
 	return new Promise((resolve, reject) => {
+		// these params never change so we assign them here directly
+		params.view = 'LIGHT'
+		params.sort = 'DISTANCE'
+		// we use turf to convert bounds to lat/lng/radius if needed
+		if (params.latitude == undefined) {
+			var center = turf.midpoint(turf.point([parseFloat(params.bounds.south), parseFloat(params.bounds.west)]), turf.point([parseFloat(params.bounds.north), parseFloat(params.bounds.east)]))
+			var distance = turf.distance(center, turf.point([parseFloat(params.bounds.south), parseFloat(params.bounds.west)]))
+			params.latitude = center.geometry.coordinates[0]
+			params.longitude = center.geometry.coordinates[1]
+			params.radius = parseInt(distance)
+		}
 		amadeus.shopping.hotelOffers.get(params).then(function (response) {
 			let hotels = [];
 			let calls = [];
@@ -52,7 +62,7 @@ function getPoisAmadeus(params, dataFromDB) {
 					duration: '',
 					distance: `${hotel.hotelDistance.distance} ${hotel.hotelDistance.distanceUnit}` || '',
 					rating: hotel.rating,
-					category_id : 16
+					category_id: 16
 				};
 				if (hotel.media !== undefined) {
 					hot.image = hotel.media[0].uri.replace('http://', 'https://') || ''
@@ -75,6 +85,9 @@ function getPoisAmadeus(params, dataFromDB) {
 						const poi_id = await t.any(sql, values)
 						// insert categories in relational table
 						await t.none(`INSERT INTO poi_category(poi_id, category_id) VALUES (${poi_id[0].id, 16})`)
+					}).catch(function (err) {
+						console.error(err);
+						reject(`error in insert pois task : ${err}`)
 					})
 				} else {
 					opt = db.any('update poi set label=$1, street=$2, zipcode=$3, city=$4, latitude=$5, longitude=$6, web=$7, linkimg=$8, description=$9, type=$10, rating=$11, price=$12, geom=ST_GeomFromText($13,4326) WHERE source=$14 AND sourceid = $15 RETURNING id;', [hot.name, hot.address, hot.zipCode, hot.city, hot.latitude, hot.longitude, hot.link, hot.image, hot.description, 5, hot.rating, parseFloat(offer.price.total), point, 'Amadeus', hotel.hotelId]);

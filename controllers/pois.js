@@ -143,7 +143,13 @@ function getPois(req, res, next) {
 				let params = {
 					bounds: `[${boundsobj.south},${boundsobj.west},${boundsobj.north},${boundsobj.east}]`
 				}
+				const workerAmadeus = new Worker('./controllers/workerAmadeus.js')
+				let paramsAmadeus = {
+					bounds: boundsobj,
+					radiusUnit: 'KM'
+				}
 				workerCirkwi.on('online', () => { workerCirkwi.postMessage([params, data]) })
+				workerAmadeus.on('online', () => { workerAmadeus.postMessage([paramsAmadeus, data]) })
 				// get the categories of each poi
 				var poisId = []
 				var poisToReturn = []
