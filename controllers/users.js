@@ -582,7 +582,7 @@ function updateUser(req, res, next) {
 				let userUpdate = req.body.user
 				userUpdate.updated_at = roadtripController.getStringDateFormatted()
 				const condition = pgp.as.format(' WHERE id = $1', user.id);
-				let sql = pgp.helpers.update(userUpdate, ['firstname', 'lastname', 'dateborn', 'gender', 'biography', 'email', 'phone', 'language', 'media_id', 'firebasetoken', 'updated_at'], 'account') + condition;
+				let sql = pgp.helpers.update(userUpdate, ['firstname', 'lastname', 'dateborn', 'gender', 'email', 'phone', 'language', 'updated_at'], 'account') + condition;
 				db.none(sql).then(function () {
 					res.status(200)
 						.json({
