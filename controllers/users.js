@@ -578,6 +578,7 @@ function updateUser(req, res, next) {
 		} else {
 			if (user.id === parseInt(req.params.id)) {
 				const pgp = db.$config.pgp;
+				console.log(req.body)
 				let userUpdate = req.body.user
 				userUpdate.updated_at = roadtripController.getStringDateFormatted()
 				const condition = pgp.as.format(' WHERE id = $1', user.id);
