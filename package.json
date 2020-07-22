@@ -7,6 +7,7 @@
     "start-watch": "nodemon ./bin/www"
   },
   "dependencies": {
+    "@turf/turf": "^5.1.6",
     "amadeus": "^3.3.0",
     "async": "^3.2.0",
     "axios": "^0.19.2",

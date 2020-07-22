@@ -1,5 +1,6 @@
 const db = require('./db');
 const axios = require('axios');
+const roadtripController = require('../controllers/roadtrips');
 const { parentPort } = require('worker_threads')
 
 parentPort.onmessage = function (e) {
@@ -51,7 +52,8 @@ function getPoisViator(params, cities, dataFromDB) {
 						email: '',
 						price: activity.price || '',
 						duration: activity.duration || '',
-						rating: activity.rating
+						rating: activity.rating,
+						updated_at: roadtripController.getStringDateFormatted()
 					};
 					resultList.push(act);
 					// CREATE ACTIVITIES in OUR DB
@@ -67,12 +69,7 @@ function getPoisViator(params, cities, dataFromDB) {
 						}
 					}
 					let sourceType = `catIds:[${activity.catIds.join(',')}] subCatIds: [${activity.subCatIds.join(',')}]`;
-					let index = dataFromDB.find((item) => {
-						if (item.source === 'Viator' && item.sourceid === activity.code) {
-							return true;
-						}
-						return false;
-					});
+					let index = dataFromDB.find((item) => item.source == 'Viator' && item.sourceid == activity.code) 
 					let opt;
 					if (index === undefined) {
 						let sql = 'INSERT INTO poi (source, sourceid, sourcetype, label, sourcetheme, city, latitude, longitude, web, linkimg, description, type, duration,rating, price, geom) VALUES( $1, $2, $3 , $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, ST_GeomFromText($16,4326)) RETURNING id;';
@@ -81,14 +78,14 @@ function getPoisViator(params, cities, dataFromDB) {
 
 					} else {
 						// TODO check geom problem ?
-						opt = db.any('update poi set sourcetype=$1, label=$2, city=$3, latitude=$4, longitude=$5, web=$6, linkimg=$7, description=$8, type=$9, duration=$10,rating=$11, price=$12, geom=ST_GeomFromText($13,4326) WHERE source=$14 AND sourceid = $15 RETURNING id', [sourceType, act.name, act.city, act.latitude, act.longitude, act.link, act.image, act.description, 4, duration, act.rating, act.price, point, 'Viator', activity.code]);
+						opt = db.any('update poi set sourcetype=$1, label=$2, city=$3, latitude=$4, longitude=$5, web=$6, linkimg=$7, description=$8, type=$9, duration=$10,rating=$11, price=$12, geom=ST_GeomFromText($13,4326), updated_at=$16 WHERE source=$14 AND sourceid = $15 RETURNING id', [sourceType, act.name, act.city, act.latitude, act.longitude, act.link, act.image, act.description, 4, duration, act.rating, act.price, point, 'Viator', activity.code, atc.updated_at]);
 					}
 					calls.push(opt);
 				}
-				Promise.all(calls).then((ids) => {
-					for (let i = 0; i < ids.length; i++) {
-						resultList[i].id = ids[i][0].id;
-					}
+				Promise.all(calls).then((resultList) => {
+					// for (let i = 0; i < ids.length; i++) {
+					// 	resultList[i].id = ids[i][0].id;
+					// }
 					resolve(resultList)
 				}).catch(error => {
 					reject(error)

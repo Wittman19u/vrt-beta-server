@@ -126,30 +126,32 @@ function getPois(req, res, next) {
 				startDate = req.query.datetime;
 			}
 			// TODO adapt this (remove LIKE '%' ...)
-			let typecond = ` (type=5 OR type=3 OR (type=2) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
-			switch (req.query.type) {
-				case "act":
-					typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
-					break;
-				case "poi":
-					typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
-					break;
-			}
+			// let typecond = ` (type=5 OR type=3 OR (type=2) OR ( (type=1 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
+			// switch (req.query.type) {
+			// 	case "act":
+			// 		typecond = ` (type=1 AND start::timestamp::date > '${startDate}'::timestamp::date) OR type=3`;
+			// 		break;
+			// 	case "poi":
+			// 		typecond = ` sourcetype NOT LIKE ALL(ARRAY['%schema:Hotel%','%schema:Restaurant%','%schema:LodgingBusiness%', '%schema:TouristInformationCenter%']) AND (type=2 AND ((start::timestamp::date > '${startDate}'::timestamp::date) OR start IS NULL))))`;
+			// 		break;
+			// }
 			// TODO check limit (for example 200)
-			let sql = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi LEFT JOIN poi_category ON poi.id = poi_category.poi_id where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom) AND ${typecond} ORDER BY priority DESC LIMIT 200`;
+			let sql = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi LEFT JOIN poi_category ON poi.id = poi_category.poi_id where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom) ORDER BY priority DESC LIMIT 200`;
 			db.any(sql).then(function (data) {
 				// call cirkwi worker
 				const workerCirkwi = new Worker('./controllers/workerCirkwi.js')
 				let params = {
 					bounds: `[${boundsobj.south},${boundsobj.west},${boundsobj.north},${boundsobj.east}]`
 				}
+				let sqlCirkwi = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi LEFT JOIN poi_category ON poi.id = poi_category.poi_id where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom) AND source = 'cirkwi'`;
 				const workerAmadeus = new Worker('./controllers/workerAmadeus.js')
 				let paramsAmadeus = {
 					bounds: boundsobj,
 					radiusUnit: 'KM'
 				}
-				workerCirkwi.on('online', () => { workerCirkwi.postMessage([params, data]) })
-				workerAmadeus.on('online', () => { workerAmadeus.postMessage([paramsAmadeus, data]) })
+				let sqlAmadeus = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi LEFT JOIN poi_category ON poi.id = poi_category.poi_id where st_contains(ST_GeomFromText('POLYGON((${boundsobj.west} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.north}, ${boundsobj.east} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.south}, ${boundsobj.west} ${boundsobj.north}))', 4326), geom) AND source = 'Amadeus'`;
+				workerCirkwi.on('online', () => { workerCirkwi.postMessage([params, sqlCirkwi]) })
+				workerAmadeus.on('online', () => { workerAmadeus.postMessage([paramsAmadeus, sqlAmadeus]) })
 				// get the categories of each poi
 				var poisId = []
 				var poisToReturn = []
@@ -218,12 +220,13 @@ function getPoisByRadius(req, res, next) {
 			sql += `ORDER BY priority DESC`;
 			db.any(sql).then(function (data) {
 				// launching worker on separated threads to do inserts from cirkwi
-				const worker = new Worker('./controllers/workerCirkwi.js')
+				const workerCirkwi = new Worker('./controllers/workerCirkwi.js')
 				let params = {
 					lat: latitude,
 					lng: longitude,
 					radius: radius
 				}
+				let sqlCirkwi  = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi LEFT JOIN poi_category ON poi.id = poi_category.poi_id where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND source = 'cirkwi'`
 				const workerAmadeus = new Worker('./controllers/workerAmadeus.js')
 				let paramsAmadeus = {
 					latitude: latitude,
@@ -231,8 +234,9 @@ function getPoisByRadius(req, res, next) {
 					radius: radius,
 					radiusUnit: 'KM'
 				}
-				worker.on('online', () => { worker.postMessage([params, data]) })
-				workerAmadeus.on('online', () => { workerAmadeus.postMessage([paramsAmadeus, data]) })
+				let sqlAmadeus  = `SELECT poi.*, poi_category.poi_id, poi_category.category_id AS poi_category_category_id FROM poi LEFT JOIN poi_category ON poi.id = poi_category.poi_id where ST_DistanceSphere(geom, ST_MakePoint(${longitude},${latitude})) <= ${radius} * 1000 AND source = 'cirkwi'`
+				workerCirkwi.on('online', () => { workerCirkwi.postMessage([params, sqlCirkwi]) })
+				workerAmadeus.on('online', () => { workerAmadeus.postMessage([paramsAmadeus, sqlAmadeus]) })
 				// get data from db
 				// get the categories of each poi
 				var poisId = []
